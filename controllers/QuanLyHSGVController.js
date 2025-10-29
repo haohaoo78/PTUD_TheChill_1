@@ -1,3 +1,4 @@
+
 const QLModel = require('../models/QuanLyHSGVModels');
 
 class QuanLyHSGVController {
@@ -145,16 +146,17 @@ class QuanLyHSGVController {
     }
   }
 
-  async getLopByKhoi(req, res) {
-    try {
-      const { khoi } = req.params;
-      const data = await QLModel.getClassesByKhoi(khoi);
-      res.json({ success: true, data });
-    } catch (err) {
-      console.error(err);
-      res.json({ success: false, message: 'Lỗi khi lấy danh sách lớp theo khối' });
-    }
+async getClassesByKhoi(req, res) {
+  try {
+    const maKhoi = req.query.makhoi; // lấy từ query
+    const data = await QLModel.getClassesByKhoi(maKhoi);
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: 'Lỗi khi lấy danh sách lớp theo khối' });
   }
+}
+
 
   async getHocKy(req, res) {
     try {

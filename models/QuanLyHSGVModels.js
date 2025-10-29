@@ -4,12 +4,12 @@ const db = require('../config/database');
 class QLModel {
   // ==================== HỌC SINH ====================
 
-  static async getNamHocList() {
-    const [rows] = await db.execute(
-      'SELECT DISTINCT NamHoc FROM HocKy ORDER BY NamHoc DESC'
-    );
-    return rows.map(r => r.NamHoc);
-  }
+static async getNamHocList() {
+  const [rows] = await db.execute(
+    'SELECT DISTINCT NamHoc FROM HocKy ORDER BY NamHoc DESC'
+  );
+  return rows; // trả ra [{ NamHoc: '2023-2024' }, { NamHoc: '2022-2023' }]
+}
 
   static async getKhoiList() {
     const [rows] = await db.execute(
@@ -17,14 +17,13 @@ class QLModel {
     );
     return rows;
   }
-
-  static async getClassesByKhoi(MaKhoi) {
-    const [rows] = await db.execute(
-      'SELECT MaLop, TenLop FROM Lop WHERE Khoi = ? ORDER BY TenLop',
-      [MaKhoi]
-    );
-    return rows;
-  }
+static async getClassesByKhoi(maKhoi) {
+  const [rows] = await db.execute(
+    'SELECT MaLop, TenLop FROM Lop WHERE Khoi = ? ORDER BY TenLop',
+    [maKhoi]
+  );
+  return rows;
+}
 
   static async getStudentList() {
     const sql = `

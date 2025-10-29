@@ -22,7 +22,7 @@ router.delete('/giaovien/:id', quanly.deleteGiaoVien);
 // ---- Dropdown / filter phụ trợ ----
 router.get('/namhoc', quanly.getNamHoc);            // danh sách năm học
 router.get('/khoi', quanly.getKhoi);               // danh sách khối
-router.get('/lop/:khoi', quanly.getLopByKhoi);     // lớp theo khối
+router.get('/lop', quanly.getClassesByKhoi);  // lớp theo khối
 router.get('/hocky', quanly.getHocKy);             // danh sách học kỳ
 
 module.exports = router;
