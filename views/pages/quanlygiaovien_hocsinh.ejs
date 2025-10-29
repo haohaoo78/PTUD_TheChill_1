@@ -1,33 +1,69 @@
-
 <link rel="stylesheet" href="/css/quanlyHSGV.css">
 
-<div class="container ql-container">
-  <h3>Quản lý Học sinh & Giáo viên</h3>
+<div class="ql-container">
+  <h2>Quản lý Thông tin Học sinh / Giáo viên</h2>
 
-  <div class="ql-inner">
-    <!-- Sidebar trái -->
-    <div class="left">
-      <ul class="sidebar-nav">
-        <li class="active" data-page="hocsinh">Học sinh</li>
-        <li data-page="giaovien">Giáo viên</li>
-      </ul>
-      <div class="sidebar-actions">
-        <button id="btn-add-hs" class="btn primary">Thêm Học sinh</button>
-        <button id="btn-add-gv" class="btn primary">Thêm Giáo viên</button>
-      </div>
-    </div>
-
-    <!-- Nội dung tab bên phải -->
-    <div class="right">
-      <div id="tab-hocsinh" class="tab-pane">
-        <div id="hs-table-wrap"></div>
-      </div>
-      <div id="tab-giaovien" class="tab-pane" style="display:none;">
-        <div id="gv-table-wrap"></div>
-      </div>
-    </div>
+  <div class="management-selector">
+    <button id="manage-hs" class="btn active">Học sinh</button>
+    <button id="manage-gv" class="btn">Giáo viên</button>
   </div>
 
+  <!-- ========== HỌC SINH ========== -->
+  <section id="hs-section" class="section">
+    <div class="filter-pane">
+      <label>Năm học:</label>
+      <select id="filter-namhoc-hs"></select>
+      <label>Khối:</label>
+      <select id="filter-khoi-hs"></select>
+      <label>Lớp:</label>
+      <select id="filter-lop-hs"></select>
+      <button id="btn-filter-hs" class="btn primary">Xem</button>
+      <button id="btn-add-hs" class="btn primary">+ Thêm</button>
+    </div>
+
+    <table id="hs-table">
+      <thead>
+        <tr>
+          <th>Mã HS</th><th>Họ tên</th><th>Ngày sinh</th><th>Khối</th><th>Lớp</th>
+          <th>Giới tính</th><th>Trạng thái</th><th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- ========== GIÁO VIÊN ========== -->
+  <section id="gv-section" class="section" style="display:none;">
+    <div class="filter-pane">
+      <label>Bộ môn:</label>
+      <input type="text" id="filter-bomon-gv" placeholder="Nhập bộ môn...">
+      <button id="btn-filter-gv" class="btn primary">Xem</button>
+      <button id="btn-add-gv" class="btn primary">+ Thêm</button>
+    </div>
+
+    <table id="gv-table">
+      <thead>
+        <tr>
+          <th>Mã GV</th><th>Họ tên</th><th>Ngày sinh</th><th>Email</th>
+          <th>SĐT</th><th>Bộ môn</th><th>Giới tính</th><th>Trạng thái</th><th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 </div>
 
-<script src="/js/quanLyHSGV.js"></script>
+<!-- Modal -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span id="modal-close">&times;</span>
+    <h3 id="modal-title">Thêm/Sửa</h3>
+    <form id="modal-form">
+      <input type="hidden" id="modal-id">
+      <div id="modal-fields"></div>
+      <button type="submit" class="btn primary full">Lưu</button>
+    </form>
+  </div>
+</div>
+
+<script src="/js/quanlyHSGV.js"></script>

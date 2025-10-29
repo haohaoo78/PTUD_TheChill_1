@@ -1,11 +1,18 @@
-const GiaoVien = require('../models/QuanLyHSGVModels');
+const QLModel = require('../models/QuanLyHSGVModels');
 
 class QuanLyHSGVController {
-  // ✅ Render trang chính quản lý Học sinh / Giáo viên
+  // ==================== Render trang chính ====================
   async renderPage(req, res) {
     try {
+      const khoiList = await QLModel.getKhoiList();
+      const namHocList = await QLModel.getNamHocList();
       res.render('pages/quanlygiaovien_hocsinh', {
-        statusMessage: ''
+        khoiList,
+        namHocList,
+        selectedKhoi: '',
+        selectedClass: '',
+        selectedNamHoc: '',
+        classes: [],
       });
     } catch (err) {
       console.error(err);
@@ -13,90 +20,149 @@ class QuanLyHSGVController {
     }
   }
 
-  // ==================== HỌC SINH ====================
+  // ==================== Học sinh ====================
   async getHocSinh(req, res) {
     try {
       const { namHoc, khoi, lop } = req.query;
-      const hocsinh = await HocSinh.getAll(namHoc, khoi, lop);
-      res.render('pages/quanly_hocsinh', { hocsinh, statusMessage: '' });
+      const data = await QLModel.getStudentList(namHoc, khoi, lop);
+      res.json({ success: true, data });
     } catch (err) {
       console.error(err);
-      res.status(500).send('Lỗi khi lấy danh sách học sinh');
+      res.json({ success: false, message: 'Lỗi khi lấy danh sách học sinh' });
     }
   }
 
-  async editHocSinh(req, res) {
+  async getHocSinhById(req, res) {
     try {
-      if(req.method === 'GET') {
-        const hs = await HocSinh.getById(req.params.id);
-        res.render('pages/edit_hocsinh', { hs, statusMessage: '' });
-      } else if(req.method === 'POST') {
-        await HocSinh.update(req.params.id, req.body);
-        res.redirect('/quanly/hocsinh?namHoc=' + req.body.namHoc + '&khoi=' + req.body.khoi + '&lop=' + req.body.lop);
-      }
+      const data = await QLModel.getStudentById(req.params.id);
+      res.json({ success: true, data });
     } catch (err) {
       console.error(err);
-      res.status(500).send('Lỗi khi chỉnh sửa học sinh');
+      res.json({ success: false, message: 'Lỗi khi lấy thông tin học sinh' });
+    }
+  }
+
+  async addHocSinh(req, res) {
+    try {
+      await QLModel.addStudent(req.body);
+      res.json({ success: true, message: 'Thêm học sinh thành công' });
+    } catch (err) {
+      console.error(err);
+      res.json({ success: false, message: 'Lỗi khi thêm học sinh' });
+    }
+  }
+
+  async updateHocSinh(req, res) {
+    try {
+      await QLModel.updateStudent(req.params.id, req.body);
+      res.json({ success: true, message: 'Cập nhật học sinh thành công' });
+    } catch (err) {
+      console.error(err);
+      res.json({ success: false, message: 'Lỗi khi cập nhật học sinh' });
     }
   }
 
   async deleteHocSinh(req, res) {
     try {
-      await HocSinh.delete(req.params.id);
-      res.redirect('back');
+      await QLModel.deleteStudent(req.params.id);
+      res.json({ success: true, message: 'Học sinh đã ngừng học' });
     } catch (err) {
       console.error(err);
-      res.status(500).send('Lỗi khi xóa học sinh');
+      res.json({ success: false, message: 'Lỗi khi xóa học sinh' });
     }
   }
 
-  // ==================== GIÁO VIÊN ====================
+  // ==================== Giáo viên ====================
   async getGiaoVien(req, res) {
     try {
-      const giaovien = await GiaoVien.getAll();
-      res.render('pages/quanly_giaovien', { giaovien, statusMessage: '' });
+      const { boMon, trangThai } = req.query;
+      const data = await QLModel.getTeacherList(boMon, trangThai);
+      res.json({ success: true, data });
     } catch (err) {
       console.error(err);
-      res.status(500).send('Lỗi khi lấy danh sách giáo viên');
+      res.json({ success: false, message: 'Lỗi khi lấy danh sách giáo viên' });
     }
   }
 
-  async createGiaoVien(req, res) {
+  async getGiaoVienById(req, res) {
     try {
-      if(req.method === 'GET') {
-        res.render('pages/edit_giaovien', { gv: null, statusMessage: '' });
-      } else if(req.method === 'POST') {
-        await GiaoVien.create(req.body);
-        res.redirect('/quanly/giaovien');
-      }
+      const data = await QLModel.getTeacherById(req.params.id);
+      res.json({ success: true, data });
     } catch (err) {
       console.error(err);
-      res.status(500).send('Lỗi khi thêm giáo viên');
+      res.json({ success: false, message: 'Lỗi khi lấy thông tin giáo viên' });
     }
   }
 
-  async editGiaoVien(req, res) {
+  async addGiaoVien(req, res) {
     try {
-      if(req.method === 'GET') {
-        const gv = await GiaoVien.getById(req.params.id);
-        res.render('pages/edit_giaovien', { gv, statusMessage: '' });
-      } else if(req.method === 'POST') {
-        await GiaoVien.update(req.params.id, req.body);
-        res.redirect('/quanly/giaovien');
-      }
+      await QLModel.addTeacher(req.body);
+      res.json({ success: true, message: 'Thêm giáo viên thành công' });
     } catch (err) {
       console.error(err);
-      res.status(500).send('Lỗi khi chỉnh sửa giáo viên');
+      res.json({ success: false, message: 'Lỗi khi thêm giáo viên' });
+    }
+  }
+
+  async updateGiaoVien(req, res) {
+    try {
+      await QLModel.updateTeacher(req.params.id, req.body);
+      res.json({ success: true, message: 'Cập nhật giáo viên thành công' });
+    } catch (err) {
+      console.error(err);
+      res.json({ success: false, message: 'Lỗi khi cập nhật giáo viên' });
     }
   }
 
   async deleteGiaoVien(req, res) {
     try {
-      await GiaoVien.delete(req.params.id);
-      res.redirect('/quanly/giaovien');
+      await QLModel.deleteTeacher(req.params.id);
+      res.json({ success: true, message: 'Giáo viên đã ngừng hoạt động' });
     } catch (err) {
       console.error(err);
-      res.status(500).send('Lỗi khi xóa giáo viên');
+      res.json({ success: false, message: 'Lỗi khi xóa giáo viên' });
+    }
+  }
+
+  // ==================== Dropdown / filter phụ trợ ====================
+  async getNamHoc(req, res) {
+    try {
+      const data = await QLModel.getNamHocList();
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error(err);
+      res.json({ success: false, message: 'Lỗi khi lấy danh sách năm học' });
+    }
+  }
+
+  async getKhoi(req, res) {
+    try {
+      const data = await QLModel.getKhoiList();
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error(err);
+      res.json({ success: false, message: 'Lỗi khi lấy danh sách khối' });
+    }
+  }
+
+  async getLopByKhoi(req, res) {
+    try {
+      const { khoi } = req.params;
+      const data = await QLModel.getClassesByKhoi(khoi);
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error(err);
+      res.json({ success: false, message: 'Lỗi khi lấy danh sách lớp theo khối' });
+    }
+  }
+
+  async getHocKy(req, res) {
+    try {
+      const data = await QLModel.getHocKyList();
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error(err);
+      res.json({ success: false, message: 'Lỗi khi lấy danh sách học kỳ' });
     }
   }
 }

@@ -2,21 +2,27 @@ const express = require('express');
 const router = express.Router();
 const quanly = require('../controllers/QuanLyHSGVController');
 
-// Trang chính quản lý HSGV
+// Render page
 router.get('/render', quanly.renderPage);
 
-// Học sinh
+// ---- Học sinh ----
 router.get('/hocsinh', quanly.getHocSinh);
-router.get('/hocsinh/edit/:id', quanly.editHocSinh);
-router.post('/hocsinh/edit/:id', quanly.editHocSinh);
-router.post('/hocsinh/delete/:id', quanly.deleteHocSinh);
+router.get('/hocsinh/:id', quanly.getHocSinhById);
+router.post('/hocsinh', quanly.addHocSinh);
+router.put('/hocsinh/:id', quanly.updateHocSinh);
+router.delete('/hocsinh/:id', quanly.deleteHocSinh);
 
-// Giáo viên
+// ---- Giáo viên ----
 router.get('/giaovien', quanly.getGiaoVien);
-router.get('/giaovien/create',quanly.createGiaoVien);
-router.post('/giaovien/create',  quanly.createGiaoVien);
-router.get('/giaovien/edit/:id',  quanly.editGiaoVien);
-router.post('/giaovien/edit/:id',  quanly.editGiaoVien);
-router.post('/giaovien/delete/:id',quanly.deleteGiaoVien);
+router.get('/giaovien/:id', quanly.getGiaoVienById);
+router.post('/giaovien', quanly.addGiaoVien);
+router.put('/giaovien/:id', quanly.updateGiaoVien);
+router.delete('/giaovien/:id', quanly.deleteGiaoVien);
+
+// ---- Dropdown / filter phụ trợ ----
+router.get('/namhoc', quanly.getNamHoc);            // danh sách năm học
+router.get('/khoi', quanly.getKhoi);               // danh sách khối
+router.get('/lop/:khoi', quanly.getLopByKhoi);     // lớp theo khối
+router.get('/hocky', quanly.getHocKy);             // danh sách học kỳ
 
 module.exports = router;
