@@ -22,16 +22,16 @@ class QuanLyHSGVController {
   }
 
   // ==================== Học sinh ====================
-  async getHocSinh(req, res) {
-    try {
-      const { namHoc, khoi, lop } = req.query;
-      const data = await QLModel.getStudentList(namHoc, khoi, lop);
-      res.json({ success: true, data });
-    } catch (err) {
-      console.error(err);
-      res.json({ success: false, message: 'Lỗi khi lấy danh sách học sinh' });
-    }
+async getHocSinh(req, res) {
+  try {
+    const { namHoc, khoi, lop } = req.query;
+    const data = await QLModel.getStudentList(namHoc, khoi, lop);
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: 'Lỗi khi lấy danh sách học sinh' });
   }
+}
 
   async getHocSinhById(req, res) {
     try {
@@ -74,16 +74,16 @@ class QuanLyHSGVController {
   }
 
   // ==================== Giáo viên ====================
-  async getGiaoVien(req, res) {
-    try {
-      const { boMon, trangThai } = req.query;
-      const data = await QLModel.getTeacherList(boMon, trangThai);
-      res.json({ success: true, data });
-    } catch (err) {
-      console.error(err);
-      res.json({ success: false, message: 'Lỗi khi lấy danh sách giáo viên' });
-    }
+async getGiaoVien(req, res) {
+  try {
+    const { monHoc, trangThai } = req.query; // lấy đúng với frontend
+    const data = await QLModel.getTeacherList(monHoc, trangThai);
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: 'Lỗi khi lấy danh sách giáo viên' });
   }
+}
 
   async getGiaoVienById(req, res) {
     try {
@@ -167,6 +167,14 @@ async getClassesByKhoi(req, res) {
       res.json({ success: false, message: 'Lỗi khi lấy danh sách học kỳ' });
     }
   }
+  async getMonHoc(req, res) {
+  try {
+    const data = await QLModel.getMonHocList();
+    res.json({ success: true, data });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+}
 }
 
 module.exports = new QuanLyHSGVController();

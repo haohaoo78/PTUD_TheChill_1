@@ -17,15 +17,15 @@
       <select id="filter-khoi-hs"></select>
       <label>Lớp:</label>
       <select id="filter-lop-hs"></select>
-      <button id="btn-filter-hs" class="btn primary">Xem</button>
-      <button id="btn-add-hs" class="btn primary">+ Thêm</button>
+      <button id="btn-xem-hs" class="btn primary">Xem</button>
     </div>
 
     <table id="hs-table">
       <thead>
         <tr>
-          <th>Mã HS</th><th>Họ tên</th><th>Ngày sinh</th><th>Khối</th><th>Lớp</th>
-          <th>Giới tính</th><th>Trạng thái</th><th>Hành động</th>
+          <th>Mã HS</th><th>Họ tên</th><th>Ngày sinh</th>
+          <th>Khối</th><th>Lớp</th><th>Giới tính</th>
+          <th>Trạng thái</th><th>Hành động</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -35,17 +35,20 @@
   <!-- ========== GIÁO VIÊN ========== -->
   <section id="gv-section" class="section" style="display:none;">
     <div class="filter-pane">
-      <label>Bộ môn:</label>
-      <input type="text" id="filter-bomon-gv" placeholder="Nhập bộ môn...">
-      <button id="btn-filter-gv" class="btn primary">Xem</button>
-      <button id="btn-add-gv" class="btn primary">+ Thêm</button>
+      <label>Môn học:</label>
+        <select id="filter-monhoc-gv">
+          <option value="">-- Tất cả --</option>
+        </select>
+      <button id="btn-xem-gv">Xem</button>
+      <button id="btn-them-gv" class="add-btn">+ Thêm Giáo viên</button>
     </div>
 
     <table id="gv-table">
       <thead>
         <tr>
           <th>Mã GV</th><th>Họ tên</th><th>Ngày sinh</th><th>Email</th>
-          <th>SĐT</th><th>Bộ môn</th><th>Giới tính</th><th>Trạng thái</th><th>Hành động</th>
+          <th>SĐT</th><th>Bộ môn</th><th>Giới tính</th>
+          <th>Trạng thái</th><th>Hành động</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -53,14 +56,27 @@
   </section>
 </div>
 
-<!-- ========== MODAL ========== -->
+<!-- ========== MODAL GIÁO VIÊN ========== -->
 <div id="modal" class="modal">
   <div class="modal-content">
     <span id="modal-close">&times;</span>
-    <h3 id="modal-title">Thêm/Sửa</h3>
+    <h3 id="modal-title">Thêm/Sửa Giáo viên</h3>
     <form id="modal-form">
       <input type="hidden" id="modal-id">
       <div id="modal-fields"></div>
+      <button type="submit" class="btn primary full">Lưu</button>
+    </form>
+  </div>
+</div>
+
+<!-- ========== MODAL HỌC SINH ========== -->
+<div id="modal-hs" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="modal-hs-close" class="modal-close">&times;</span>
+    <h3 id="modal-hs-title">Thêm/Sửa Học sinh</h3>
+    <form id="modal-hs-form">
+      <input type="hidden" id="modal-hs-id">
+      <div id="modal-hs-fields"></div>
       <button type="submit" class="btn primary full">Lưu</button>
     </form>
   </div>

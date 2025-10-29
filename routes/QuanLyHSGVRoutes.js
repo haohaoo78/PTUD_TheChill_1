@@ -24,5 +24,6 @@ router.get('/namhoc', quanly.getNamHoc);            // danh sách năm học
 router.get('/khoi', quanly.getKhoi);               // danh sách khối
 router.get('/lop', quanly.getClassesByKhoi);  // lớp theo khối
 router.get('/hocky', quanly.getHocKy);             // danh sách học kỳ
+router.get('/monhoc', quanly.getMonHoc);
 
 module.exports = router;

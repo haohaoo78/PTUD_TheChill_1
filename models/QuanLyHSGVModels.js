@@ -25,27 +25,45 @@ static async getClassesByKhoi(maKhoi) {
   return rows;
 }
 
-  static async getStudentList() {
-    const sql = `
-      SELECT 
-        hs.MaHocSinh,
-        hs.TenHocSinh,
-        hs.Birthday,
-        hs.GioiTinh,
-        hs.TrangThai,
-        hs.KhoaHoc,
-        l.MaLop,
-        l.TenLop,
-        k.MaKhoi,
-        k.TenKhoi
-      FROM HocSinh hs
-      JOIN Lop l ON hs.MaLop = l.MaLop
-      JOIN Khoi k ON l.Khoi = k.MaKhoi
-      ORDER BY hs.TenHocSinh ASC
-    `;
-    const [rows] = await db.execute(sql);
-    return rows;
+static async getStudentList(namHoc, maKhoi, maLop) {
+  let sql = `
+    SELECT DISTINCT
+      hs.MaHocSinh,
+      hs.TenHocSinh,
+      hs.Birthday,
+      hs.GioiTinh,
+      hs.TrangThai,
+      hs.KhoaHoc,
+      l.MaLop,
+      l.TenLop,
+      k.MaKhoi,
+      k.TenKhoi
+    FROM HocSinh hs
+    JOIN Lop l ON hs.MaLop = l.MaLop
+    JOIN Khoi k ON l.Khoi = k.MaKhoi
+    WHERE 1=1
+  `;
+  const params = [];
+
+  if (namHoc) {
+    sql += ' AND hs.KhoaHoc = ?';
+    params.push(namHoc);
   }
+  if (maKhoi) {
+    sql += ' AND k.MaKhoi = ?';
+    params.push(maKhoi);
+  }
+  if (maLop) {
+    sql += ' AND l.MaLop = ?';
+    params.push(maLop);
+  }
+
+  sql += ' ORDER BY hs.TenHocSinh ASC';
+  const [rows] = await db.execute(sql, params);
+  return rows;
+}
+
+
 
   static async getStudentById(MaHS) {
     const [rows] = await db.execute(
@@ -96,9 +114,9 @@ static async getClassesByKhoi(maKhoi) {
     `;
     const params = [];
 
-    if (BoMon) {
-      query += ' AND TenMonHoc = ?';
-      params.push(BoMon);
+      if (BoMon) {
+      query += ' AND TenMonHoc LIKE ?';
+      params.push(`%${BoMon}%`);
     }
     if (TrangThai) {
       query += ' AND TrangThai = ?';
@@ -110,6 +128,13 @@ static async getClassesByKhoi(maKhoi) {
     const [rows] = await db.execute(query, params);
     return rows;
   }
+
+  static async getMonHocList() {
+  const [rows] = await db.execute(
+    "SELECT TenMonHoc FROM MonHoc WHERE TrangThai='Đang dạy' ORDER BY TenMonHoc"
+  );
+  return rows.map(r => r.TenMonHoc);
+}
 
   static async getTeacherById(MaGV) {
     const [rows] = await db.execute(
