@@ -11,7 +11,7 @@ global.db = require('./config/database');
 const DangNhapRoutes = require('./routes/DangNhapRouters');
 const ThoiKhoaBieuRoutes = require('./routes/ThoiKhoaBieuRoutes');
 const DuyetRoutes = require('./routes/DuyetYeuCauSuaDiemRoutes');
-const XetDiemRenLuyenRoutes = require('./routes/XetDiemRenLuyenRoutes');
+const ChiTieuRoutes = require('./routes/NhapChitieuTuyenSinhRoutes');
 
 const app = express();
 
@@ -34,7 +34,7 @@ app.use(session({
 app.use('/', DangNhapRoutes);
 app.use('/api/thoikhoabieu', ThoiKhoaBieuRoutes);
 app.use('/api/duyetyeucausuadiem', DuyetRoutes);
-app.use('/api/xetdiemrenluyen', XetDiemRenLuyenRoutes);
+app.use('/api/nhapchitieutuyensinh', ChiTieuRoutes);
 
 // TRANG CHÍNH
 app.get('/', (req, res) => {

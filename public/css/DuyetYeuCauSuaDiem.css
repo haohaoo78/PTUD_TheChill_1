@@ -1,252 +1,225 @@
-/* Section header */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+/* ==========================
+   GIAO DIỆN DUYỆT YÊU CẦU SỬA ĐIỂM (TONE XANH NAVY)
+   ========================== */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #f4f6fb;
+  color: #1c2a4a;
 }
 
-/* Dropdown */
-.history-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.history-btn {
-  background-color: #021b35;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  right: 0;
-  background-color: #f9f9f9;
-  min-width: 200px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-  border-radius: 5px;
-}
-
-.dropdown-content a {
-  color: black;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-}
-
-.dropdown-content a:hover {
-  background-color: #f1f1f1;
-}
-
-.history-dropdown:hover .dropdown-content {
-  display: block;
+/* Tiêu đề chính */
+.approve-section h2 {
+  color: #0d1b2a;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
 /* Bảng yêu cầu */
-#requests-table { width: 100%; border-collapse: collapse; margin-top: 20px; overflow-x: auto; }
-#requests-table th, #requests-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-#requests-table th { background-color: #021b35; color: white; font-weight: bold; }
-.text-red { color: red; }
-.text-green { color: green; }
-
-/* Modal xác nhận */
-.confirmation-modal {
-  display: none;
-  position: fixed;
-  z-index: 2000;
-  left: 0;
-  top: 0;
+#requests-table {
   width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.confirmation-modal .modal-content {
-  background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
-  border-radius: 8px;
-  width: 400px;
-  text-align: center;
-}
-
-.confirmation-modal h3 {
-  margin-top: 0;
-  color: #021b35;
-}
-
-.confirmation-modal .modal-actions {
+  border-collapse: collapse;
   margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 30, 70, 0.1);
 }
 
-.confirmation-modal #confirm-yes {
-  background-color: #021b35;
-  color: white;
+#requests-table thead {
+  background: #1b3b6f;
+  color: #fff;
+  text-transform: uppercase;
 }
 
-.confirmation-modal #confirm-no {
-  background-color: #e0e0e0;
-  color: #333;
+#requests-table th,
+#requests-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #e0e5ef;
+  text-align: center;
+  font-size: 14px;
 }
 
-/* Nút bấm */
-button { 
-  margin: 2px; 
-  padding: 6px 12px; 
-  border: none; 
-  border-radius: 5px; 
-  cursor: pointer; 
-  font-weight: 500; 
-  transition: background 0.3s, color 0.3s; 
+#requests-table tr:hover {
+  background: #e9f1ff;
 }
 
-button.view-btn { 
-  background-color: #021b35; 
-  color: white; 
+/* ==========================
+   Nút hành động
+   ========================== */
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 2px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.25s ease;
 }
 
-button:disabled {
+.btn:hover {
+  transform: scale(1.05);
+}
+
+/* Các loại nút */
+.btn.view-btn {
+  background-color: #1b3b6f;
+  color: #fff;
+}
+
+.btn.approve-btn,
+.modal-approve {
+  background-color: #00796b;
+  color: #fff;
+}
+
+.btn.reject-btn,
+.modal-reject {
+  background-color: #c62828;
+  color: #fff;
+}
+
+.btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-button.view-btn:hover { background-color:#0056b3; }
-button.approve-btn { background-color:#007bff; color:white; }
-button.approve-btn:hover { background-color:#0056b3; }
-button.reject-btn { background-color:#dc3545; color:white; }
-button.reject-btn:hover { background-color:#a71d2a; }
 
-/* Modal */
-.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4); }
-.modal-content { background-color:#fff; margin:10% auto; padding:20px; border-radius:8px; width:60%; max-width:700px; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
-.close { color:#aaa; float:right; font-size:24px; font-weight:bold; cursor:pointer; }
-.close:hover { color:#000; }
-
-/* Scrollbar */
-#requests-table::-webkit-scrollbar { width:8px; }
-#requests-table::-webkit-scrollbar-track { background:#f1f1f1; }
-#requests-table::-webkit-scrollbar-thumb { background-color:#007bff; border-radius:4px; border:2px solid #f1f1f1; }
-#requests-table::-webkit-scrollbar-thumb:hover { background-color:#0056b3; }
-#requests-table { scrollbar-width: thin; scrollbar-color: #007bff #f1f1f1; }
-
-/* Proof modal styles */
-#proof-modal {
+/* ==========================
+   Modal chính
+   ========================== */
+.modal {
   display: none;
   position: fixed;
-  z-index: 2000; /* Higher than main modal */
+  z-index: 100;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0,0,0,0.9);
+  background: rgba(0, 0, 30, 0.5);
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-#proof-modal .modal-content {
-  margin: 2% auto;
-  padding: 20px;
-  width: 90%;
-  max-width: 900px;
+.modal-content {
+  background-color: #fff;
+  margin: 5% auto;
+  padding: 20px 25px;
+  border-radius: 12px;
+  width: 480px;
+  max-width: 90%;
+  box-shadow: 0 5px 25px rgba(0, 30, 60, 0.3);
   position: relative;
-  background: #fff;
-  border-radius: 8px;
+  animation: slideUp 0.35s ease-out;
 }
 
-#proof-modal .close {
-  color: #aaa;
+.modal-content p {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.modal-content strong {
+  color: #0d1b2a;
+}
+
+/* Close icon */
+.modal .close {
+  color: #333;
   position: absolute;
   right: 15px;
-  top: 10px;
-  font-size: 28px;
-  font-weight: bold;
+  top: 8px;
+  font-size: 20px;
   cursor: pointer;
-  z-index: 2001;
 }
 
-#proof-modal .close:hover {
-  color: #000;
+/* ==========================
+   Modal xác nhận
+   ========================== */
+.confirmation-modal .modal-content {
+  text-align: center;
+  padding: 25px;
 }
 
-#proof-image {
-  display: block;
-  margin: 0 auto;
-  max-width: 100%;
-  max-height: 80vh;
-  object-fit: contain;
+.confirmation-modal h3 {
+  margin-bottom: 10px;
+  color: #0d1b2a;
 }
 
-.view-proof {
-  background-color: #021b35;
-  color: white;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-left: 10px;
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+  gap: 10px;
 }
 
-.view-proof:hover {
-  background-color: #0056b3;
-}
-
-/* Alert styles */
+/* ==========================
+   Alert thông báo
+   ========================== */
 .modal-alert {
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 4px;
-  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 600;
 }
 
-.modal-alert.danger {
-  background-color: #dc3545;
+.modal-alert-info {
+  background: #e8effa;
+  color: #0d47a1;
 }
 
-.modal-alert.success {
-  background-color: #28a745;
+.modal-alert-success {
+  background: #e8f5e9;
+  color: #2e7d32;
 }
 
-/* Button states */
-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.modal-alert-danger {
+  background: #ffebee;
+  color: #b71c1c;
 }
 
-/* Floating alerts */
+/* Floating alert */
 .floating-alert {
   position: fixed;
-  top: 20px;
+  top: 10px;
   right: 20px;
-  padding: 15px 25px;
-  border-radius: 4px;
-  color: white;
-  z-index: 2100;
-  animation: slideIn 0.3s ease-out;
+  background: #1b3b6f;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  animation: fadeSlideIn 0.5s ease;
+  z-index: 999;
 }
 
 .floating-alert.success {
-  background-color: #28a745;
+  background: #00796b;
 }
 
-.floating-alert.error {
-  background-color: #dc3545;
+.floating-alert.danger {
+  background: #c62828;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+/* ==========================
+   Hiệu ứng
+   ========================== */
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
 }
 
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hàng được cập nhật */
+tr.updated {
+  background-color: #e8f5e9 !important;
+  transition: background 1s ease;
+}

@@ -1,0 +1,104 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4"><i class="fas fa-plus-circle me-2 text-primary"></i>Nhập Chỉ Tiêu Tuyển Sinh</h2>
+
+      <!-- Alerts -->
+      <% if (success) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i><%= success %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+      <% if (error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i><%= error %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+
+      <!-- Form Card -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="fas fa-edit me-1"></i>Thêm Chỉ Tiêu Mới</h5>
+        </div>
+        <div class="card-body">
+          <form id="chitieuForm" action="/api/nhapchitieutuyensinh/create" method="POST" class="row g-3">
+            <input type="hidden" name="_method" value="POST" id="methodInput">
+            <div class="col-md-3">
+              <label class="form-label">Năm Thi</label>
+              <select name="nam_thi" class="form-select" required>
+                <option value="">Chọn năm</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Trường</label>
+              <select name="ma_truong" class="form-select" required>
+                <option value="">Chọn trường</option>
+                <option value="T01">T01 - THPT A</option>
+                <option value="T02">T02 - THPT B</option>
+                <option value="T03">T03 - THPT C</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Số Lượng CT</label>
+              <input type="number" name="so_luong_ct" class="form-control" min="1" placeholder="Nhập số > 0" required>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-save me-1"></i>Thêm
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="fas fa-list me-2"></i>Danh Sách Chỉ Tiêu</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th>Mã CT</th>
+                  <th>Năm Thi</th>
+                  <th>Trường</th>
+                  <th>Số Lượng CT</th>
+                  <th>Ngày Lập</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% chitieu.forEach(item => { %>
+                  <tr>
+                    <td><%= item.ChiTieu %></td>
+                    <td><%= item.NamThi %> - <%= item.NamThiEnd || '' %></td>
+                    <td><%= item.TenTruong %></td>
+                    <td><span class="badge bg-info"><%= item.SoLuongCT %></span></td>
+                    <td><%= new Date(item.NgayLap).toLocaleDateString('vi-VN') %></td>
+                    <td>
+                      <button class="btn btn-sm btn-warning" onclick="editChitieu('<%= item.ChiTieu %>')">
+                        <i class="fas fa-edit"></i> Sửa
+                      </button>
+                      <button class="btn btn-sm btn-danger" onclick="deleteChitieu('<%= item.ChiTieu %>')">
+                        <i class="fas fa-trash"></i> Xóa
+                      </button>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="/css/NhapChiTieuTuyenSinh.css">
+<script src="/js/nhapchitieutuyensinh.js"></script>
