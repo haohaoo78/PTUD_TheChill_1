@@ -1,5 +1,4 @@
-const HocSinh = require('../models/HocSinh');
-const GiaoVien = require('../models/GiaoVien');
+const GiaoVien = require('../models/QuanLyHSGVModels');
 
 class QuanLyHSGVController {
   // ✅ Render trang chính quản lý Học sinh / Giáo viên
