@@ -1,24 +1,55 @@
-<link rel="stylesheet" href="/css/DangNhap.css">
+<link rel="stylesheet" href="/css/DangKy.css">
 
-<section class="login-content">
-  <h2>Đăng ký tài khoản</h2>
+<section class="login-container">
+  <!-- Bên trái: thông tin / bài viết -->
+  <div class="info-side">
+    <h2>Chào mừng đến với hệ thống</h2>
+    <p>Đăng ký tài khoản để bắt đầu trải nghiệm hệ thống quản lý trực tuyến, 
+       giúp bạn dễ dàng theo dõi và quản lý công việc hàng ngày.</p>
+    <img src="/images/login-illustration.png" alt="Illustration" class="illustration">
+  </div>
 
-  <form id="register-form" action="/DangKy" method="POST">
-    <label for="username">Tên tài khoản:</label>
-    <input type="text" id="username" name="username" placeholder="Nhập tên tài khoản" required>
+  <!-- Bên phải: form đăng ký -->
+  <div class="login-side">
+    <div class="login-content">
+      <h2>Tạo tài khoản mới</h2>
 
-    <label for="password">Mật khẩu:</label>
-    <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error"><%= error %></div>
+      <% } %>
 
-    <label for="repassword">Nhập lại mật khẩu:</label>
-    <input type="password" id="repassword" name="repassword" placeholder="Nhập lại mật khẩu" required>
+      <form id="register-form" action="/DangKy" method="POST">
+        <label for="fullName">Họ và tên</label>
+        <input type="text" id="fullName" name="fullName" placeholder="Nhập họ và tên" required>
 
-    <button type="submit" class="btn login-btn">Đăng ký</button>
-  </form>
+        <label for="password">Mật khẩu</label>
+        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
 
-  <div class="links">
-    <a href="/DangNhap">Đã có tài khoản? Đăng nhập</a>
+        <label for="confirmPassword">Xác nhận mật khẩu</label>   
+        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+
+        <label for="studentId">Mã học sinh</label>
+        <input type="text" id="studentId" name="studentId" placeholder="Nhập mã học sinh" required>
+
+        <label for="phone">Số điện thoại</label>
+        <input type="tel" id="phone" name="phone" placeholder="Nhập số điện thoại" required pattern="[0-9]{10,11}" title="Số điện thoại chỉ được chứa số (10–11 ký tự)">
+
+        <button type="submit" class="btn login-btn">Đăng ký</button>
+      </form>
+
+      <div class="links">
+        <a href="/">Đã có tài khoản? Đăng nhập</a>
+      </div>
+    </div>
   </div>
 </section>
 
-<script src="/js/DangNhap.js"></script>
+<div id="success-popup" class="popup-overlay">
+  <div class="popup-content">
+    <h3>🎉 Đăng ký thành công!</h3>
+    <p>Bạn có thể đăng nhập để bắt đầu sử dụng hệ thống.</p>
+    <button id="confirm-btn" class="btn">Xác nhận</button>
+  </div>
+</div>
+
+<script src="/js/DangKy.js"></script>

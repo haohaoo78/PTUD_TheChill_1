@@ -51,21 +51,25 @@
         <h3>Liên hệ</h3>
         <div class="contact-item">
           <i class="fas fa-map-marker-alt contact-icon"></i>
-          <span>Số 49 Đại Cồ Việt, Hai Bà Trưng, Hà Nội</span>
+          <span class="contact-text"><strong>Địa chỉ:</strong> Số 12, Nguyễn Văn Bảo, P. Hạnh Thông, Tp.Hồ Chí Minh</span>
         </div>
         <div class="contact-item">
           <i class="fas fa-phone contact-icon"></i>
-          <span>024 3869 2391</span>
+          <span class="contact-text"><strong>Số điện thoại:</strong> 036 518 5642</span>
         </div>
         <div class="contact-item">
           <i class="fas fa-envelope contact-icon"></i>
-          <span>hotro@moet.edu.vn</span>
+          <span class="contact-text"><strong>Email:</strong> TheChill_1@iuh.edu.vn</span>
         </div>
 
         <h4 class="footer-follow-title">Theo dõi chúng tôi</h4>
         <div class="social-links">
-          <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
-          <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+          <a href="https://www.facebook.com/sviuh?locale=vi_VN" class="social-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/F…_logo_%282019%29.svg/32px-Facebook_f_logo_%282019%29.svg.png" alt="Facebook">
+          </a>
+<a href="https://www.youtube.com/@iuh.dhcntphcm" class="social-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/YouTube_Logo_2017.svg/32px-YouTube_Logo_2017.svg.png" alt="YouTube">
+          </a>
         </div>
       </div>
     </div>
@@ -81,8 +85,19 @@
       <div class="footer-bottom-right">
         <span>Phiên bản 2.1.0</span>
         <span>•</span>
-        <span>Cập nhật lần cuối: 21/10/2025</span>
+        <span>Cập nhật lần cuối: <span id="last-update-date"></span></span>
       </div>
     </div>
   </div>
 </footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        document.getElementById('last-update-date').textContent = formattedDate;
+    });
+</script>

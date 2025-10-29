@@ -2,38 +2,47 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Hệ thống quản lý</title>
+  <title><%= typeof title !== 'undefined' ? title : 'Hệ thống quản lý' %></title>
   <link rel="stylesheet" href="/css/globals.css">
 </head>
 <body>
 
-<%- include('partials/header') %>
+  <!-- Header -->
+  <%- include('partials/header') %>
 
-<main class="container">
-  <% if(user){ %>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <%- include('partials/sidebar') %>
-    </aside>
+  <main class="container">
 
-    <!-- Nội dung chính -->
-    <section id="main-content" class="content">
-      <% if(page === 'home'){ %>
-        <%- include('pages/'+'home') %>
-      <% } else { %>
-        <%- include('pages/' + page) %>
-      <% } %>
-    </section>
-  <% } else { %>
-    <!-- Nếu chưa login, hiển thị login -->
-    <section id="main-content" class="content">
-      <%- include('pages/dangnhap') %>
-    </section>
-  <% } %>
-</main>
+    <% if (user) { %>
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <%- include('partials/sidebar') %>
+      </aside>
 
-<%- include('partials/footer') %>
+      <!-- Nội dung chính -->
+      <section id="main-content" class="content">
+        <% if (page === 'home') { %>
+          <%- include('pages/home') %>
+        <% } else { %>
+          <%- include('pages/' + page) %>
+        <% } %>
+      </section>
 
-<script src="/js/1_main.js"></script>
+    <% } else { %>
+      <!-- Nếu chưa login, kiểm tra page -->
+      <section id="main-content" class="content">
+        <% if (page === 'dangky') { %>
+          <%- include('pages/dangky') %>
+        <% } else { %>
+          <%- include('pages/dangnhap') %>
+        <% } %>
+      </section>
+    <% } %>
+
+  </main>
+
+  <!-- Footer -->
+  <%- include('partials/footer') %>
+
+  <script src="/js/1_main.js"></script>
 </body>
 </html>

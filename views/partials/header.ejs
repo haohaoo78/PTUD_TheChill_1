@@ -17,12 +17,11 @@
         </div>
     </div>
 
-    <!-- Bên phải: tìm kiếm + thông báo + user -->
+    <!-- Bên phải: hỗ trợ + thông báo + user -->
     <div class="header-actions">
-        <div class="search-box">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input" placeholder="Tìm kiếm...">
-        </div>
+        <button class="icon-btn" title="Trợ giúp">
+            <i class="fas fa-question-circle"></i>
+        </button>
 
         <button class="icon-btn">
             <i class="fas fa-bell"></i>
@@ -45,10 +44,21 @@
 <div class="header-bottom">
     <div class="header-info">
         <div class="info-left">
-            Năm học: 2024-2025 • Học kỳ: I
+            Năm học: 2025-2026 • Học kỳ: I
         </div>
         <div class="info-right">
-            Hôm nay: 24/10/2025
+            Hôm nay: <span id="current-date"></span>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        document.getElementById('current-date').textContent = formattedDate;
+    });
+</script>

@@ -1,65 +1,125 @@
 <div class="home-page">
   <h1>Chào mừng đến với Hệ thống Quản lý Học sinh THPT</h1>
-  <p>Vai trò người dùng: <strong>Giáo viên / Quản trị</strong></p>
+
+  <% if (user && user.role) { %>
+    <p>Vai trò: <strong><%= user.role %></strong></p>
+  <% } else { %>
+    <p>Vai trò: <strong>Khách</strong></p>
+  <% } %>
+
   <p>Đang hoạt động: <strong>Có</strong></p>
   <p>Năm học: <strong>2024-2025</strong> • Học kỳ: <strong>I</strong></p>
   <p>Hôm nay: <strong><%= new Date().toLocaleDateString('vi-VN') %></strong></p>
 
   <hr>
 
-  <div class="home-cards">
-    <div class="card">
-      <h3>Thời khóa biểu</h3>
-      <p>Xem và quản lý thời khóa biểu của lớp</p>
-      <button data-page="thoikhoabieu">Mở Thời khóa biểu</button>
-    </div>
-    <div class="card">
-      <h3>Điểm số</h3>
-      <p>Xem điểm số của học sinh</p>
-      <button data-page="diemso">Mở Điểm số</button>
-    </div>
-    <div class="card">
-      <h3>Cài đặt</h3>
-      <p>Cấu hình tài khoản và hệ thống</p>
-      <button data-page="settings">Cài đặt</button>
-    </div>
+  <!-- Mô tả chức năng theo role -->
+  <div class="home-functions">
+    <% 
+      const roleDesc = {
+        'Hiệu trưởng': [
+          'Phân công giáo viên chủ nhiệm và giảng dạy cho các lớp.',
+          'Duyệt các yêu cầu sửa điểm từ giáo viên.',
+          'Xem báo cáo thống kê học tập toàn trường.'
+        ],
+
+        'Giáo vụ': [
+          'Quản lý danh sách lớp học: tạo, sửa, xóa.',
+          'Quản lý hồ sơ giáo viên và học sinh.',
+          'Phân bổ học sinh vào các lớp.',
+          'Lập và điều chỉnh thời khóa biểu toàn trường.',
+          'Xem thống kê kết quả học tập.'
+        ],
+
+        'Giáo viên': [
+          'Nhập và chỉnh sửa điểm môn học cho học sinh.',
+          'Xét học lực, hạnh kiểm cuối kỳ.',
+          'Điểm danh học sinh hàng ngày.',
+          'Giao bài tập về nhà và tài liệu học tập.',
+          'Viết nhận xét học sinh.',
+          'Xem thống kê điểm số lớp học.'
+        ],
+
+        'Phụ huynh': [
+          'Xem bảng điểm học kỳ và hạnh kiểm của con.',
+          'Gửi đơn xin nghỉ học cho con.',
+          'Thanh toán học phí trực tuyến.',
+          'Cập nhật thông tin liên hệ và hồ sơ con.'
+        ],
+
+        'Thí sinh': [
+          'Nộp hồ sơ đăng ký tuyển sinh trực tuyến.',
+          'Tra cứu kết quả xét tuyển.',
+          'Xác nhận nhập học và nộp hồ sơ bổ sung.'
+        ],
+
+        'Học sinh': [
+          'Xem bài tập được giao từ giáo viên.',
+          'Xem thời khóa biểu cá nhân.',
+          'Theo dõi điểm số các môn học.'
+        ],
+
+        'Quản trị hệ thống': [
+          'Tạo tài khoản và phân quyền cho người dùng.',
+          'Cấu hình thông tin trường học.',
+          'Quản lý danh mục môn học.'
+        ],
+
+        'Cán bộ SGD': [
+          'Nhập chỉ tiêu tuyển sinh cho các trường.',
+          'Cập nhật điểm thi tuyển sinh.',
+          'Phân bổ học sinh trúng tuyển vào trường.'
+        ]
+      };
+
+      const desc = user && roleDesc[user.role] ? roleDesc[user.role] : [];
+    %>
+
+    <% if (!user) { %>
+      <div class="function-item">
+        <p><strong>Bạn cần đăng nhập</strong> để sử dụng hệ thống.</p>
+      </div>
+
+    <% } else if (desc.length === 0) { %>
+      <div class="function-item">
+<p><strong>Chưa có chức năng</strong> được gán cho vai trò của bạn.</p>
+      </div>
+
+    <% } else { %>
+      <% desc.forEach(text => { %>
+        <div class="function-item">
+          <p><%= text %></p>
+        </div>
+      <% }) %>
+    <% } %>
   </div>
 </div>
 
-<script>
-  const mainContent = document.getElementById('main-content');
-  const pageCache = {};
-  let currentPage = 'home';
-
-  document.querySelectorAll('.home-cards button[data-page]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const page = btn.getAttribute('data-page');
-      if (page === currentPage) return;
-
-      try {
-        let html;
-        if (pageCache[page]) {
-          html = pageCache[page];
-        } else {
-          // Fetch từ route /pages/... (render tĩnh) hoặc controller nếu có
-          const url = `/pages/${page}`; 
-          const res = await fetch(url);
-          html = await res.text();
-          pageCache[page] = html;
-        }
-
-        mainContent.innerHTML = html;
-        currentPage = page;
-
-        // ✅ Chỗ attach script đặc thù nếu cần
-        // Ví dụ:
-        // if (page === 'thoikhoabieu') { load TKB script }
-        // if (page === 'diemso') { load DiemSo script }
-
-      } catch (err) {
-        console.error(err);
-        alert('Không tải được trang.');
-      }
-    });
-  });
-</script>
+<style>
+  .home-functions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .function-item {
+    background: #f8f9fa;
+    border-left: 4px solid #3498db;
+    padding: 0.9rem 1.2rem;
+    border-radius: 0 6px 6px 0;
+    transition: all 0.2s ease;
+  }
+  .function-item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+  }
+  .function-item p {
+    margin: 0;
+    color: #2c3e50;
+  }
+  .function-item p strong {
+    color: #1a5276;
+  }
+</style>

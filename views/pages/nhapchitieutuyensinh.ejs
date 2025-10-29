@@ -66,11 +66,11 @@
               <thead class="table-dark">
                 <tr>
                   <th>Mã CT</th>
-                  <th>Năm Thi</th>
+<th>Năm Thi</th>
                   <th>Trường</th>
                   <th>Số Lượng CT</th>
                   <th>Ngày Lập</th>
-                  <th>Hành Động</th>
+                  
                 </tr>
               </thead>
               <tbody>
@@ -81,14 +81,7 @@
                     <td><%= item.TenTruong %></td>
                     <td><span class="badge bg-info"><%= item.SoLuongCT %></span></td>
                     <td><%= new Date(item.NgayLap).toLocaleDateString('vi-VN') %></td>
-                    <td>
-                      <button class="btn btn-sm btn-warning" onclick="editChitieu('<%= item.ChiTieu %>')">
-                        <i class="fas fa-edit"></i> Sửa
-                      </button>
-                      <button class="btn btn-sm btn-danger" onclick="deleteChitieu('<%= item.ChiTieu %>')">
-                        <i class="fas fa-trash"></i> Xóa
-                      </button>
-                    </td>
+                    
                   </tr>
                 <% }); %>
               </tbody>
