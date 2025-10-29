@@ -21,21 +21,37 @@ const modalHSFields = document.getElementById('modal-hs-fields');
 const modalHSForm = document.getElementById('modal-hs-form');
 const modalHSClose = document.getElementById('modal-hs-close');
 
-function openModalHS(data) {
+async function openModalHS(data) {
   modalHS.style.display = 'flex';
   document.getElementById('modal-hs-title').innerText = 'Sửa Học sinh';
   document.getElementById('modal-hs-id').value = data.MaHocSinh;
 
+  // Lấy danh sách lớp
+  const res = await fetch(`/api/quanlygiaovien_hocsinh/lop?makhoi=${data.MaKhoi}`);
+  const classData = await res.json();
+  const classOptions = classData.success
+    ? classData.data.map(l => `<option value="${l.MaLop}" ${data.MaLop === l.MaLop ? 'selected' : ''}>${l.TenLop}</option>`).join('')
+    : '';
+
   modalHSFields.innerHTML = `
     <label>Họ tên:</label>
     <input type="text" id="modal-hs-ten" value="${data.TenHocSinh || ''}">
+    
     <label>Ngày sinh:</label>
     <input type="date" id="modal-hs-ngaysinh" value="${data.Birthday?.split('T')[0] || ''}">
+    
     <label>Giới tính:</label>
     <select id="modal-hs-gioitinh">
       <option ${data.GioiTinh === 'Nam' ? 'selected' : ''}>Nam</option>
       <option ${data.GioiTinh === 'Nữ' ? 'selected' : ''}>Nữ</option>
     </select>
+    
+    <label>Lớp:</label>
+    <select id="modal-hs-lop">
+      <option value="">-- Chọn lớp --</option>
+      ${classOptions}
+    </select>
+    
     <label>Trạng thái:</label>
     <select id="modal-hs-trangthai">
       <option ${data.TrangThai === 'Đang học' ? 'selected' : ''}>Đang học</option>
@@ -53,6 +69,7 @@ modalHSForm.onsubmit = async e => {
     TenHocSinh: document.getElementById('modal-hs-ten').value || null,
     Birthday: document.getElementById('modal-hs-ngaysinh').value || null,
     GioiTinh: document.getElementById('modal-hs-gioitinh').value || null,
+    MaLop: document.getElementById('modal-hs-lop').value || null,
     TrangThai: document.getElementById('modal-hs-trangthai').value || 'Đang học'
   };
 
@@ -75,7 +92,7 @@ modalHSForm.onsubmit = async e => {
   }
 };
 
-// ================= MODAL GIÁO VIÊN (THÊM/SỬA) =================
+// ================= MODAL GIÁO VIÊN (THÊM/SỬA 2 CỘT) =================
 const modalGV = document.getElementById('modal');
 const modalGVFields = document.getElementById('modal-fields');
 const modalGVForm = document.getElementById('modal-form');
@@ -86,6 +103,7 @@ async function openModalGV(data = null) {
   document.getElementById('modal-title').innerText = data ? 'Sửa Giáo viên' : 'Thêm Giáo viên';
   document.getElementById('modal-id').value = data?.MaGiaoVien || '';
 
+  // Lấy danh sách môn học
   const res = await fetch('/api/quanlygiaovien_hocsinh/monhoc');
   const monHocData = await res.json();
   const monHocOptions = monHocData.success
@@ -93,25 +111,77 @@ async function openModalGV(data = null) {
     : '';
 
   modalGVFields.innerHTML = `
-    <label>Họ tên:</label><input type="text" id="modal-ten" value="${data?.TenGiaoVien || ''}">
-    <label>Ngày sinh:</label><input type="date" id="modal-ngaysinh" value="${data?.NgaySinh?.split('T')[0] || ''}">
-    <label>Email:</label><input type="email" id="modal-email" value="${data?.Email || ''}">
-    <label>SĐT:</label><input type="text" id="modal-sdt" value="${data?.SDT || ''}">
-    <label>Bộ môn:</label>
-    <select id="modal-bomon">
-      <option value="">-- Chọn môn học --</option>
-      ${monHocOptions}
-    </select>
-    <label>Giới tính:</label>
-    <select id="modal-gioitinh">
-      <option ${data?.GioiTinh === 'Nam' ? 'selected' : ''}>Nam</option>
-      <option ${data?.GioiTinh === 'Nữ' ? 'selected' : ''}>Nữ</option>
-    </select>
-    <label>Trạng thái:</label>
-    <select id="modal-trangthai">
-      <option ${data?.TrangThai === 'Đang công tác' ? 'selected' : ''}>Đang công tác</option>
-      <option ${data?.TrangThai === 'Nghỉ việc' ? 'selected' : ''}>Nghỉ việc</option>
-    </select>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <div>
+      <label>Họ tên:</label>
+      <input type="text" id="modal-ten" value="${data?.TenGiaoVien || ''}">
+    </div>
+    <div>
+      <label>Ngày sinh:</label>
+      <input type="date" id="modal-ngaysinh" value="${data?.NgaySinh?.split('T')[0] || ''}">
+    </div>
+    <div>
+      <label>Email:</label>
+      <input type="email" id="modal-email" value="${data?.Email || ''}">
+    </div>
+    <div>
+      <label>SĐT:</label>
+      <input type="text" id="modal-sdt" value="${data?.SDT || ''}">
+    </div>
+    <div>
+      <label>Bộ môn:</label>
+      <select id="modal-bomon">
+        <option value="">-- Chọn môn học --</option>
+        ${monHocOptions}
+      </select>
+    </div>
+    <div>
+      <label>Giới tính:</label>
+      <select id="modal-gioitinh">
+        <option ${data?.GioiTinh === 'Nam' ? 'selected' : ''}>Nam</option>
+        <option ${data?.GioiTinh === 'Nữ' ? 'selected' : ''}>Nữ</option>
+      </select>
+    </div>
+    <div>
+      <label>Địa chỉ:</label>
+      <input type="text" id="modal-diachi" value="${data?.DiaChi || ''}">
+    </div>
+    <div>
+      <label>Ngày vào trường:</label>
+      <input type="date" id="modal-ngayvaotruong" value="${data?.NgayVaoTruong?.split('T')[0] || ''}">
+    </div>
+    <div>
+      <label>Trạng thái:</label>
+      <select id="modal-trangthai">
+        <option ${data?.TrangThai === 'Đang công tác' ? 'selected' : ''}>Đang công tác</option>
+        <option ${data?.TrangThai === 'Nghỉ việc' ? 'selected' : ''}>Nghỉ việc</option>
+      </select>
+    </div>
+    <div>
+      <label>Tình trạng hôn nhân:</label>
+      <select id="modal-honnhan">
+        <option value="">-- Chọn tình trạng --</option>
+        <option ${data?.TinhTrangHonNhan === 'Độc Thân' ? 'selected' : ''}>Độc Thân</option>
+        <option ${data?.TinhTrangHonNhan === 'Đã Kết Hôn' ? 'selected' : ''}>Đã Kết Hôn</option>
+      </select>
+    </div>
+    <div>
+      <label>Chức vụ:</label>
+      <input type="text" id="modal-chucvu" value="${data?.ChucVu || ''}">
+    </div>
+    <div>
+      <label>Bộ môn chuyên môn:</label>
+      <input type="text" id="modal-trinhdochuyenmon" value="${data?.TrinhDoChuyenMon || ''}">
+    </div>
+    <div>
+      <label>Kinh nghiệm (tham niên):</label>
+      <input type="text" id="modal-thamnien" value="${data?.ThamNien || ''}">
+    </div>
+    <div>
+      <label>Mã trường:</label>
+      <input type="text" id="modal-matruong" value="${data?.MaTruong || ''}">
+    </div>
+  </div>
   `;
 }
 
@@ -119,20 +189,35 @@ modalGVClose.onclick = () => (modalGV.style.display = 'none');
 
 modalGVForm.onsubmit = async e => {
   e.preventDefault();
-  const id = document.getElementById('modal-id').value;
+
   const payload = {
-    TenGiaoVien: document.getElementById('modal-ten').value || null,
-    NgaySinh: document.getElementById('modal-ngaysinh').value || null,
-    GioiTinh: document.getElementById('modal-gioitinh').value || null,
-    Email: document.getElementById('modal-email').value || null,
-    SDT: document.getElementById('modal-sdt').value || null,
-    TenMonHoc: document.getElementById('modal-bomon').value || null,
-    TrangThai: document.getElementById('modal-trangthai').value || 'Đang công tác'
+    TenGiaoVien: document.getElementById('modal-ten').value.trim(),
+    NgaySinh: document.getElementById('modal-ngaysinh').value.trim(),
+    GioiTinh: document.getElementById('modal-gioitinh').value,
+    Email: document.getElementById('modal-email').value.trim(),
+    SDT: document.getElementById('modal-sdt').value.trim(),
+    DiaChi: document.getElementById('modal-diachi').value.trim(),
+    NgayVaoTruong: document.getElementById('modal-ngayvaotruong').value.trim(),
+    TenMonHoc: document.getElementById('modal-bomon').value,
+    TrangThai: document.getElementById('modal-trangthai').value,
+    TinhTrangHonNhan: document.getElementById('modal-honnhan').value,
+    ChucVu: document.getElementById('modal-chucvu').value.trim(),
+    TrinhDoChuyenMon: document.getElementById('modal-trinhdochuyenmon').value.trim(),
+    ThamNien: document.getElementById('modal-thamnien').value.trim(),
+    MaTruong: document.getElementById('modal-matruong').value.trim()
   };
 
+  // Kiểm tra bắt buộc
+  for (const key in payload) {
+    if (!payload[key]) {
+      alert(`Trường ${key} không được để trống`);
+      return;
+    }
+  }
+
   try {
-    const method = id ? 'PUT' : 'POST';
-    const url = `/api/quanlygiaovien_hocsinh/giaovien/${id || ''}`;
+    const method = payload.MaGiaoVien ? 'PUT' : 'POST';
+    const url = `/api/quanlygiaovien_hocsinh/giaovien/${payload.MaGiaoVien || ''}`;
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
@@ -147,7 +232,7 @@ modalGVForm.onsubmit = async e => {
     }
   } catch (err) {
     console.error(err);
-    alert('Lỗi server');
+    alert('Lỗi server: ' + err.message);
   }
 };
 

@@ -141,51 +141,41 @@ class QLModel {
     );
     return rows[0] || null;
   }
-
-  static async addTeacher(data) {
-    const {
-      MaGiaoVien,
-      TenGiaoVien,
-      NgaySinh,
-      GioiTinh,
-      Email,
-      SDT,
-      TrinhDoChuyenMon,
-      DiaChi,
-      NgayVaoTruong,
-      TenMonHoc,
-      TinhTrangHonNhan,
-      ChucVu,
-      ThamNien,
-      MaTruong,
-      TrangThai
-    } = data;
-
-    await db.execute(
-      `INSERT INTO GiaoVien
-       (MaGiaoVien, TenGiaoVien, NgaySinh, GioiTinh, Email, SDT,
-        TrinhDoChuyenMon, DiaChi, NgayVaoTruong, TrangThai,
-        TenMonHoc, TinhTrangHonNhan, ChucVu, ThamNien, MaTruong)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        MaGiaoVien,
-        TenGiaoVien,
-        NgaySinh,
-        GioiTinh,
-        Email,
-        SDT,
-        TrinhDoChuyenMon,
-        DiaChi,
-        NgayVaoTruong,
-        TrangThai || 'Đang công tác',
-        TenMonHoc,
-        TinhTrangHonNhan,
-        ChucVu,
-        ThamNien,
-        MaTruong
-      ]
+  // Sinh mã giáo viên mới
+  static async generateNewMaGV() {
+    const [rows] = await db.execute(
+      `SELECT MaGiaoVien FROM GiaoVien ORDER BY MaGiaoVien DESC LIMIT 1`
     );
+    if (rows.length === 0) return 'GV001';
+    const lastId = rows[0].MaGiaoVien; // ví dụ 'GV012'
+    const num = parseInt(lastId.slice(2)) + 1;
+    return 'GV' + num.toString().padStart(3, '0'); // 'GV013'
   }
+
+  // Thêm giáo viên, tự sinh MaGiaoVien
+  static async addTeacher(data) {
+    const MaGiaoVien = await this.generateNewMaGV();
+
+    const requiredFields = [
+      'TenGiaoVien','NgaySinh','GioiTinh','Email','SDT',
+      'TrinhDoChuyenMon','DiaChi','NgayVaoTruong','TenMonHoc','TinhTrangHonNhan',
+      'ChucVu','ThamNien','MaTruong','TrangThai'
+    ];
+    for (const f of requiredFields) {
+      if (!data[f] || data[f].toString().trim() === '') {
+        throw new Error(`Trường ${f} không được để trống`);
+      }
+    }
+
+    const sql = `
+      INSERT INTO GiaoVien
+      (MaGiaoVien, TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon, DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan, ChucVu, ThamNien, MaTruong, TrangThai)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const params = [MaGiaoVien, ...requiredFields.map(f => data[f])];
+    await db.execute(sql, params);
+  }
+
 
   // ========== UPDATE GIÁO VIÊN - CHỈ CẬP NHẬT FIELD HỢP LỆ ==========
   static async updateTeacher(MaGiaoVien, data) {

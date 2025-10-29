@@ -112,19 +112,29 @@ class QuanLyHSGVController {
       res.json({ success: false, message: err.message });
     }
   }
-
-  async addGiaoVien(req, res) {
+async addGiaoVien(req, res) {
   try {
     const {
-      MaGV, TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
+      TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
       DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan,
       ChucVu, ThamNien, MaTruong, TrangThai
     } = req.body;
 
-    const ngaySinhFormatted = NgaySinh ? NgaySinh.split('T')[0] : null;
+    // Kiểm tra bắt buộc (không cần MaGiaoVien nữa)
+    const requiredFields = {
+      TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
+      DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan,
+      ChucVu, ThamNien, MaTruong
+    };
+    for (const [key, value] of Object.entries(requiredFields)) {
+      if (!value || value.toString().trim() === '') {
+        return res.status(400).json({ success: false, message: `Trường ${key} không được để trống` });
+      }
+    }
+
+    const ngaySinhFormatted = NgaySinh.split('T')[0];
 
     await QLModel.addTeacher({
-      MaGiaoVien: MaGV, // <-- sửa key
       TenGiaoVien,
       NgaySinh: ngaySinhFormatted,
       GioiTinh,
@@ -144,7 +154,7 @@ class QuanLyHSGVController {
     res.json({ success: true, message: 'Thêm giáo viên thành công' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: 'Lỗi thêm giáo viên' });
+    res.status(500).json({ success: false, message: err.message });
   }
 }
 
