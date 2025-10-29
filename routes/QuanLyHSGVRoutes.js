@@ -24,5 +24,6 @@ router.get('/namhoc', quanly.getNamHoc);
 router.get('/khoi', quanly.getKhoi);
 router.get('/lop', quanly.getClassesByKhoi);
 router.get('/monhoc', quanly.getMonHoc);
+router.get('/truong', quanly.getTruong);
 
 module.exports = router;

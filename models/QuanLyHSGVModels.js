@@ -211,6 +211,13 @@ class QLModel {
       [MaGiaoVien]
     );
   }
+  // ==================== TRƯỜNG ====================
+static async getTruongList() {
+  const [rows] = await db.execute(
+    'SELECT MaTruong, TenTruong FROM Truong ORDER BY TenTruong'
+  );
+  return rows;
+}
 }
 
 module.exports = QLModel;

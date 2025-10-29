@@ -239,6 +239,14 @@ async addGiaoVien(req, res) {
       res.json({ success: false, message: err.message });
     }
   }
+  async getTruong(req, res) {
+  try {
+    const data = await QLModel.getTruongList(); // sử dụng hàm đã thêm ở model
+    res.json({ success: true, data });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+}
 }
 
 module.exports = new QuanLyHSGVController();
