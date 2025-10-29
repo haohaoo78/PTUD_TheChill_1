@@ -93,42 +93,39 @@ class DuyetYeuCauSuaDiemModel {
   // ==========================
   // Lấy danh sách yêu cầu theo trạng thái
   // ==========================
-static async getRequestsByStatus(status) {
-  try {
-    // Map giá trị từ front-end sang DB
-    let dbStatus;
-    switch (status.toLowerCase()) {
-      case 'pending': dbStatus = 'DangXuLy'; break;
-      case 'daduyet': dbStatus = 'DaDuyet'; break;
-      case 'bituchoi': dbStatus = 'BiTuChoi'; break;
-      default: dbStatus = null; // lấy tất cả
+  static async getRequestsByStatus(status) {
+    try {
+      console.log('Model - Lọc theo trạng thái:', status);
+
+      let dbStatus;
+      switch (status) {
+        case 'pending': dbStatus = 'DangXuLy'; break;
+        case 'daduyet': dbStatus = 'DaDuyet'; break;
+        case 'bituchoi': dbStatus = 'BiTuChoi'; break;
+        default: dbStatus = status;
+      }
+
+      console.log('Trạng thái tìm kiếm trong DB:', dbStatus);
+
+      let query = `
+        SELECT yc.MaYeuCau, hs.MaHocSinh, hs.TenHocSinh, l.TenLop,
+               yc.Mon as TenMonHoc, yc.LoaiDiem, yc.DiemCu, yc.DiemMoi,
+               yc.LyDo, gv.TenGiaoVien, yc.TrangThai, yc.GhiChu
+        FROM YeuCauSuaDiem yc
+        JOIN HocSinh hs ON yc.MaHocSinh = hs.MaHocSinh
+        LEFT JOIN Lop l ON hs.MaLop = l.MaLop
+        LEFT JOIN GiaoVien gv ON yc.MaGiaoVien = gv.MaGiaoVien
+      `;
+      if (dbStatus) query += ' WHERE yc.TrangThai = ?';
+      query += ' ORDER BY yc.MaYeuCau DESC';
+
+      const [rows] = dbStatus ? await db.execute(query, [dbStatus]) : await db.execute(query);
+      return rows;
+    } catch (error) {
+      console.error('Lỗi khi lấy danh sách yêu cầu:', error);
+      throw new Error('Không thể lấy danh sách yêu cầu');
     }
-
-    let query = `
-      SELECT yc.MaYeuCau, hs.MaHocSinh, hs.TenHocSinh, l.TenLop,
-             yc.Mon AS TenMonHoc, yc.LoaiDiem, yc.DiemCu, yc.DiemMoi,
-             yc.LyDo, gv.TenGiaoVien, yc.TrangThai, yc.GhiChu
-      FROM YeuCauSuaDiem yc
-      JOIN HocSinh hs ON yc.MaHocSinh = hs.MaHocSinh
-      LEFT JOIN Lop l ON hs.MaLop = l.MaLop
-      LEFT JOIN GiaoVien gv ON yc.MaGiaoVien = gv.MaGiaoVien
-    `;
-
-    const params = [];
-    if (dbStatus) {
-      query += ' WHERE yc.TrangThai = ?';
-      params.push(dbStatus);
-    }
-    query += ' ORDER BY yc.MaYeuCau DESC';
-
-    const [rows] = await db.execute(query, params);
-    return { success: true, requests: rows };
-  } catch (error) {
-    console.error('Lỗi khi lấy danh sách yêu cầu:', error);
-    return { success: false, message: 'Không thể lấy danh sách yêu cầu' };
   }
-}
-
 
   // ==========================
   // Lấy danh sách yêu cầu đang xử lý (DangXuLy)

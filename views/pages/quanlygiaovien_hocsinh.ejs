@@ -1,0 +1,40 @@
+<%- include('../partials/header') %> 
+
+<link rel="stylesheet" href="/css/quanlyHSGV.css">
+
+<div class="container ql-container">
+  <h3>Quản lý Học sinh & Giáo viên</h3>
+
+  <div class="ql-inner">
+    <!-- Sidebar trái -->
+    <div class="left">
+      <ul class="sidebar-nav">
+        <li class="active" data-page="hocsinh">Học sinh</li>
+        <li data-page="giaovien">Giáo viên</li>
+      </ul>
+      <div class="sidebar-actions">
+        <button id="btn-add-hs" class="btn primary">Thêm Học sinh</button>
+        <button id="btn-add-gv" class="btn primary">Thêm Giáo viên</button>
+      </div>
+    </div>
+
+    <!-- Nội dung tab bên phải -->
+    <div class="right">
+      <div id="tab-hocsinh" class="tab-pane">
+        <div id="hs-table-wrap"></div>
+      </div>
+      <div id="tab-giaovien" class="tab-pane" style="display:none;">
+        <div id="gv-table-wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <%- include('../partials/_qlhs_modal') %>
+<%- include('../partials/_qlgv_modal') %>
+
+</div>
+
+<%- include('../partials/footer') %> 
+
+<script src="/js/quanLyHSGV.js"></script>

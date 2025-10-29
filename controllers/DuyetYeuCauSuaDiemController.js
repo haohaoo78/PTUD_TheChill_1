@@ -117,4 +117,5 @@ class DuyetController {
     }
   }
 }
+
 module.exports = DuyetController;
