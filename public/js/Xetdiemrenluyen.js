@@ -53,6 +53,14 @@ modalHSForm.onsubmit = async e => {
     MaLop: document.getElementById('modal-hs-lop').value || null,
     TrangThai: document.getElementById('modal-hs-trangthai').value || 'Đang học'
   };
+
+  // filters hiện tại
+  const filters = {
+    namHoc: document.getElementById('filter-namhoc-hs').value || '',
+    maGiaoVien: document.getElementById('filter-giaovien-hs').value || '',
+    maLop: document.getElementById('filter-lop-hs').value || ''
+  };
+
   try {
     const method = id ? 'PUT' : 'POST';
     const url = id ? `/api/xetdiemrenluyen/hocsinh/${id}` : '/api/xetdiemrenluyen/hocsinh';
@@ -62,7 +70,7 @@ modalHSForm.onsubmit = async e => {
       body: JSON.stringify(payload)
     });
     const result = await res.json();
-    if(result.success){ modalHS.style.display='none'; loadHS(); }
+    if(result.success){ modalHS.style.display='none'; loadHS(filters); }
     else alert(result.message||'Thao tác thất bại');
   } catch(err){ console.error(err); alert('Lỗi server'); }
 };
@@ -82,6 +90,8 @@ async function loadHS(filters={}) {
       <td>${hs.TenLop||''}</td>
       <td>${hs.GioiTinh}</td>
       <td>${hs.TrangThai}</td>
+      <td>${hs.HanhKiem||''}</td>
+      <td>${hs.RenLuyen||''}</td>
       <td>
         <button class="table-btn hk" onclick='openModalHKRL("${hs.MaHocSinh}")'>Hạnh kiểm / Rèn luyện</button>
       </td>
@@ -122,6 +132,13 @@ modalHKRLForm.onsubmit = async e => {
     RenLuyen: document.getElementById('modal-hk-rl-renluyen').value,
     NhanXet: document.getElementById('modal-hk-rl-ghichu').value || ''
   };
+
+  const filters = {
+    namHoc: document.getElementById('filter-namhoc-hs').value || '',
+    maGiaoVien: document.getElementById('filter-giaovien-hs').value || '',
+    maLop: document.getElementById('filter-lop-hs').value || ''
+  };
+
   try {
     const res = await fetch('/api/xetdiemrenluyen/hocba', {
       method:'PUT',
@@ -129,7 +146,7 @@ modalHKRLForm.onsubmit = async e => {
       body: JSON.stringify(payload)
     });
     const result = await res.json();
-    if(result.success){ modalHKRL.style.display='none'; loadHS(); }
+    if(result.success){ modalHKRL.style.display='none'; loadHS(filters); }
     else alert(result.message||'Lưu thất bại');
   } catch(err){ console.error(err); alert('Lỗi server'); }
 };

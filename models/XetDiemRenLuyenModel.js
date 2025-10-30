@@ -50,21 +50,40 @@ class QLModel {
   }
 
   // HỌC SINH
-  static async getStudentList(maLop, namHoc) {
-    if (!namHoc) return [];
-    let sql = `
-      SELECT hs.MaHocSinh, hs.TenHocSinh, hs.Birthday, hs.GioiTinh, hs.TrangThai,
-             l.MaLop, l.TenLop
-      FROM HocSinh hs
-      JOIN Lop l ON hs.MaLop = l.MaLop
-      WHERE hs.KhoaHoc = ?
-    `;
-    const params = [namHoc];
-    if (maLop) { sql += ' AND l.MaLop = ?'; params.push(maLop); }
-    sql += ' ORDER BY hs.TenHocSinh ASC';
-    const [rows] = await db.execute(sql, params);
-    return rows;
+// HỌC SINH + Hạnh kiểm / Rèn luyện
+static async getStudentList(maLop, namHoc) {
+  if (!namHoc) return [];
+
+  // Lấy học sinh + lớp
+  // LEFT JOIN HocBa theo năm học và học kỳ gần nhất (HK2 trước, nếu không có HK1)
+  let sql = `
+    SELECT hs.MaHocSinh, hs.TenHocSinh, hs.Birthday, hs.GioiTinh, hs.TrangThai,
+           l.MaLop, l.TenLop,
+           hb.HanhKiem, hb.RenLuyen
+    FROM HocSinh hs
+    JOIN Lop l ON hs.MaLop = l.MaLop
+    LEFT JOIN HocBa hb 
+      ON hs.MaHocSinh = hb.MaHocSinh
+      AND hb.NamHoc = ?
+      AND hb.HocKy = (
+        SELECT MAX(HocKy) 
+        FROM HocBa 
+        WHERE MaHocSinh = hs.MaHocSinh AND NamHoc = ?
+      )
+    WHERE hs.KhoaHoc = ?
+  `;
+  const params = [namHoc, namHoc, namHoc];
+
+  if (maLop) {
+    sql += ' AND l.MaLop = ?';
+    params.push(maLop);
   }
+
+  sql += ' ORDER BY hs.TenHocSinh ASC';
+  const [rows] = await db.execute(sql, params);
+  return rows;
+}
+
 
   static async getStudentById(MaHocSinh) {
     const [rows] = await db.execute(
