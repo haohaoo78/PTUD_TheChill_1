@@ -206,8 +206,8 @@ async function loadHS(filters = {}) {
       <td>${hs.GioiTinh}</td>
       <td>${hs.TrangThai}</td>
       <td>
-        <button onclick='openModalHS(${JSON.stringify(hs)})'>Sửa</button>
-        <button onclick='deleteHS("${hs.MaHocSinh}")'>Xóa</button>
+        <button class="table-btn edit" onclick='openModalHS(${JSON.stringify(hs)})'>Sửa</button>
+        <button class="table-btn delete" onclick='deleteHS("${hs.MaHocSinh}")'>Xóa</button>
       </td>
     </tr>`).join('');
 }
@@ -229,8 +229,8 @@ async function loadGV(filters = {}) {
       <td>${gv.GioiTinh}</td>
       <td>${gv.TrangThai}</td>
       <td>
-        <button onclick='openModalGV(${JSON.stringify(gv)})'>Sửa</button>
-        <button onclick='deleteGV("${gv.MaGiaoVien}")'>Xóa</button>
+       <button class="table-btn edit" onclick='openModalGV(${JSON.stringify(gv)})'>Sửa</button>
+       <button class="table-btn delete" onclick='deleteGV("${gv.MaGiaoVien}")'>Xóa</button>
       </td>
     </tr>`).join('');
 }

@@ -14,6 +14,7 @@ const DuyetRoutes = require('./routes/DuyetYeuCauSuaDiemRoutes');
 const ChiTieuRoutes = require('./routes/NhapChitieuTuyenSinhRoutes');
 const DangKyRoutes = require('./routes/DangKyRoutes');
 const QLHS_GV = require('./routes/QuanLyHSGVRoutes');
+const XetDiemRenLuyenRoutes = require('./routes/XetDiemRenLuyenRoutes');
 
 
 const app = express();
@@ -40,6 +41,8 @@ app.use('/api/thoikhoabieu', ThoiKhoaBieuRoutes);
 app.use('/api/duyetyeucausuadiem', DuyetRoutes);
 app.use('/api/nhapchitieutuyensinh', ChiTieuRoutes);
 app.use('/api/quanlygiaovien_hocsinh', QLHS_GV);
+app.use('/api/xetdiemrenluyen', XetDiemRenLuyenRoutes);
+
 
 
 // TRANG CHÍNH

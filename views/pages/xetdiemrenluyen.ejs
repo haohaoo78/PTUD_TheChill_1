@@ -1,0 +1,100 @@
+<link rel="stylesheet" href="/css/Xetdiemrenluyen.css">
+<div class="ql-container">
+  <h2>Quản lý Thông tin Học sinh</h2>
+
+  <!-- Bộ lọc -->
+  <section id="hs-section" class="section">
+    <div class="filter-pane">
+      <label>Năm học:</label>
+      <select id="filter-namhoc-hs">
+        <option value="">-- Chọn năm học --</option>
+        <% namHocList.forEach(n => { %>
+          <option value="<%= n.NamHoc %>" <%= selectedNamHoc===n.NamHoc?'selected':'' %>><%= n.NamHoc %></option>
+        <% }) %>
+      </select>
+
+      <label>Giáo viên:</label>
+      <select id="filter-giaovien-hs">
+        <option value="">-- Chọn giáo viên --</option>
+        <% teacherList.forEach(t => { %>
+          <option value="<%= t.MaGiaoVien %>" <%= selectedTeacher===t.MaGiaoVien?'selected':'' %>><%= t.TenGiaoVien %></option>
+        <% }) %>
+      </select>
+
+      <label>Lớp:</label>
+      <select id="filter-lop-hs">
+        <option value="">-- Chọn lớp --</option>
+        <% classes.forEach(c => { %>
+          <option value="<%= c.MaLop %>" <%= selectedClass===c.MaLop?'selected':'' %>><%= c.TenLop %></option>
+        <% }) %>
+      </select>
+
+      <button id="btn-xem-hs" class="btn primary">Xem</button>
+      <!-- <button class="btn secondary" onclick="openModalHS()">Thêm Học sinh</button> -->
+    </div>
+
+    <!-- Bảng học sinh -->
+    <table id="hs-table">
+      <thead>
+        <tr>
+          <th>Mã HS</th><th>Họ tên</th><th>Ngày sinh</th>
+          <th>Lớp</th><th>Giới tính</th>
+          <th>Trạng thái</th><th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</div>
+
+<!-- Modal Thêm/Sửa Học sinh -->
+<div id="modal-hs" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="modal-hs-close" class="modal-close">&times;</span>
+    <h3 id="modal-hs-title">Thêm/Sửa Học sinh</h3>
+    <form id="modal-hs-form">
+      <input type="hidden" id="modal-hs-id">
+      <div id="modal-hs-fields"></div>
+      <button type="submit" class="btn primary full">Lưu</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Hạnh kiểm / Rèn luyện -->
+<div id="modal-hk-rl" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="modal-hk-rl-close" class="modal-close">&times;</span>
+    <h3 id="modal-hk-rl-title">Hạnh kiểm / Rèn luyện</h3>
+    <form id="modal-hk-rl-form">
+      <input type="hidden" id="modal-hk-rl-hs">
+      <label>Học kỳ:</label>
+      <select id="modal-hk-rl-hocky">
+        <option value="1">HK1</option>
+        <option value="2">HK2</option>
+      </select>
+
+      <label>Hạnh kiểm:</label>
+      <select id="modal-hk-rl-hanhkiem">
+        <option value="Tốt">Tốt</option>
+        <option value="Khá">Khá</option>
+        <option value="Trung bình">Trung bình</option>
+        <option value="Yếu">Yếu</option>
+      </select>
+
+      <label>Rèn luyện:</label>
+      <select id="modal-hk-rl-renluyen">
+        <option value="Xuất sắc">Xuất sắc</option>
+        <option value="Tốt">Tốt</option>
+        <option value="Khá">Khá</option>
+        <option value="Trung bình">Trung bình</option>
+        <option value="Yếu">Yếu</option>
+      </select>
+
+      <label>Ghi chú:</label>
+      <textarea id="modal-hk-rl-ghichu"></textarea>
+      <button type="submit" class="btn primary full">Lưu</button>
+    </form>
+  </div>
+</div>
+
+<script src="/js/Xetdiemrenluyen.js"></script>
