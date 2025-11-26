@@ -22,5 +22,6 @@ router.get('/truong', quanly.getTruong);
 router.get('/hocba', quanly.getHocBa);
 router.put('/hocba', quanly.updateHocBa);
 
+router.get('/hocba_nam', quanly.getHocBaNam);
 
 module.exports = router;

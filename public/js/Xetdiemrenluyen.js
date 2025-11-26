@@ -82,7 +82,27 @@ async function loadHS(filters={}) {
   const data = await res.json();
   if(!data.success) return;
 
-  document.querySelector('#hs-table tbody').innerHTML = data.data.map(hs => `
+  // Lấy học sinh
+  const hsList = data.data;
+
+  // Lấy Hạnh kiểm / Rèn luyện theo học kỳ gần nhất
+  const namHoc = filters.namHoc || '';
+  const promises = hsList.map(async hs => {
+    const resHB = await fetch(`/api/xetdiemrenluyen/hocba?maHS=${hs.MaHocSinh}&namHoc=${namHoc}`);
+    const dataHB = await resHB.json();
+    if(dataHB.success && dataHB.data){
+      hs.HanhKiem = dataHB.data.HanhKiem || 'Tốt';
+      hs.RenLuyen = dataHB.data.RenLuyen || 'Tốt';
+    } else {
+      hs.HanhKiem = 'Tốt';
+      hs.RenLuyen = 'Tốt';
+    }
+    return hs;
+  });
+
+  const hsFull = await Promise.all(promises);
+
+  document.querySelector('#hs-table tbody').innerHTML = hsFull.map(hs => `
     <tr>
       <td>${hs.MaHocSinh}</td>
       <td>${hs.TenHocSinh}</td>
@@ -90,8 +110,8 @@ async function loadHS(filters={}) {
       <td>${hs.TenLop||''}</td>
       <td>${hs.GioiTinh}</td>
       <td>${hs.TrangThai}</td>
-      <td>${hs.HanhKiem||''}</td>
-      <td>${hs.RenLuyen||''}</td>
+      <td>${hs.HanhKiem}</td>
+      <td>${hs.RenLuyen}</td>
       <td>
         <button class="table-btn hk" onclick='openModalHKRL("${hs.MaHocSinh}")'>Hạnh kiểm / Rèn luyện</button>
       </td>
@@ -110,17 +130,22 @@ async function openModalHKRL(maHS){
   modalHKRL.style.display='flex';
   document.getElementById('modal-hk-rl-hs').value = maHS;
 
-  const hocKy = document.getElementById('modal-hk-rl-hocky').value || '1';
   const namHoc = document.getElementById('filter-namhoc-hs').value || '';
-  const res = await fetch(`/api/xetdiemrenluyen/hocba?maHS=${maHS}&hocKy=${hocKy}&namHoc=${namHoc}`);
+
+  // Lấy hạnh kiểm/rèn luyện cả năm
+  const res = await fetch(`/api/xetdiemrenluyen/hocba_nam?maHS=${maHS}&namHoc=${namHoc}`);
   const data = await res.json();
   if(data.success && data.data){
-    document.getElementById('modal-hk-rl-hocky').value = data.data.HocKy || '1';
-    document.getElementById('modal-hk-rl-hanhkiem').value = data.data.HanhKiem || 'Tốt';
-    document.getElementById('modal-hk-rl-renluyen').value = data.data.RenLuyen || 'Tốt';
+    document.getElementById('modal-hk-rl-hanhkiem').value = data.data.HanhKiem || '';
+    document.getElementById('modal-hk-rl-renluyen').value = data.data.RenLuyen || '';
     document.getElementById('modal-hk-rl-ghichu').value = data.data.NhanXet || '';
+  } else {
+    document.getElementById('modal-hk-rl-hanhkiem').value = '';
+    document.getElementById('modal-hk-rl-renluyen').value = '';
+    document.getElementById('modal-hk-rl-ghichu').value = '';
   }
 }
+
 
 modalHKRLForm.onsubmit = async e => {
   e.preventDefault();
@@ -162,7 +187,7 @@ async function loadNamHoc(){
 
 async function loadTeachers(){
   const namHoc = document.getElementById('filter-namhoc-hs').value||'';
-  const res = await fetch(`/api/quanlygiaovien_hocsinh/giaovien?namHoc=${namHoc}`);
+  const res = await fetch(`/api/xetdiemrenluyen/giaovien?namHoc=${namHoc}`);
   const data = await res.json();
   if(!data.success) return;
   document.getElementById('filter-giaovien-hs').innerHTML =
