@@ -1,0 +1,197 @@
+<link rel="stylesheet" href="/css/nhapdiemthituyensinh.css">
+
+<div class="nhapdiem-wrapper">
+  <h2 class="nhapdiem-title">
+    <i class="fas fa-edit me-3"></i> NHẬP ĐIỂM THI TUYỂN SINH
+  </h2>
+
+  <!-- Chọn năm thi & phòng thi -->
+  <div class="card select-card mb-5">
+    <div class="card-header select-header">
+      <h5>Chọn Kỳ Thi & Phòng Thi</h5>
+    </div>
+    <div class="card-body p-5">
+      <div class="row g-4 justify-content-center">
+        <div class="col-lg-4">
+          <label class="form-label fw-bold text-primary fs-5">Năm thi</label>
+          <select id="nam_thi" class="form-select form-select-lg">
+            <option value="">-- Chọn năm thi --</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+          </select>
+        </div>
+        <div class="col-lg-4">
+          <label class="form-label fw-bold text-primary fs-5">Phòng thi</label>
+          <select id="ma_phong_thi" class="form-select form-select-lg">
+            <option value="">-- Chọn phòng thi --</option>
+            <option value="PT001">PT001</option>
+            <option value="PT002">PT002</option>
+            <option value="PT003">PT003</option>
+          </select>
+        </div>
+        <div class="col-lg-4 d-flex align-items-end">
+          <button id="loadCandidates" class="btn btn-lg w-100">
+            Tải Danh Sách Thí Sinh
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultArea"></div>
+
+  <!-- Nút lưu cố định dưới cùng (chỉ hiện khi có bảng) -->
+  <div id="saveBar" class="position-fixed bottom-0 start-0 end-0 bg-white shadow-lg p-4 d-none">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="text-muted fs-5">
+          Lưu điểm thí sinh
+        </div>
+        <div>
+          <button id="cancelSave" class="btn btn-outline-secondary me-3">Hủy</button>
+          <button id="confirmSave" class="btn btn-success btn-lg px-5">
+            <i class="fas fa-save me-2"></i> Xác nhận lưu điểm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const namThi = document.getElementById('nam_thi');
+  const phongThi = document.getElementById('ma_phong_thi');
+  const loadBtn = document.getElementById('loadCandidates');
+  const resultArea = document.getElementById('resultArea');
+  const saveBar = document.getElementById('saveBar');
+  const countCandidates = document.getElementById('countCandidates');
+  const confirmSave = document.getElementById('confirmSave');
+  const cancelSave = document.getElementById('cancelSave');
+
+  let candidates = [];
+
+  loadBtn.addEventListener('click', async () => {
+    const n = namThi.value.trim();
+    const p = phongThi.value.trim();
+    if (!n || !p) return alert('Vui lòng chọn năm thi và phòng thi!');
+
+    loadBtn.disabled = true;
+    loadBtn.innerHTML = 'Đang tải...';
+
+    try {
+      const res = await fetch(`/api/nhapdiemthituyensinh/candidates?nam_thi=${n}&ma_phong_thi=${p}`);
+      const json = await res.json();
+
+      if (!json.success || json.data.length === 0) {
+        resultArea.innerHTML = '<div class="alert alert-warning text-center">Không có thí sinh nào trong phòng này!</div>';
+        return;
+      }
+
+      candidates = json.data;
+      renderTable(n, p);
+      saveBar.classList.remove('d-none');
+      countCandidates.textContent = candidates.length;
+
+    } catch (err) {
+      alert('Lỗi kết nối!');
+    } finally {
+      loadBtn.disabled = false;
+      loadBtn.innerHTML = 'Tải Danh Sách Thí Sinh';
+    }
+  });
+
+  const renderTable = (nam, phong) => {
+    let html = `
+      <div class="result-card">
+        <div class="result-header">
+          Phòng ${phong} - Năm ${nam} • ${candidates.length} thí sinh
+        </div>
+        <div class="table-responsive p-4">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th width="12%">Mã TS</th>
+                <th width="25%">Họ tên</th>
+                <th width="12%">Toán</th>
+                <th width="12%">Văn</th>
+                <th width="12%">Anh</th>
+                <th width="12%">Tự chọn</th>
+                <th width="15%">Tổng điểm</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+    candidates.forEach(c => {
+      const tong = ((parseFloat(c.Toan||0) + parseFloat(c.Van||0) + parseFloat(c.Anh||0) + parseFloat(c.TuChon||0)) / 4).toFixed(2);
+      html += `
+        <tr data-id="${c.MaThiSinh}">
+          <td class="fw-bold text-primary">${c.MaThiSinh}</td>
+          <td class="fw-bold">${c.HoTen}</td>
+          <td><input type="number" step="0.25" min="0" max="10" class="form-control score" value="${c.Toan || ''}" data-field="toan"></td>
+          <td><input type="number" step="0.25" min="0" max="10" class="form-control score" value="${c.Van || ''}" data-field="van"></td>
+          <td><input type="number" step="0.25" min="0" max="10" class="form-control score" value="${c.Anh || ''}" data-field="anh"></td>
+          <td><input type="number" step="0.25" min="0" max="10" class="form-control score" value="${c.TuChon || ''}" data-field="tu_chon"></td>
+          <td class="tong text-center fw-bold fs-4">${tong}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table></div></div>`;
+    resultArea.innerHTML = html;
+
+    // Tính tổng realtime
+    document.querySelectorAll('.score').forEach(input => {
+      input.addEventListener('input', () => {
+        const row = input.closest('tr');
+        let sum = 0;
+        row.querySelectorAll('.score').forEach(i => sum += parseFloat(i.value) || 0);
+        row.querySelector('.tong').textContent = (sum / 4).toFixed(2);
+      });
+    });
+  };
+
+  // Lưu tất cả 1 lần
+  confirmSave.addEventListener('click', async () => {
+    if (!confirm('Xác nhận lưu toàn bộ điểm cho ' + candidates.length + ' thí sinh?')) return;
+
+    confirmSave.disabled = true;
+    confirmSave.innerHTML = 'Đang lưu...';
+
+    const promises = [];
+    document.querySelectorAll('tr[data-id]').forEach(row => {
+      const id = row.dataset.id;
+      const data = {
+        ma_thi_sinh: id,
+        toan: row.querySelector('[data-field="toan"]').value || null,
+        van: row.querySelector('[data-field="van"]').value || null,
+        anh: row.querySelector('[data-field="anh"]').value || null,
+        tu_chon: row.querySelector('[data-field="tu_chon"]').value || null,
+        nam_thi: namThi.value,
+        ma_phong_thi: phongThi.value
+      };
+      promises.push(fetch('/api/nhapdiemthituyensinh/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }));
+    });
+
+    try {
+      await Promise.all(promises);
+      alert('✅ Lưu thành công toàn bộ điểm!');
+      saveBar.classList.add('d-none');
+    } catch {
+      alert('Có lỗi khi lưu, vui lòng thử lại!');
+    } finally {
+      confirmSave.disabled = false;
+      confirmSave.innerHTML = '<i class="fas fa-save me-2"></i> Xác nhận lưu điểm';
+    }
+  });
+
+  cancelSave.addEventListener('click', () => {
+    if (confirm('Hủy nhập điểm và tải lại dữ liệu?')) {
+      location.reload();
+    }
+  });
+})();
+</script>

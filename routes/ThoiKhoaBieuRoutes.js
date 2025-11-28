@@ -6,6 +6,7 @@ router.get('/render', ThoiKhoaBieuController.renderPage);
 router.post('/getAll', ThoiKhoaBieuController.getAll);
 router.post('/getKyHocList', ThoiKhoaBieuController.getKyHocList);
 router.post('/getTeacher', ThoiKhoaBieuController.getTeacher);
+router.post('/getAvailableTeachersForSlot', ThoiKhoaBieuController.getAvailableTeachersForSlot);
 router.post('/saveAll', ThoiKhoaBieuController.saveAll);
 router.post('/resetWeek', ThoiKhoaBieuController.resetWeek);
 router.post('/getSubjectsByClass', ThoiKhoaBieuController.getSubjectsByClass);

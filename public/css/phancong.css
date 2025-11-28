@@ -1,0 +1,9 @@
+body .panel { margin-top: 10px; }
+.panel .actions { margin: 10px 0; }
+.grid { width: 100%; border-collapse: collapse; }
+.grid th, .grid td { border: 1px solid #ddd; padding: 8px; }
+.grid th { background: #f5f5f5; }
+.mode-tabs .mode { padding: 6px 10px; margin-right: 6px; }
+.mode-tabs .mode.active { background: #4CAF50; color: white; }
+.hide { display: none; }
+.text-center { text-align: center; }

@@ -1,0 +1,283 @@
+/* ==================== XEM BÀI TẬP – ĐẸP NHƯ MỚI, GIỮ NGUYÊN VỊ TRÍ CŨ ==================== */
+.container {
+    padding: 24px;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+
+/* ===== Stats cards – giữ nguyên vị trí cũ ===== */
+.stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.stats .card {
+    flex: 1;
+    min-width: 180px;
+    padding: 18px 20px;
+    border-radius: 12px;
+    text-align: center;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+}
+
+.stats .card:hover {
+    transform: translateY(-4px);
+}
+
+.stats .card h3 {
+    margin: 0;
+    font-size: 28px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.stats .card p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Màu gradient nhẹ nhưng vẫn giữ cảm giác cũ */
+.stats .card.total   { background: linear-gradient(135deg, #EAF2FF, #dbeafe); }
+.stats .card.active  { background: linear-gradient(135deg, #E8FFE8, #d1fae5); }
+.stats .card.expired { background: linear-gradient(135deg, #FFE8E8, #fee2e2); }
+
+/* ===== Filter Buttons – giữ nguyên vị trí cũ, đẹp hơn ===== */
+.filter-buttons button {
+    padding: 8px 16px;
+    margin-right: 8px;
+    border: 2px solid #3b82f6;
+    background: #fff;
+    color: #3b82f6;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.filter-buttons button:hover {
+    background: #3b82f6;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.filter-buttons button.active {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Select môn học – giữ nguyên kích thước cũ */
+#subjectSelect {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+}
+
+/* ===== Assignment Item – giữ nguyên layout cũ, nâng cấp đẹp hơn ===== */
+.assignment {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+    border: 1px solid #eee;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.assignment:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+    border-color: #3b82f6;
+}
+
+.assignment .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.assignment .subject {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #2A7AE2;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 90px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.expired {
+    margin-left: 10px;
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.assignment h4 {
+    margin: 3px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* Ô chưa có bài tập – đẹp hơn nhưng giữ layout cũ */
+.assignment.empty-assignment {
+    opacity: 0.9;
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    cursor: default;
+    text-align: center;
+}
+
+.assignment.empty-assignment:hover {
+    transform: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+}
+
+.assignment.empty-assignment .subject {
+    background: #94a3b8;
+}
+
+.assignment.empty-assignment h4 {
+    color: #64748b;
+    font-size: 17px;
+}
+
+/* ===== MODAL – đẹp hơn, mượt hơn, nhưng giữ kích thước và vị trí cũ ===== */
+.modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: #fff;
+    width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+
+.close-btn {
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    font-weight: bold;
+}
+
+.close-btn:hover { color: #ef4444; }
+
+.modal-header {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: -24px -24px 20px -24px;
+    text-align: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.modal-header h4 {
+    margin: 6px 0 0;
+    font-size: 17px;
+    opacity: 0.95;
+}
+
+.time-info p {
+    margin: 8px 0;
+    font-size: 15px;
+    color: #444;
+}
+
+#m_description {
+    background: #f8fafc;
+    padding: 18px;
+    border-radius: 10px;
+    border-left: 5px solid #3b82f6;
+    margin: 16px 0;
+    line-height: 1.7;
+    font-size: 15px;
+    color: #1e293b;
+}
+
+.close-modal-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: #1765ff;
+    color: white;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: 0.3s;
+}
+
+.close-modal-btn:hover {
+    background: #0d4ed6;
+}
+
+/* FIX CUỐI CÙNG – CHỈ THÊM 3 DÒNG NÀY VÀO CUỐI FILE */
+.assignment > div > div {
+    display: block !important;
+    margin: 4px 0;
+}
+/* FIX CUỐI CÙNG 1000000% – DÁN VÀO DƯỚI CÙNG FILE CSS – CHỈ 8 DÒNG */
+.assignment > div[style*="margin-top:12px"] > div {
+    display: block !important;
+    margin: 6px 0 !important;
+    line-height: 1.5 !important;
+}
+
+.assignment > div[style*="margin-top:12px"] > div:first-child {
+    margin-top: 0 !important;
+}
+
+.assignment > div[style*="margin-top:12px"] > div:last-child {
+    margin-bottom: 0 !important;
+}
+

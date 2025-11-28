@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quản lý lớp học</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11" />
+<style>
+  :root{
+    --navy-900:#071428;
+    --navy-700:#0a1d37;
+    --navy-600:#15345a;
+    --accent:#2b6ea3;
+    --muted:#9fb0c8;
+    --card:#ffffff;
+    --bg:#f4f7fb;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--navy-900)}
+  header{background:linear-gradient(90deg,var(--navy-900),var(--navy-700));color:#fff;padding:20px 24px;text-align:center;font-size:22px;font-weight:700;box-shadow:0 3px 10px rgba(9,18,33,0.08)}
+  main{padding:20px 28px}
+  .ql-lop .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:14px}
+  .controls label{font-weight:600;color:var(--navy-700)}
+  select,input[type=number]{padding:8px 10px;border-radius:8px;border:1px solid #d7e2ef;background:#fff;min-width:150px}
+  input[type=number]{width:100px}
+  .controls button{background:var(--navy-700);color:#fff;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+  .controls button:hover{background:var(--navy-600)}
+
+  table.grid{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(11,28,50,0.06)}
+  table.grid thead th{background:linear-gradient(90deg,var(--navy-700),var(--navy-600));color:#fff;padding:12px;text-align:left;font-weight:700}
+  table.grid th, table.grid td{padding:10px;border-bottom:1px solid #eef5fb}
+  table.grid tbody tr:nth-child(even) td{background:#fbfdff}
+  .actions .edit-class,.actions .delete-class{margin-right:6px;padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
+  .edit-class{background:#2b6ea3;color:#fff}
+  .delete-class{background:#d9534f;color:#fff}
+
+  /* modal */
+  .modal{display:none;position:fixed;inset:0;background:rgba(4,10,20,0.45);align-items:center;justify-content:center}
+  .modal-content{background:var(--card);width:640px;max-width:94%;padding:18px;border-radius:12px;box-shadow:0 10px 30px rgba(8,20,40,0.3)}
+  .modal-content label{display:block;margin:8px 0;color:var(--navy-700);font-weight:600}
+  .modal-content input, .modal-content select{width:100%;padding:8px;border-radius:8px;border:1px solid #e0e9f5;background:#fff}
+  .modal-content .actions{margin-top:12px;text-align:right}
+  .modal-content .actions button{background:var(--navy-700);color:#fff;padding:9px 14px;border-radius:8px;border:none;cursor:pointer}
+  .close{float:right;font-size:20px;cursor:pointer}
+
+  /* responsive */
+  @media (max-width:820px){
+    .ql-lop .controls{flex-direction:column;align-items:stretch}
+    select,input[type=number]{min-width:unset;width:100%}
+  }
+</style>
+</head>
+<body>
+<header>Quản lý lớp học</header>
+<main>
+  <section class="ql-lop">
+    <div class="controls">
+      <label>Khối:</label>
+      <select id="khoi-select">
+        <% khoiList.forEach(k => { %>
+          <option value="<%= k.MaKhoi %>" <%= k.MaKhoi===selectedKhoi ? 'selected' : '' %>><%= k.TenKhoi %></option>
+        <% }) %>
+      </select>
+
+      <label>Số lượng lớp:</label>
+      <input type="number" id="num-classes" min="1" value="1" />
+
+      <button id="create-classes">Thêm mới</button>
+    </div>
+
+    <table id="classes-table" class="grid">
+      <thead>
+        <tr><th>STT</th><th>Mã lớp</th><th>Tên lớp</th><th>Khối</th><th>Trạng thái</th><th>Sĩ số</th><th>Thao tác</th></tr>
+      </thead>
+      <tbody>
+        <% classes.forEach((c,i)=>{ %>
+          <tr data-id="<%= c.MaLop %>">
+            <td><%= i+1 %></td>
+            <td><%= c.MaLop %></td>
+            <td><%= c.TenLop %></td>
+            <td><%= c.Khoi %></td>
+            <td><%= c.TrangThai %></td>
+            <td><%= c.SiSo %></td>
+            <td class="actions">
+              <button class="edit-class">Sửa</button>
+              <button class="delete-class">Xóa</button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<div id="edit-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>Sửa lớp</h3>
+    <div id="modal-body">
+      <label>Tên lớp: <input id="edit-tenlop" /></label>
+      <label>Khối: <select id="edit-khoi"></select></label>
+      <label>Giáo viên chủ nhiệm: <select id="edit-gvcn"></select></label>
+      <label>Trạng thái: <select id="edit-trangthai"><option value="Đang học">Đang học</option><option value="Đã ra trường">Đã ra trường</option><option value="Tạm ngưng">Tạm ngưng</option></select></label>
+      <label>Sĩ số: <input id="edit-siso" type="number" min="0" /></label>
+      <div class="actions"><button id="confirm-save">Lưu</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/QuanLyLop.js"></script>
+</body>
+</html>

@@ -223,5 +223,32 @@ static async countSubjectWeeklyInDB(MaLop, NamHoc, KyHoc, TenMonHoc, LoaiTKB) {
   return rows[0]?.SoTietTuan || 0;
 }
 
+static async getAvailableTeachersForSlot(TenMonHoc, NamHoc, KyHoc, Thu, TietHoc, MaLop = null) {
+  // Thu/TietHoc expected as numbers, MaLop optional. Exclude teachers scheduled at the same slot in other classes.
+  const baseSQL = `
+    SELECT DISTINCT g.MaGiaoVien, g.TenGiaoVien
+    FROM GiaoVien g
+    LEFT JOIN GVBoMon gbm ON gbm.MaGVBM = g.MaGiaoVien
+    WHERE (TRIM(g.TenMonHoc) = TRIM(?) OR gbm.BoMon LIKE CONCAT('%', ?, '%'))
+      AND g.TrangThai = 'Đang công tác'`;
+
+  let sql = baseSQL;
+  const params = [TenMonHoc, TenMonHoc];
+  if (NamHoc && KyHoc && Thu != null && TietHoc != null) {
+    sql += ` AND g.MaGiaoVien NOT IN (
+      SELECT t.MaGiaoVien FROM ThoiKhoaBieu t
+      WHERE t.NamHoc = ? AND t.KyHoc = ? AND t.Thu = ? AND t.TietHoc = ?`;
+    params.push(NamHoc, KyHoc, Thu, TietHoc);
+    if (MaLop) {
+      sql += ' AND t.MaLop != ?';
+      params.push(MaLop);
+    }
+    sql += ')';
+  }
+  sql += '\n    ORDER BY g.TenGiaoVien';
+  const [rows] = await db.execute(sql, params);
+  return rows;
+}
+
 }
 module.exports = ThoiKhoaBieu;

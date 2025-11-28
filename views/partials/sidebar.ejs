@@ -2,13 +2,13 @@
   <ul class="sidebar-nav">
     <% if(user) { %>
       <% if(user.role === 'Hiệu trưởng') { %>
-        <li><a href="#" data-page="phanconggiaovien">Phân công giáo viên</a></li>
+        <li><a href="#" data-page="phancongchunhiembomon">Phân công giáo viên</a></li>
         <li><a href="#" data-page="duyetyeucausuadiem">Duyệt yêu cầu sửa điểm</a></li>
         <li><a href="#" data-page="xemthongkeketqua">Xem thống kê</a></li>
       <% } else if(user.role === 'Giáo vụ') { %>
         <li><a href="#" data-page="quanlylop">Quản lý lớp học</a></li>
         <li><a href="#" data-page="quanlygiaovien_hocsinh">Quản lý hồ sơ học sinh, giáo viên</a></li>
-        <li><a href="#" data-page="phandachocsinh">Phân chia học sinh</a></li>
+        <li><a href="#" data-page="phanlophocsinh">Phân chia học sinh</a></li>
         <li><a href="#" data-page="thoikhoabieu">Lập thời khóa biểu</a></li>
         <li><a href="#" data-page="xemthongkeketqua">Xem thống kê</a></li>
       <% } else if(user.role === 'Giáo viên') { %>
@@ -38,7 +38,7 @@
       <% } else if(user.role === 'Cán bộ SGD') { %>
         <li><a href="#" data-page="nhapchitieutuyensinh">Nhập chỉ tiêu tuyển sinh</a></li>
         <li><a href="#" data-page="nhapdiemthituyensinh">Nhập điểm thi tuyển sinh</a></li>
-        <li><a href="#" data-page="phanbohocsinh">Phân bổ học sinh vào trường</a></li>
+        <li><a href="#" data-page="phanbohocsinhvaotruong">Phân bổ học sinh vào trường</a></li>
       <% } %>
     <% } %>
   </ul>

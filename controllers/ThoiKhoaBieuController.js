@@ -81,6 +81,22 @@ class ThoiKhoaBieuController {
     }
   }
 
+  async getAvailableTeachersForSlot(req, res) {
+    try {
+      const { MaLop, NamHoc, KyHoc, Thu, TietHoc, TenMonHoc } = req.body;
+      if (!TenMonHoc || !NamHoc || !KyHoc || (Thu === undefined || Thu === null) || (TietHoc === undefined || TietHoc === null)) return res.status(400).json({ error: 'Thiếu tham số' });
+      let normalizedThu = Thu;
+      if (typeof normalizedThu === 'string') normalizedThu = normalizedThu === 'CN' ? 8 : parseInt(normalizedThu, 10);
+      const ThuNum = Number(normalizedThu);
+      const TietNum = Number(TietHoc);
+      const rows = await ThoiKhoaBieu.getAvailableTeachersForSlot(TenMonHoc, NamHoc, KyHoc, ThuNum, TietNum, MaLop);
+      res.json({ success: true, teachers: rows });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Lỗi khi lấy giáo viên khả dụng' });
+    }
+  }
+
   async getAll(req, res) {
     try {
       let { MaLop, NamHoc, KyHoc, LoaiTKB } = req.body;

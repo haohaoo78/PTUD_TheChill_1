@@ -1,0 +1,206 @@
+/* ==== WRAPPER ==== */
+.nhapdiem-wrapper {
+  padding: 2rem 1rem 7rem;
+  background: #f8fafc;
+  min-height: calc(100vh - 70px);
+}
+
+/* ==== TITLE ==== */
+.nhapdiem-title {
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 2.5rem;
+  letter-spacing: -0.5px;
+}
+
+/* ===== FORM CHỌN KỲ THI VÀ PHÒNG THI – UI HIỆN ĐẠI ===== */
+
+.select-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 2.2rem 2.8rem;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.07);
+  border: 1px solid #e5eaf1;
+}
+
+.select-header h5 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1e40af;
+  text-align: center;
+  margin-bottom: 1.8rem;
+  letter-spacing: -0.5px;
+}
+
+.form-label {
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* Select Box */
+.form-select {
+  height: 54px;
+  border-radius: 12px;
+  border: 2px solid #d7dee8;
+  font-size: 1.08rem;
+  font-weight: 500;
+  padding-left: 14px;
+  background-color: #f9fbff;
+  transition: 0.2s ease;
+}
+
+.form-select:hover {
+  border-color: #3b82f6;
+}
+
+.form-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
+  background-color: #ffffff;
+}
+
+/* Button */
+.select-card .btn {
+  height: 54px;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg,#2563eb,#1e40af);
+  border: none;
+  transition: 0.25s ease;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+
+.select-card .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37,99,235,0.45);
+  background: linear-gradient(135deg,#1e4fd6,#162f91);
+}
+
+.select-card .row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ==== RESULT CARD ==== */
+.result-card {
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.06);
+}
+
+.result-header {
+  background: #eef3f8;
+  padding: 1.3rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e40af;
+  text-align: center;
+  border-bottom: 1px solid #e1e5eb;
+}
+
+/* ==== TABLE ==== */
+.table {
+  margin: 0;
+}
+
+.table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.85rem;
+  text-align: center;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 1.1rem 0.75rem;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 1rem;
+}
+
+.table tbody tr {
+  transition: 0.15s;
+}
+
+.table tbody tr:hover {
+  background: #f1f5f9;
+}
+
+/* ==== SCORE INPUT ==== */
+.score {
+  width: 90px;
+  height: 46px;
+  border: none;
+  border-bottom: 3px solid #3b82f6;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  background: transparent;
+  outline: none;
+  transition: 0.2s;
+}
+
+.score:focus {
+  border-bottom-color: #1d4ed8;
+  background: #e8f1ff;
+}
+
+/* ==== TOTAL SCORE ==== */
+.tong {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #6d28d9;
+}
+
+/* ==== SAVE BAR ==== */
+#saveBar {
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  padding: 1.3rem;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+}
+
+#saveBar .container {
+  max-width: 1200px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.15rem;
+}
+
+#cancelSave {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  padding: 0.7rem 2rem;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+#cancelSave:hover {
+  background: #f3f4f6;
+}
+
+#confirmSave {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.9rem 2.8rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+#confirmSave:hover {
+  background: #059669;
+}

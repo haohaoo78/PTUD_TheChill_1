@@ -15,6 +15,10 @@ const ChiTieuRoutes = require('./routes/NhapChitieuTuyenSinhRoutes');
 const DangKyRoutes = require('./routes/DangKyRoutes');
 const QLHS_GV = require('./routes/QuanLyHSGVRoutes');
 const XetDiemRenLuyenRoutes = require('./routes/XetDiemRenLuyenRoutes');
+const NhapDiemThiTuyenSinhRoutes = require('./routes/NhapDiemThiTuyenSinhRoutes');
+const PhanCongChuNhiemBoMonRoutes = require('./routes/PhanCongChuNhiemBoMonRoutes');
+const QuanLyLopRoutes = require('./routes/QuanLyLopRoutes');
+const PhanLopRoutes = require('./routes/PhanLopRoutes');
 
 
 const app = express();
@@ -42,6 +46,10 @@ app.use('/api/duyetyeucausuadiem', DuyetRoutes);
 app.use('/api/nhapchitieutuyensinh', ChiTieuRoutes);
 app.use('/api/quanlygiaovien_hocsinh', QLHS_GV);
 app.use('/api/xetdiemrenluyen', XetDiemRenLuyenRoutes);
+app.use('/api/nhapdiemthituyensinh', NhapDiemThiTuyenSinhRoutes);
+app.use('/api/phancongchunhiembomon', PhanCongChuNhiemBoMonRoutes);
+app.use('/api/quanlylop', QuanLyLopRoutes);
+app.use('/api/phanlophocsinh', PhanLopRoutes);
 
 
 

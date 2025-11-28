@@ -1,0 +1,10 @@
+/* Basic styles for Quan Ly Lop page */
+.ql-lop .controls { margin-bottom: 10px; }
+.ql-lop .controls label { margin-right: 6px; }
+.grid { width: 100%; border-collapse: collapse; }
+.grid th, .grid td { border: 1px solid #ddd; padding: 8px; }
+.grid th { background: #f6f8fa; }
+.text-center { text-align: center; }
+.modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); }
+.modal-content { background: white; width: 480px; margin: 10% auto; padding: 20px; border-radius: 8px; }
+.modal .close { float: right; cursor: pointer; }
