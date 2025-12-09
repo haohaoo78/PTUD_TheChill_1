@@ -6,6 +6,8 @@
 const modal = document.getElementById('detail-modal');
 const modalContent = document.getElementById('detail-content');
 const table = document.getElementById('requests-table');
+// current filter code (accessible globally)
+let currentFilterCode = null;
 
 // ==========================
 // Tạo modal xác nhận
@@ -38,23 +40,21 @@ function updateRowStatus(tr, status) {
   if (!tr) return;
 
   const cells = tr.querySelectorAll('td');
-
-  // Cập nhật trạng thái (cột 11)
-  const statusCell = cells[11];
+  // Trạng thái ở cột 11 (0-based index 10)
+  const statusCell = cells[10];
   if (statusCell) {
-    statusCell.textContent =
-      status === 'DaDuyet'
-        ? 'Đã duyệt'
-        : status === 'BiTuChoi'
-        ? 'Bị từ chối'
-        : status;
-    statusCell.dataset.status = status;
+    const display = status === 'DaDuyet' ? 'Đã duyệt' : status === 'BiTuChoi' ? 'Bị từ chối' : 'Đang xử lý';
+    statusCell.textContent = display;
+    // Keep both machine and display values where possible
+    statusCell.dataset.status = status; // code e.g., DaDuyet
+    statusCell.dataset.statusDisplay = display;
+    // Also keep raw status code in row dataset (we pass the code in `status` param)
+    tr.dataset.trangthai = status;
+    // Apply classes for styling
+    statusCell.classList.remove('status-done', 'status-rejected');
+    if (display === 'Đã duyệt') statusCell.classList.add('status-done');
+    if (display === 'Bị từ chối') statusCell.classList.add('status-rejected');
   }
-
-  // Cập nhật ngày duyệt (cột 12)
-  const dateCell = cells[12];
-  if (dateCell) dateCell.textContent = new Date().toLocaleDateString('vi-VN');
-
   // Cập nhật action (cột cuối)
   const actionCell = cells[cells.length - 1];
   if (actionCell) actionCell.innerHTML = '<em>Đã xử lý</em>';
@@ -62,6 +62,10 @@ function updateRowStatus(tr, status) {
   // Hiệu ứng visual
   tr.classList.add('updated');
   setTimeout(() => tr.classList.remove('updated'), 2000);
+
+  // Re-apply active filter so rows that changed status get hidden/shown correctly
+  const activeBtn = document.querySelector('.filter-btn.active');
+  if (activeBtn) filterRequests(activeBtn.dataset.statusCode);
 }
 
 // ==========================
@@ -128,18 +132,10 @@ async function fetchRequestDetails(id) {
     }
 
     // Duyệt/Từ chối
-    approveBtn && approveBtn.addEventListener('click', async () => await doApproveReject(id, 'approve', true));
-    rejectBtn && rejectBtn.addEventListener('click', async () => {
-      const { value } = await Swal.fire({
-        title: 'Lý do từ chối',
-        input: 'textarea',
-        inputPlaceholder: 'Nhập lý do từ chối...',
-        showCancelButton: true,
-        confirmButtonText: 'Từ chối',
-        cancelButtonText: 'Hủy',
-        inputValidator: v => !v && 'Vui lòng nhập lý do!'
-      });
-      if (value) await doApproveReject(id, 'reject', true, value);
+    approveBtn && (approveBtn.onclick = async () => await doApproveReject(id, 'approve', true));
+    rejectBtn && (rejectBtn.onclick = async () => {
+      const reason = await showReasonModal('Lý do từ chối', 'Nhập lý do từ chối...');
+      if (reason) await doApproveReject(id, 'reject', true, reason);
     });
 
     // Đóng modal
@@ -180,6 +176,47 @@ function showConfirmationModal(title, message) {
 }
 
 // ==========================
+// Reason modal (for rejection input)
+// ==========================
+function showReasonModal(title = 'Lý do từ chối', placeholder = '') {
+  return new Promise(resolve => {
+    const modal = document.createElement('div');
+    modal.className = 'modal reason-modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3>${title}</h3>
+        <textarea id="reason-input" placeholder="${placeholder}" style="width:100%; min-height:80px; margin-top:8px;"></textarea>
+        <div class="modal-actions" style="margin-top:8px;">
+          <button id="reason-confirm" class="btn">Từ chối</button>
+          <button id="reason-cancel" class="btn">Hủy</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+
+    const confirm = modal.querySelector('#reason-confirm');
+    const cancel = modal.querySelector('#reason-cancel');
+    const input = modal.querySelector('#reason-input');
+
+    const cleanup = (val) => {
+      modal.remove();
+      resolve(val);
+    };
+
+    confirm.onclick = () => {
+      const val = input.value.trim();
+      if (!val) {
+        alert('Vui lòng nhập lý do từ chối');
+        return;
+      }
+      cleanup(val);
+    };
+    cancel.onclick = () => cleanup(null);
+  });
+}
+
+// ==========================
 // Approve / Reject
 // ==========================
 async function doApproveReject(id, action, isFromModal = false, ghiChu = '') {
@@ -201,6 +238,7 @@ async function doApproveReject(id, action, isFromModal = false, ghiChu = '') {
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, ghiChu })
     });
@@ -221,6 +259,11 @@ async function doApproveReject(id, action, isFromModal = false, ghiChu = '') {
       document.body.appendChild(alertEl);
       setTimeout(() => alertEl.remove(), 1000);
     }
+
+    // Re-fetch list for current filter to get authoritative data from server
+    if (currentFilterCode) {
+      await fetchAndRender(currentFilterCode);
+    }
   } catch (err) {
     console.error(err);
     allButtons.forEach(b => b.disabled = false);
@@ -232,6 +275,13 @@ async function doApproveReject(id, action, isFromModal = false, ghiChu = '') {
 // Event delegation cho table
 // ==========================
 if (modal && table) {
+  // current filter code (already defined globally)
+  // Apply initial filter based on active button (will fetch from server)
+  const activeBtn = document.querySelector('.filter-btn.active');
+  if (activeBtn) {
+    currentFilterCode = activeBtn.dataset.statusCode;
+    fetchAndRender(currentFilterCode);
+  }
   table.addEventListener('click', async e => {
     const tr = e.target.closest('tr');
     if (!tr) return;
@@ -247,22 +297,16 @@ if (modal && table) {
     }
 
     if (e.target.classList.contains('reject-btn')) {
-      const { value } = await Swal.fire({
-        title: 'Lý do từ chối',
-        input: 'textarea',
-        showCancelButton: true,
-        confirmButtonText: 'Từ chối',
-        cancelButtonText: 'Hủy',
-        inputValidator: v => !v && 'Vui lòng nhập lý do!'
-      });
-      if (value) await doApproveReject(id, 'reject', false, value);
+        const reason = await showReasonModal('Lý do từ chối', 'Nhập lý do từ chối...');
+        if (reason) await doApproveReject(id, 'reject', false, reason);
     }
 
-    if (e.target.classList.contains('filter-btn')) {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      filterRequests(e.target.dataset.status);
+    if (e.target.classList.contains('note-btn')) {
+      const note = e.target.getAttribute('title') || 'Không có lý do';
+      alert(note);
     }
+
+    // previous filter handling moved to separate handler on .filter-buttons
   });
 
   // Đóng modal
@@ -271,17 +315,123 @@ if (modal && table) {
   window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
 }
 
+// Filter buttons handler: these are outside the table, so handle them here
+const filterContainer = document.querySelector('.filter-buttons');
+if (filterContainer) {
+  filterContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilterCode = btn.dataset.statusCode;
+    fetchAndRender(currentFilterCode);
+  });
+}
+
+// Apply initial filter based on active button (fallback if not inside table block)
+const initialBtn = document.querySelector('.filter-btn.active');
+if (initialBtn) filterRequests(initialBtn.dataset.statusCode);
+
 // ==========================
 // Hàm filter yêu cầu (client-side)
 // ==========================
 function filterRequests(status) {
   const trs = table.querySelectorAll('tbody tr');
+  const displayToCode = {
+    'Đang xử lý': 'DangXuLy',
+    'Đã duyệt': 'DaDuyet',
+    'Bị từ chối': 'BiTuChoi'
+  };
   trs.forEach(tr => {
-    const trStatus = tr.querySelector('td[data-status]')?.dataset.status;
-    if (status === 'All' || trStatus === status) {
+    // Try dataset, then specific column (11th), then .status element
+    // Prefer the row code, then the status cell code or status-display, then the text content
+    let trStatus = tr.dataset.trangthai;
+    const cell = tr.querySelector('td[data-status]') || tr.querySelector('td:nth-child(11)');
+    if (!trStatus && cell) trStatus = cell.dataset.status || cell.dataset.statusDisplay || cell.textContent?.trim();
+    if (!trStatus) {
+      const statusEl = tr.querySelector('.status') || tr.querySelector('.status-done');
+      trStatus = statusEl?.textContent?.trim();
+    }
+    if (!trStatus) trStatus = '';
+
+    if (!status || status === 'All' || status === 'Tất cả' || status === 'All') {
+      tr.style.display = '';
+      return;
+    }
+    // If status is a display string, map to code for comparison
+    const normalized = displayToCode[trStatus] || trStatus;
+    if (normalized === status) {
       tr.style.display = '';
     } else {
       tr.style.display = 'none';
     }
+  });
+}
+
+// ==========================
+// Fetch list from server and render
+// ==========================
+async function fetchAndRender(statusCode) {
+  try {
+    // POST body expects 'status', controller will translate aliases
+    const res = await fetch('/api/duyetyeucausuadiem/list', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: statusCode })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data || !data.success) throw new Error(data?.message || 'Lỗi server');
+    renderRequestRows(data.requests || []);
+  } catch (err) {
+    console.error('Lỗi khi fetch danh sách theo trạng thái:', err);
+    // optionally show error to user
+  }
+}
+
+function renderRequestRows(requests) {
+  const tbody = table.querySelector('tbody');
+  tbody.innerHTML = '';
+  if (!requests.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="12" class="text-center">Không có yêu cầu</td>';
+    tbody.appendChild(tr);
+    return;
+  }
+  requests.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.dataset.id = r.MaYeuCau;
+    tr.dataset.trangthai = r.TrangThai;
+    // Build actions based on status
+    let actions = `<button class="view-btn">Xem chi tiết</button>`;
+    if (r.TrangThai === 'DangXuLy') {
+      actions += ` <button class="approve-btn">✅ Duyệt</button> <button class="reject-btn">❌ Từ chối</button>`;
+    } else {
+      if (r.TrangThai === 'BiTuChoi' && r.GhiChu) {
+        actions += ` <button class="note-btn" title="${r.GhiChu}">👁️ Lý do từ chối</button>`;
+      }
+      if (r.TrangThai === 'DaDuyet') {
+        actions += ` <em class="status-done">✔️ Đã duyệt</em>`;
+      }
+    }
+
+    const statusDisplay = r.TrangThai === 'DangXuLy' ? 'Đang xử lý' : (r.TrangThai === 'DaDuyet' ? 'Đã duyệt' : 'Bị từ chối');
+
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${r.MaYeuCau}</td>
+      <td>${r.MaHocSinh}</td>
+      <td>${r.TenHocSinh || ''}</td>
+      <td>${r.TenMonHoc || r.Mon || ''}</td>
+      <td>${r.LoaiDiem || ''}</td>
+      <td class="text-red">${r.DiemCu ?? ''}</td>
+      <td class="text-green">${r.DiemMoi ?? ''}</td>
+      <td>${r.LyDo || ''}</td>
+      <td>${r.TenGiaoVien || ''}</td>
+      <td data-status="${r.TrangThai}" data-status-display="${statusDisplay}">${statusDisplay}</td>
+      <td>${actions}</td>
+    `;
+    tbody.appendChild(tr);
   });
 }

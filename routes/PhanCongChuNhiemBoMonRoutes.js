@@ -9,6 +9,10 @@ router.post('/classes', PhanCongController.getClassesForNamHoc);
 router.post('/teachers-available', PhanCongController.getAvailableTeachersForChunhiem);
 router.post('/current-gvcn', PhanCongController.getGVCNByClass);
 router.post('/assign-chunhiem', PhanCongController.assignChunhiem);
+router.post('/teacher-load', PhanCongController.getTeacherLoad);
+router.post('/check-assign', PhanCongController.checkAssignBomon);
+router.post('/subject-counts', PhanCongController.getSubjectCountsForClasses);
+router.post('/check-hk-status', PhanCongController.checkHocKyStatus);
 
 // Chức năng GVBM
 router.post('/khoi-list', PhanCongController.getKhoiList);

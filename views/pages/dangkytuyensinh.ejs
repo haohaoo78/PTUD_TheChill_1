@@ -1,0 +1,98 @@
+<link rel="stylesheet" href="/css/DangKyTuyenSinh.css">
+
+<section class="content">
+  <h2>Đăng Ký Tuyển Sinh - Năm <%= namThi || '2025' %></h2>
+  <div id="toast-message" class="toast"></div>
+
+  <div class="info-card">
+    <h4>Thông tin thí sinh</h4>
+    <div class="info-grid">
+      <div><strong>Mã thí sinh:</strong> <%= thiSinh.MaThiSinh %></div>
+      <div><strong>Họ và tên:</strong> <%= thiSinh.HoTen %></div>
+      <div><strong>Ngày sinh:</strong> <%= new Date(thiSinh.NgaySinh).toLocaleDateString('vi-VN') %></div>
+      <div><strong>Giới tính:</strong> <%= thiSinh.GioiTinh === 'Nam' ? 'Nam' : 'Nữ' %></div>
+      <div><strong>Số điện thoại:</strong> <%= thiSinh.SDT %></div>
+      <div><strong>Email:</strong> <%= thiSinh.Email %></div>
+      <div><strong>Tổng điểm thi:</strong> <span class="highlight"><%= thiSinh.TongDiem %></span></div>
+    </div>
+  </div>
+
+  <% if (success) { %>
+    <div class="alert alert-success"><%= success %></div>
+  <% } %>
+
+  <div class="form-section">
+    <h4>Đăng ký nguyện vọng xét tuyển</h4>
+    <form id="form-dangky-nguyenvong">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="truong-select">Chọn trường <span class="required">*</span></label>
+          <select id="truong-select" class="form-select" required>
+            <option value="">-- Chọn trường THPT --</option>
+            <% truongList.forEach(t => { %>
+              <option value="<%= t.MaTruong %>"><%= t.TenTruong %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="tohop-select">Tổ hợp xét tuyển <span class="required">*</span></label>
+          <select id="tohop-select" class="form-select" required>
+            <option value="">-- Chọn tổ hợp môn --</option>
+            <% toHopList.forEach(th => { %>
+              <option value="<%= th.MaToHop %>"><%= th.TenToHop %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn save-btn">Lưu nguyện vọng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-section">
+    <h4>Nguyện vọng đã đăng ký</h4>
+    <% if (nguyenVong && nguyenVong.length > 0) { %>
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>Thứ tự</th>
+            <th>Mã trường</th>
+            <th>Tên trường</th>
+            <th>Tổ hợp</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% nguyenVong.forEach(nv => { %>
+            <tr>
+              <td><strong>NV<%= nv.ThuTuNguyenVong %></strong></td>
+              <td><%= nv.MaTruong %></td>
+              <td><%= nv.TenTruong %></td>
+              <td><%= nv.TenToHop %></td>
+              <td>
+                <span class="status <%= nv.TrangThai === 'Đang xét' ? 'status-pending' : 'status-success' %>">
+                  <%= nv.TrangThai %>
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-danger btn-huy" data-mangv="<%= nv.MaNguyenVong %>">Hủy</button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <div class="empty-state">
+        <p>Chưa đăng ký nguyện vọng nào.</p>
+        <small>Hãy chọn trường và tổ hợp môn ở trên để đăng ký.</small>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<script src="/js/DangKyTuyenSinh.js"></script>
+<script>if (typeof initDangKyTuyenSinh === 'function') initDangKyTuyenSinh();</script>

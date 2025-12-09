@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/xembaitap.css">
+<link rel="stylesheet" href="/css/XemBaiTap.css">
 
 <div class="container">
     <h2>Xem Bài Tập</h2>
@@ -35,7 +35,7 @@
     <div class="assignments-grid">
         <% assignments.forEach(a => { %>
             <div class="assignment <%= a.isEmpty ? 'empty-assignment' : (a.expired ? 'expired' : '') %>"
-                 data-subject="<%= a.subject %>">
+                 data-id="<%= !a.isEmpty ? a.MaBaiTap : '' %>" data-subject="<%= a.subject %>">
                  
                 <div class="header">
                     <span class="subject"><%= a.subject %></span>
@@ -81,4 +81,4 @@
     </div>
 </div>
 
-<script src="/js/xembaitap.js"></script>
+<script src="/js/XemBaiTap.js"></script>

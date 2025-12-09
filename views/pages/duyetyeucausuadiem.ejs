@@ -9,10 +9,10 @@
   <section class="approve-section">
     <div class="section-header">
       <p>Xem xét và phê duyệt các yêu cầu sửa điểm từ giáo viên</p>
-      <div class="filter-buttons">
-        <button class="filter-btn active" data-status="Đang xử lý">Đang xử lý</button>
-        <button class="filter-btn" data-status="Đã duyệt">Đã duyệt</button>
-        <button class="filter-btn" data-status="Bị từ chối">Bị từ chối</button>
+        <div class="filter-buttons">
+        <button class="filter-btn active" data-status-code="DangXuLy">Đang xử lý</button>
+        <button class="filter-btn" data-status-code="DaDuyet">Đã duyệt</button>
+        <button class="filter-btn" data-status-code="BiTuChoi">Bị từ chối</button>
       </div>
     </div>
 
@@ -56,7 +56,7 @@
       <tbody>
         <% if(requests.length){ %>
           <% requests.forEach((r,i)=>{ %>
-            <tr data-id="<%= r.MaYeuCau %>">
+            <tr data-id="<%= r.MaYeuCau %>" data-trangthai="<%= r.TrangThai %>">
               <td><%= i+1 %></td>
               <td><%= r.MaYeuCau %></td>
               <td><%= r.MaHocSinh %></td>
@@ -67,7 +67,7 @@
               <td class="text-green"><%= r.DiemMoi %></td>
               <td><%= r.LyDo %></td>
               <td><%= r.TenGiaoVien %></td>
-              <td>
+              <td data-status="<%= r.TrangThai %>" data-status-display="<%= r.TrangThai === 'DangXuLy' ? 'Đang xử lý' : (r.TrangThai === 'DaDuyet' ? 'Đã duyệt' : (r.TrangThai === 'BiTuChoi' ? 'Bị từ chối' : r.TrangThai)) %>">
                 <% if (r.TrangThai === 'DangXuLy') { %>Đang xử lý<% } %>
                 <% if (r.TrangThai === 'DaDuyet') { %>Đã duyệt<% } %>
                 <% if (r.TrangThai === 'BiTuChoi') { %>Bị từ chối<% } %>

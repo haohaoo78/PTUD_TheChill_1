@@ -86,6 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (!data.success) throw new Error(data.message || 'Lỗi');
       const teachers = data.teachers;
+      if (!teachers.length) {
+        modalBody.innerHTML = `<div>Phân công lớp: <strong>${MaLop}</strong> cho năm học <strong>${NamHoc}</strong></div><div>Không còn giáo viên chủ nhiệm phù hợp. Vui lòng chọn lớp khác.</div>`;
+        modal.style.display = 'block';
+        return;
+      }
       // fetch current gvcn
       const curRes = await fetch('/api/phancongchunhiembomon/current-gvcn', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -97,10 +102,22 @@ document.addEventListener('DOMContentLoaded', () => {
       modalBody.innerHTML = `
         <div>Phân công lớp: <strong>${MaLop}</strong> cho năm học <strong>${NamHoc}</strong></div>
         ${cur && cur.TenGiaoVien ? `<div>Giáo viên hiện tại: <strong>${cur.TenGiaoVien}</strong></div>` : ''}
-        <div>Chọn giáo viên: <select id="modal-teacher-select">${teachers.map(t=>`<option value="${t.MaGiaoVien}">${t.TenGiaoVien}</option>`).join('')}</select></div>
+        <div>Chọn giáo viên: <select id="modal-teacher-select">${teachers.map(t=>`<option value="${t.MaGiaoVien}">${t.TenGiaoVien}</option>`).join('')}</select> <span id="modal-gv-load" style="margin-left:10px;color:#666;font-size:12px"></span></div>
         <div class="actions"><button id="confirm-assign" class="btn">Xác nhận</button></div>
       `;
       modal.style.display = 'block';
+      const modalSel = document.getElementById('modal-teacher-select');
+      const modalLoad = document.getElementById('modal-gv-load');
+      modalSel.onchange = async () => {
+        const MaGVCN = modalSel.value;
+        if (!MaGVCN) { if (modalLoad) modalLoad.textContent = ''; return; }
+        try {
+          const resLoad = await fetch('/api/phancongchunhiembomon/teacher-load', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ MaGiaoVien: MaGVCN, NamHoc, KyHoc: kyHocSelect.value }) });
+          const dLoad = await resLoad.json();
+          if (dLoad.success) modalLoad.textContent = `Số tiết hiện tại: ${dLoad.load}`;
+        } catch (err) { console.error('Lỗi lấy số tiết GV', err); }
+      };
+
       document.getElementById('confirm-assign').onclick = async () => {
         const MaGVCN = document.getElementById('modal-teacher-select').value;
         await assignChunhiem(MaLop, NamHoc, MaGVCN);
@@ -142,7 +159,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rows.length) { updateSubjects(rows[0].MaKhoi); }
 
       khoiSelect.onchange = () => updateSubjects(khoiSelect.value);
-      monSelect.onchange = () => updateTeachersBySubject(monSelect.value);
+      monSelect.onchange = () => { updateTeachersBySubject(monSelect.value); updateClassSubjectCounts(); };
+      namHocSelect.onchange = () => checkHocKy();
+      kyHocSelect.onchange = () => checkHocKy();
+      // initial check for current NamHoc/KyHoc
+      setTimeout(() => checkHocKy(), 150);
       loadBomonClasses.onclick = () => loadClassesByKhoi(khoiSelect.value);
       assignBomonBtn.onclick = () => doAssignBomon();
     } catch (err) {
@@ -169,11 +190,30 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('/api/phancongchunhiembomon/teachers-by-subject', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ TenMonHoc })
+        body: JSON.stringify({ TenMonHoc, NamHoc: namHocSelect.value, KyHoc: kyHocSelect.value })
       });
       const data = await res.json();
       if (!data.success) throw new Error();
+      if (!data.teachers.length) {
+        gvSelect.innerHTML = '<option value="">-- Không có giáo viên phù hợp --</option>';
+        document.getElementById('gv-load').textContent = '';
+        return;
+      }
       gvSelect.innerHTML = data.teachers.map(g => `<option value="${g.MaGiaoVien}">${g.TenGiaoVien}</option>`).join('');
+      // show teacher load when selecting teacher
+      const gvLoadLabel = document.getElementById('gv-load');
+      if (gvLoadLabel) gvLoadLabel.textContent = '';
+      gvSelect.onchange = async () => {
+        const MaGiaoVien = gvSelect.value;
+        if (!MaGiaoVien) { if (gvLoadLabel) gvLoadLabel.textContent = ''; return; }
+        try {
+          const resLoad = await fetch('/api/phancongchunhiembomon/teacher-load', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ MaGiaoVien, NamHoc: namHocSelect.value, KyHoc: kyHocSelect.value }) });
+          const dLoad = await resLoad.json();
+          if (dLoad.success) {
+            if (gvLoadLabel) gvLoadLabel.textContent = `Số tiết hiện tại: ${dLoad.load}`;
+          }
+        } catch (err) { console.error('Lỗi lấy số tiết GV', err); }
+      };
     } catch (err) {
       console.error(err);
     }
@@ -189,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!data.success) throw new Error(data.message);
       const rows = data.classes;
       if (!rows.length) {
-        classesBomonTbody.innerHTML = '<tr><td colspan="4">Không có lớp</td></tr>';
+        classesBomonTbody.innerHTML = '<tr><td colspan="5">Không có lớp</td></tr>';
         return;
       }
       classesBomonTbody.innerHTML = rows.map((r, idx) => `
@@ -198,11 +238,33 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${r.MaLop}</td>
           <td>${r.TenLop}</td>
           <td><input type="checkbox" class="bomon-check"></td>
+          <td class="subject-count" data-id="${r.MaLop}">-</td>
         </tr>
       `).join('');
+      // populate subject counts for displayed classes
+      setTimeout(() => updateClassSubjectCounts(), 100);
     } catch (err) {
       console.error(err);
-      classesBomonTbody.innerHTML = '<tr><td colspan="4">Lỗi khi tải lớp</td></tr>';
+      classesBomonTbody.innerHTML = '<tr><td colspan="5">Lỗi khi tải lớp</td></tr>';
+    }
+  }
+
+  async function updateClassSubjectCounts() {
+    try {
+      const rows = Array.from(classesBomonTbody.querySelectorAll('tr')).map(tr => tr.dataset.id).filter(Boolean);
+      if (!rows.length) return;
+      const res = await fetch('/api/phancongchunhiembomon/subject-counts', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ ClassList: rows, NamHoc: namHocSelect.value, KyHoc: kyHocSelect.value, TenMonHoc: monSelect.value })
+      });
+      const data = await res.json();
+      if (!data.success) return;
+      data.counts.forEach(c => {
+        const el = classesBomonTbody.querySelector(`.subject-count[data-id="${c.MaLop}"]`);
+        if (el) el.innerText = c.count || 0;
+      });
+    } catch (err) {
+      console.error('Lỗi khi lấy số tiết của lớp', err);
     }
   }
 
@@ -217,6 +279,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!classList.length) return Swal.fire('Thông báo', 'Chưa chọn lớp', 'warning');
 
     try {
+      // pre-check assignment load
+      const checkRes = await fetch('/api/phancongchunhiembomon/check-assign', {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ MaGiaoVien, ClassList: classList, NamHoc, KyHoc, TenMonHoc })
+      });
+      const checkData = await checkRes.json();
+      if (!checkData.success) throw new Error(checkData.message || 'Lỗi khi kiểm tra phân công');
+      if (!checkData.canAssign) {
+        return Swal.fire('Không thể phân công', `Số tiết sau khi gán: ${checkData.currentLoad + checkData.addedLoad} > ${checkData.MAX_LOAD}`, 'warning');
+      }
+
       const res = await fetch('/api/phancongchunhiembomon/assign-bomon', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ MaGiaoVien, ClassList: classList, NamHoc, KyHoc, TenMonHoc })
@@ -224,6 +296,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (!data.success) throw new Error(data.message || 'Lỗi khi phân công');
       Swal.fire('Thành công', 'Phân công giáo viên bộ môn thành công', 'success');
+      // reload class list and clear selections
+      await loadClassesByKhoi(khoiSelect.value);
+      updateTeachersBySubject(TenMonHoc);
     } catch (err) {
       console.error(err);
       Swal.fire('Lỗi', err.message || 'Lỗi khi phân công', 'error');

@@ -113,6 +113,66 @@ class PhanCongController {
     }
   }
 
+  async getTeacherLoad(req, res) {
+    try {
+      const { MaGiaoVien, NamHoc, KyHoc } = req.body;
+      if (!MaGiaoVien || !NamHoc || !KyHoc) return res.status(400).json({ success: false, message: 'Thiếu tham số' });
+      const load = await PhanCongModel.getTeacherWeeklyLoad(MaGiaoVien, NamHoc, KyHoc);
+      res.json({ success: true, load });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Lỗi khi lấy số tiết giáo viên' });
+    }
+  }
+
+  // Pre-check assign bomon: compute current load + added load for selected classes
+  async checkAssignBomon(req, res) {
+    try {
+      const { MaGiaoVien, ClassList = [], NamHoc, KyHoc, TenMonHoc } = req.body;
+      if (!MaGiaoVien || !NamHoc || !KyHoc || !TenMonHoc) return res.status(400).json({ success: false, message: 'Thiếu tham số' });
+      const currentLoad = await PhanCongModel.getTeacherWeeklyLoad(MaGiaoVien, NamHoc, KyHoc);
+      let addedLoad = 0;
+      for (const MaLop of ClassList) {
+        const soTiet = await PhanCongModel.getSubjectWeeklyCountForClass(MaLop, NamHoc, KyHoc, TenMonHoc);
+        addedLoad += soTiet;
+      }
+      const MAX_LOAD = 40; // same as model
+      const canAssign = currentLoad + addedLoad <= MAX_LOAD;
+      res.json({ success: true, canAssign, currentLoad, addedLoad, MAX_LOAD });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Lỗi khi kiểm tra phân công' });
+    }
+  }
+
+  async getSubjectCountsForClasses(req, res) {
+    try {
+      const { ClassList = [], NamHoc, KyHoc, TenMonHoc } = req.body;
+      if (!ClassList.length || !NamHoc || !KyHoc || !TenMonHoc) return res.status(400).json({ success: false, message: 'Thiếu tham số' });
+      const results = [];
+      for (const MaLop of ClassList) {
+        const count = await PhanCongModel.getSubjectWeeklyCountForClass(MaLop, NamHoc, KyHoc, TenMonHoc);
+        results.push({ MaLop, count });
+      }
+      res.json({ success: true, counts: results });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Lỗi khi lấy số tiết theo lớp' });
+    }
+  }
+
+  async checkHocKyStatus(req, res) {
+    try {
+      const { NamHoc, KyHoc } = req.body;
+      if (!NamHoc || !KyHoc) return res.status(400).json({ success: false, message: 'Thiếu tham số' });
+      const status = await PhanCongModel.getHocKyStatus(NamHoc, KyHoc);
+      res.json({ success: true, status });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Lỗi khi kiểm tra trạng thái học kỳ' });
+    }
+  }
+
   async assignBoMon(req, res) {
     try {
       const { MaGiaoVien, ClassList, NamHoc, KyHoc, TenMonHoc } = req.body;

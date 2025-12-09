@@ -1,0 +1,56 @@
+<link rel="stylesheet" href="/css/ThongTinHS.css">
+
+<div class="thongtin-container">
+  <h2>Thông Tin Học Sinh</h2>
+
+  <form id="form-thongtin">
+    <div class="form-group">
+      <label>Mã Học Sinh:</label>
+      <input type="text" id="maHS" disabled class="disabled-input">
+    </div>
+    <div class="form-group">
+      <label>Họ và Tên Học Sinh:</label>
+      <input type="text" id="hoTen" disabled class="disabled-input">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Ngày Sinh:</label>
+        <input type="date" id="ngaySinh" name="NgaySinh" disabled>
+      </div>
+      <div class="form-group">
+        <label>Giới Tính:</label>
+        <select id="gioiTinh" name="GioiTinh" disabled>
+          <option value="Nam">Nam</option>
+          <option value="Nữ">Nữ</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Họ và Tên Phụ Huynh:</label>
+      <input type="text" id="tenPhuHuynh" name="TenPhuHuynh" disabled>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Số Điện Thoại (Phụ Huynh):</label>
+        <input type="text" id="sdt" name="SDT" disabled class="disabled-input">
+      </div>
+      <div class="form-group">
+        <label>Email (Phụ Huynh):</label>
+        <input type="email" id="email" name="Email" disabled>
+      </div>
+    </div>
+
+    <% if (user.LoaiTaiKhoan === 'Phụ huynh') { %>
+      <div class="button-group">
+        <button type="button" id="btn-edit" class="btn-edit">Chỉnh sửa</button>
+        <button type="button" id="btn-confirm" class="btn-confirm">Xác nhận thông tin đúng</button>
+        <button type="submit" id="btn-save" class="btn-save" style="display: none;">Lưu thay đổi</button>
+        <button type="button" id="btn-cancel" class="btn-cancel" style="display: none;">Hủy bỏ</button>
+      </div>
+    <% } else { %>
+      <p class="note">Chỉ phụ huynh mới có quyền chỉnh sửa thông tin.</p>
+    <% } %>
+  </form>
+</div>
+
+<script src="/js/ThongTinHS.js"></script>
