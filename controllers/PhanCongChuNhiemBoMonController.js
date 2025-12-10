@@ -287,6 +287,21 @@ class PhanCongController {
       res.status(500).json({ success: false, message: "Lỗi khi lấy danh sách phân công" });
     }
   }
+
+  async deleteBoMon(req, res) {
+    try {
+      const { MaGVBM, MaLop, NamHoc, HocKy, TenMonHoc } = req.body;
+      if (!MaGVBM || !MaLop || !NamHoc || !HocKy || !TenMonHoc)
+        return res.status(400).json({ success: false, message: "Thiếu dữ liệu" });
+
+      await PhanCongModel.deleteBoMon(MaGVBM, MaLop, NamHoc, HocKy, TenMonHoc);
+      res.json({ success: true, message: "Xóa phân công bộ môn thành công" });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: "Lỗi khi xóa: " + (err && err.message ? err.message : String(err)) });
+    }
+  }
 }
 
 module.exports = new PhanCongController();

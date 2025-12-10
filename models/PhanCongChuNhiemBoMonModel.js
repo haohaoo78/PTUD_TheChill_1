@@ -294,6 +294,14 @@ class PhanCongModel {
     `, [namHoc, kyHoc]);
     return rows;
   }
+
+  static async deleteBoMon(maGVBM, maLop, namHoc, hocKy, tenMonHoc) {
+    const [result] = await db.execute(`
+      DELETE FROM GVBoMon
+      WHERE MaGVBM = ? AND MaLop = ? AND NamHoc = ? AND HocKy = ? AND BoMon = ?
+    `, [maGVBM, maLop, namHoc, hocKy, tenMonHoc]);
+    return result;
+  }
 }
 
 module.exports = PhanCongModel;
