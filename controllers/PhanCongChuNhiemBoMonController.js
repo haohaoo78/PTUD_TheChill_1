@@ -226,6 +226,8 @@ class PhanCongController {
   async assignBoMon(req, res) {
     try {
       const { MaGiaoVien, ClassList, NamHoc, KyHoc, TenMonHoc } = req.body;
+      
+      console.log('assignBoMon request:', { MaGiaoVien, ClassList, NamHoc, KyHoc, TenMonHoc });
 
       if (!MaGiaoVien || !ClassList || !NamHoc || !KyHoc || !TenMonHoc)
         return res.status(400).json({ success: false, message: "Thiếu dữ liệu" });
@@ -250,12 +252,39 @@ class PhanCongController {
       const result = await PhanCongModel.assignBoMonForTeacher(
         MaGiaoVien, ClassList, NamHoc, KyHoc, TenMonHoc
       );
+      console.log('assignBoMon result:', result);
       res.json(result);
 
     } catch (err) {
-      console.error(err);
+      console.error('assignBoMon error:', err);
       // return full message for debugging (can be toned down later)
       res.status(500).json({ success: false, message: "Lỗi khi phân công: " + (err && err.message ? err.message : String(err)) });
+    }
+  }
+
+  async deleteChunhiem(req, res) {
+    try {
+      const { MaLop, NamHoc } = req.body;
+      if (!MaLop || !NamHoc)
+        return res.status(400).json({ success: false, message: "Thiếu dữ liệu" });
+
+      await PhanCongModel.deleteChunhiem(MaLop, NamHoc);
+      res.json({ success: true, message: "Xóa giáo viên chủ nhiệm thành công" });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: "Lỗi khi xóa: " + (err && err.message ? err.message : String(err)) });
+    }
+  }
+
+  async listAssignments(req, res) {
+    try {
+      const { NamHoc, KyHoc } = req.body;
+      const assignments = await PhanCongModel.listAssignments(NamHoc || '2025-2026', KyHoc || '1');
+      res.json({ success: true, assignments });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: "Lỗi khi lấy danh sách phân công" });
     }
   }
 }

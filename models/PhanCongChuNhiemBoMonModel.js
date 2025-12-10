@@ -122,6 +122,23 @@ class PhanCongModel {
     }
   }
 
+  static async deleteChunhiem(maLop, namHoc) {
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+      await conn.execute(
+        `DELETE FROM GVChuNhiem WHERE MaLop = ? AND NamHoc = ?`,
+        [maLop, namHoc]
+      );
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+  }
+
   // =======================
   // 3. PHÂN CÔNG BỘ MÔN
   // =======================
@@ -150,10 +167,10 @@ class PhanCongModel {
     const [rows] = await db.execute(`
       SELECT gv.MaGiaoVien, gv.TenGiaoVien, gv.TenMonHoc
       FROM GiaoVien gv
-      WHERE (TRIM(gv.TenMonHoc) = TRIM(?) OR gv.TenMonHoc LIKE CONCAT('%', ?, '%'))
+      WHERE TRIM(gv.TenMonHoc) = TRIM(?)
         AND gv.TrangThai = 'Đang công tác'
       ORDER BY gv.TenGiaoVien
-    `, [tenMonHoc, tenMonHoc]);
+    `, [tenMonHoc]);
     for (let row of rows) {
       row.load = await this.getTeacherWeeklyLoad(row.MaGiaoVien, namHoc, kyHoc);
       row.remaining = 40 - row.load;
@@ -255,6 +272,27 @@ class PhanCongModel {
     } finally {
       conn.release();
     }
+  }
+
+  static async listAssignments(namHoc, kyHoc) {
+    const [rows] = await db.execute(`
+      SELECT 
+        gv.MaGVBM,
+        gv.MaLop,
+        l.TenLop,
+        gv.BoMon AS TenMonHoc,
+        g.TenGiaoVien,
+        k.TenKhoi AS Khoi,
+        gv.NamHoc,
+        gv.HocKy
+      FROM GVBoMon gv
+      LEFT JOIN Lop l ON gv.MaLop = l.MaLop
+      LEFT JOIN GiaoVien g ON gv.MaGVBM = g.MaGiaoVien
+      LEFT JOIN Khoi k ON l.Khoi = k.MaKhoi
+      WHERE gv.NamHoc = ? AND gv.HocKy = ?
+      ORDER BY k.TenKhoi, gv.BoMon, g.TenGiaoVien, l.TenLop
+    `, [namHoc, kyHoc]);
+    return rows;
   }
 }
 

@@ -9,11 +9,11 @@ class QuanLyLopModel {
 
   static async getClassesByKhoi(MaKhoi) {
     const [rows] = await db.execute(`
-      SELECT l.MaLop, l.TenLop, l.Khoi, l.MaToHop, l.TrangThai, l.SiSo,
-             COALESCE(gv.TenGiaoVien, 'Chưa gán') AS TenGVCN
+      SELECT DISTINCT l.MaLop, l.TenLop, l.Khoi, l.MaToHop, l.TrangThai, l.SiSo,
+             (SELECT TenGiaoVien FROM GiaoVien gv 
+              INNER JOIN GVChuNhiem gvcn ON gv.MaGiaoVien = gvcn.MaGVCN 
+              WHERE gvcn.MaLop = l.MaLop LIMIT 1) AS TenGVCN
       FROM Lop l
-      LEFT JOIN GVChuNhiem gvcn ON l.MaLop = gvcn.MaLop
-      LEFT JOIN GiaoVien gv ON gvcn.MaGVCN = gv.MaGiaoVien
       WHERE l.Khoi = ?
       ORDER BY l.TenLop
     `, [MaKhoi]);

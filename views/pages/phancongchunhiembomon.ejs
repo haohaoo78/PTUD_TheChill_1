@@ -20,9 +20,6 @@
     font-size: 26px;
     font-weight: bold;
   }
-  main {
-    padding: 20px 40px;
-  }
   .controls label {
     font-weight: bold;
     margin-right: 5px;
@@ -60,6 +57,21 @@
     box-shadow: 0 3px 10px rgba(0,0,0,0.1);
   }
   .hide { display: none; }
+  .selectors {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  .selectors label {
+    font-weight: bold;
+    margin: 0;
+  }
+  .selectors select {
+    margin-right: 0;
+    min-width: 150px;
+  }
   table.grid {
     width: 100%;
     border-collapse: collapse;
@@ -173,7 +185,32 @@
       <div class="actions">
         <button id="assign-bomon">Phân công bộ môn</button>
       </div>
+      <h3 style="margin-top:32px;">Danh sách phân công giáo viên bộ môn</h3>
+      <div class="selectors" style="margin-bottom: 15px;">
+        <label>Khối:</label>
+        <select id="filter-khoi-select">
+          <option value="">-- Tất cả --</option>
+        </select>
+        <label>Môn:</label>
+        <select id="filter-mon-select">
+          <option value="">-- Tất cả --</option>
+        </select>
+        <label>Giáo viên:</label>
+        <select id="filter-gv-select">
+          <option value="">-- Tất cả --</option>
+        </select>
+        <button id="filter-btn" style="padding:6px 12px;background:#0a1d37;color:#fff;border:none;border-radius:6px;cursor:pointer;">Lọc</button>
+      </div>
+      <table id="assignment-table" class="grid">
+        <thead>
+          <tr><th>STT</th><th>Khối</th><th>Môn</th><th>Giáo viên</th><th>Mã lớp</th><th>Tên lớp</th><th>Năm học</th><th>Học kỳ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="8" class="text-center">Chưa có dữ liệu</td></tr>
+        </tbody>
+      </table>
     </div>
+
   </section>
 </main>
 

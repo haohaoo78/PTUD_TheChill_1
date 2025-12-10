@@ -6,8 +6,10 @@ function initPhanCong() {
   // ==================== DOM References ====================
   const tabChunhiem = document.getElementById('tab-chunhiem');
   const tabBomon = document.getElementById('tab-bomon');
+  const tabDanhsach = document.getElementById('tab-danhsach');
   const chunhiemPanel = document.getElementById('chunhiem-panel');
   const bomonPanel = document.getElementById('bomon-panel');
+  const danhsachPanel = document.getElementById('danhsach-panel');
 
   const namHocSelect = document.getElementById('namhoc-select');
   const kyHocSelect = document.getElementById('kyhoc-select');
@@ -18,6 +20,13 @@ function initPhanCong() {
   const gvSelect = document.getElementById('gv-select');
   const classesBomonTbody = document.querySelector('#classes-bomon-table tbody');
   const assignBomonBtn = document.getElementById('assign-bomon');
+
+  // Filter references
+  const filterKhoiSelect = document.getElementById('filter-khoi-select');
+  const filterMonSelect = document.getElementById('filter-mon-select');
+  const filterGvSelect = document.getElementById('filter-gv-select');
+  const filterBtn = document.getElementById('filter-btn');
+  const assignmentTableTbody = document.querySelector('#assignment-table tbody');
 
   const modal = document.getElementById('assign-modal');
   const modalClose = modal?.querySelector('.close');
@@ -55,6 +64,17 @@ function initPhanCong() {
     bomonPanel?.classList.remove('hide');
     chunhiemPanel?.classList.add('hide');
     getKhoiList(); // Load khối khi vào tab Bộ môn
+    loadAssignmentFilters(); // Load danh sách bộ môn khi vào tab
+  });
+
+  tabDanhsach?.addEventListener('click', () => {
+    tabDanhsach.classList.add('active');
+    tabChunhiem.classList.remove('active');
+    tabBomon.classList.remove('active');
+    danhsachPanel?.classList.remove('hide');
+    chunhiemPanel?.classList.add('hide');
+    bomonPanel?.classList.add('hide');
+    loadAssignmentFilters(); // Load filters khi vào tab danh sách
   });
 
   // ==================== Chủ nhiệm ====================
@@ -82,7 +102,10 @@ function initPhanCong() {
           <td>${escapeHtml(c.MaLop)}</td>
           <td>${escapeHtml(c.TenLop)}</td>
           <td>${escapeHtml(c.TenGVCN || 'Chưa phân công')}</td>
-          <td><button class="assign-chunhiem" style="padding:5px 10px;">Phân công</button></td>
+          <td>
+            <button class="assign-chunhiem" style="padding:5px 10px;margin-right:5px;">Phân công</button>
+            <button class="delete-chunhiem" style="padding:5px 10px;background:#d9534f;">Xóa</button>
+          </td>
         </tr>
       `).join('');
 
@@ -94,10 +117,43 @@ function initPhanCong() {
 
   // Click phân công chủ nhiệm
   classesTableTbody?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.assign-chunhiem');
-    if (!btn) return;
-    const maLop = btn.closest('tr').dataset.id;
-    await openChunhiemModal(maLop);
+    const assignBtn = e.target.closest('.assign-chunhiem');
+    const deleteBtn = e.target.closest('.delete-chunhiem');
+    
+    if (assignBtn) {
+      const maLop = assignBtn.closest('tr').dataset.id;
+      await openChunhiemModal(maLop);
+      // Sau khi phân công chủ nhiệm xong, reload danh sách chủ nhiệm
+      await loadClasses();
+    }
+    
+    if (deleteBtn) {
+      const tr = deleteBtn.closest('tr');
+      const maLop = tr.dataset.id;
+      const tenLop = tr.children[2]?.textContent || maLop;
+      
+      if (!confirm(`Bạn có chắc chắn muốn xóa giáo viên chủ nhiệm của lớp ${tenLop}?`)) return;
+      
+      try {
+        const NamHoc = namHocSelect.value;
+        const res = await fetch('/api/phancongchunhiembomon/delete-chunhiem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ MaLop: maLop, NamHoc })
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+          Swal.fire('Thành công', result.message, 'success');
+          await loadClasses(); // Await to ensure list is reloaded before alert closes
+        } else {
+          Swal.fire('Lỗi', result.message, 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Lỗi', 'Không thể xóa giáo viên chủ nhiệm', 'error');
+      }
+    }
   });
 
   async function openChunhiemModal(MaLop) {
@@ -149,15 +205,24 @@ function initPhanCong() {
         const MaGVCN = document.getElementById('gv-select-modal').value;
         modal.style.display = 'none';
 
-        const saveRes = await fetch('/api/phancongchunhiembomon/assign-chunhiem', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ MaLop, NamHoc, MaGVCN, KyHoc: kyHocSelect.value })
-        });
-        const result = await saveRes.json();
+        try {
+          const saveRes = await fetch('/api/phancongchunhiembomon/assign-chunhiem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ MaLop, NamHoc, MaGVCN, KyHoc: kyHocSelect.value })
+          });
+          const result = await saveRes.json();
 
-        Swal.fire(result.success ? 'Thành công' : 'Lỗi', result.message, result.success ? 'success' : 'error');
-        if (result.success) loadClasses();
+          if (result.success) {
+            Swal.fire('Thành công', result.message, 'success');
+            await loadClasses(); // Await the load to ensure data is refreshed before closing alert
+          } else {
+            Swal.fire('Lỗi', result.message, 'error');
+          }
+        } catch (err) {
+          console.error(err);
+          Swal.fire('Lỗi', 'Lỗi khi phân công', 'error');
+        }
       });
 
     } catch (err) {
@@ -315,6 +380,8 @@ function initPhanCong() {
       .map(cb => cb.closest('tr').dataset.id)
       .filter(Boolean);
 
+    console.log('Assign Bomon:', { MaGiaoVien, TenMonHoc, NamHoc, KyHoc, selectedClasses });
+
     if (selectedClasses.length === 0) {
       return Swal.fire('Cảnh báo', 'Vui lòng chọn ít nhất một lớp', 'warning');
     }
@@ -331,6 +398,7 @@ function initPhanCong() {
       const check = await checkRes.json();
 
       if (!check.canAssign) {
+        assignBomonBtn.disabled = false;
         return Swal.fire('Không thể phân công', 
           `Giáo viên sẽ vượt định mức ${check.MAX_LOAD} tiết! (hiện ${check.currentLoad} + thêm ${check.addedLoad})`, 'warning');
       }
@@ -342,14 +410,22 @@ function initPhanCong() {
         body: JSON.stringify({ MaGiaoVien, ClassList: selectedClasses, NamHoc, KyHoc, TenMonHoc })
       });
       const result = await res.json();
+      
+      console.log('Assign result:', result);
 
-      Swal.fire('Thông báo', result.message, result.success ? 'success' : 'error');
       if (result.success) {
-        loadClassesByKhoi(khoiSelect.value);
-        updateTeachersBySubject(TenMonHoc);
+        Swal.fire('Thành công', result.message, 'success');
+        // Uncheck all boxes and reload data
+        document.querySelectorAll('.bomon-check').forEach(cb => cb.checked = false);
+        await loadClassesByKhoi(khoiSelect.value);
+        await updateTeachersBySubject(TenMonHoc);
+        await loadAssignmentFilters(); // Reload danh sách bộ môn sau khi phân công
+      } else {
+        Swal.fire('Lỗi', result.message, 'error');
       }
     } catch (err) {
       Swal.fire('Lỗi', 'Không thể phân công bộ môn', 'error');
+      console.error('Assign Bomon error:', err);
     } finally {
       assignBomonBtn.disabled = false;
     }
@@ -357,7 +433,13 @@ function initPhanCong() {
 
   // ==================== Sự kiện thay đổi ====================
   khoiSelect && (khoiSelect.onchange = () => updateSubjects(khoiSelect.value));
-  monSelect && (monSelect.onchange = () => updateTeachersBySubject(monSelect.value));
+  monSelect && (monSelect.onchange = () => {
+    // Chỉ lấy tên môn gốc (không số lớp)
+    let monValue = monSelect.value;
+    // Nếu có số lớp (ví dụ: "Toán 10"), chỉ lấy "Toán"
+    monValue = monValue.split(' ')[0];
+    updateTeachersBySubject(monValue);
+  });
   gvSelect && (gvSelect.onchange = () => {
     if (khoiSelect.value) loadClassesByKhoi(khoiSelect.value);
   });
@@ -378,6 +460,87 @@ function initPhanCong() {
 
   kyHocSelect && (kyHocSelect.onchange = checkHocKyStatus);
 
+  // ==================== Danh sách phân công ====================
+  let allAssignments = [];
+
+  async function loadAssignmentFilters() {
+    try {
+      const res = await fetch('/api/phancongchunhiembomon/list-assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ NamHoc: namHocSelect.value, KyHoc: kyHocSelect.value })
+      });
+      const { success, assignments = [] } = await res.json();
+
+      if (!success || assignments.length === 0) {
+        assignmentTableTbody.innerHTML = '<tr><td colspan="8">Chưa có phân công</td></tr>';
+        return;
+      }
+
+      allAssignments = assignments;
+
+      // Populate filter dropdowns
+      const khoiSet = new Set();
+      const monSet = new Set();
+      const gvSet = new Set();
+
+      assignments.forEach(a => {
+        if (a.Khoi) khoiSet.add(a.Khoi);
+        if (a.TenMonHoc) monSet.add(a.TenMonHoc);
+        if (a.TenGiaoVien) gvSet.add(a.TenGiaoVien);
+      });
+
+      filterKhoiSelect.innerHTML = '<option value="">-- Tất cả --</option>' +
+        Array.from(khoiSet).sort().map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('');
+
+      filterMonSelect.innerHTML = '<option value="">-- Tất cả --</option>' +
+        Array.from(monSet).sort().map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+
+      filterGvSelect.innerHTML = '<option value="">-- Tất cả --</option>' +
+        Array.from(gvSet).sort().map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+
+      displayAssignments(allAssignments);
+    } catch (err) {
+      console.error('Load assignments error:', err);
+      assignmentTableTbody.innerHTML = '<tr><td colspan="8">Lỗi tải danh sách</td></tr>';
+    }
+  }
+
+  function displayAssignments(assignments) {
+    if (assignments.length === 0) {
+      assignmentTableTbody.innerHTML = '<tr><td colspan="8">Không có kết quả phù hợp</td></tr>';
+      return;
+    }
+
+    assignmentTableTbody.innerHTML = assignments.map((a, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${escapeHtml(a.Khoi || '')}</td>
+        <td>${escapeHtml(a.TenMonHoc || '')}</td>
+        <td>${escapeHtml(a.TenGiaoVien || '')}</td>
+        <td>${escapeHtml(a.MaLop || '')}</td>
+        <td>${escapeHtml(a.TenLop || '')}</td>
+        <td>${escapeHtml(a.NamHoc || '')}</td>
+        <td>${escapeHtml(a.HocKy || '')}</td>
+        <td><button class="delete-bomon" data-gv="${escapeHtml(a.MaGVBM)}" data-lop="${escapeHtml(a.MaLop)}" data-namhoc="${escapeHtml(a.NamHoc)}" data-hocky="${escapeHtml(a.HocKy)}" data-mon="${escapeHtml(a.TenMonHoc)}" style="background:#d9534f;color:#fff;padding:5px 10px;border:none;border-radius:4px;cursor:pointer;">Xóa</button></td>
+      </tr>
+    `).join('');
+  }
+
+  filterBtn?.addEventListener('click', () => {
+    const selectedKhoi = filterKhoiSelect.value;
+    const selectedMon = filterMonSelect.value;
+    const selectedGv = filterGvSelect.value;
+
+    const filtered = allAssignments.filter(a => {
+      return (selectedKhoi === '' || a.Khoi === selectedKhoi) &&
+             (selectedMon === '' || a.TenMonHoc === selectedMon) &&
+             (selectedGv === '' || a.TenGiaoVien === selectedGv);
+    });
+
+    displayAssignments(filtered);
+  });
+
   async function checkHocKyStatus() {
     const res = await fetch('/api/phancongchunhiembomon/check-hk-status', {
       method: 'POST',
@@ -391,6 +554,33 @@ function initPhanCong() {
   }
 
   // ==================== Khởi động ====================
+    // Xử lý nút xóa phân công bộ môn
+    assignmentTableTbody?.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.delete-bomon');
+      if (!btn) return;
+      const MaGVBM = btn.dataset.gv;
+      const MaLop = btn.dataset.lop;
+      const NamHoc = btn.dataset.namhoc;
+      const HocKy = btn.dataset.hocky;
+      const TenMonHoc = btn.dataset.mon;
+      if (!confirm('Bạn có chắc chắn muốn xóa phân công này?')) return;
+      try {
+        const res = await fetch('/api/phancongchunhiembomon/delete-bomon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ MaGVBM, MaLop, NamHoc, HocKy, TenMonHoc })
+        });
+        const result = await res.json();
+        if (result.success) {
+          Swal.fire('Thành công', 'Đã xóa phân công bộ môn!', 'success');
+          await loadAssignmentFilters();
+        } else {
+          Swal.fire('Lỗi', result.message || 'Không thể xóa!', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Lỗi', 'Không thể xóa!', 'error');
+      }
+    });
   // Nếu đang ở tab chủ nhiệm → load ngay
   if (tabChunhiem?.classList.contains('active')) {
     loadClasses();

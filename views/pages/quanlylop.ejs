@@ -75,20 +75,7 @@
         <tr><th>STT</th><th>Mã lớp</th><th>Tên lớp</th><th>Khối</th><th>Trạng thái</th><th>Sĩ số</th><th>Thao tác</th></tr>
       </thead>
       <tbody>
-        <% classes.forEach((c,i)=>{ %>
-          <tr data-id="<%= c.MaLop %>">
-            <td><%= i+1 %></td>
-            <td><%= c.MaLop %></td>
-            <td><%= c.TenLop %></td>
-            <td><%= c.Khoi %></td>
-            <td><%= c.TrangThai %></td>
-            <td><%= c.SiSo %></td>
-            <td class="actions">
-              <button class="edit-class">Sửa</button>
-              <button class="delete-class">Xóa</button>
-            </td>
-          </tr>
-        <% }) %>
+        <!-- Danh sách lớp sẽ được tải bằng JavaScript -->
       </tbody>
     </table>
   </section>
