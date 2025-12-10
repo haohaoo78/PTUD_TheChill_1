@@ -433,13 +433,7 @@ function initPhanCong() {
 
   // ==================== Sự kiện thay đổi ====================
   khoiSelect && (khoiSelect.onchange = () => updateSubjects(khoiSelect.value));
-  monSelect && (monSelect.onchange = () => {
-    // Chỉ lấy tên môn gốc (không số lớp)
-    let monValue = monSelect.value;
-    // Nếu có số lớp (ví dụ: "Toán 10"), chỉ lấy "Toán"
-    monValue = monValue.split(' ')[0];
-    updateTeachersBySubject(monValue);
-  });
+  monSelect && (monSelect.onchange = () => updateTeachersBySubject(monSelect.value));
   gvSelect && (gvSelect.onchange = () => {
     if (khoiSelect.value) loadClassesByKhoi(khoiSelect.value);
   });
@@ -522,7 +516,6 @@ function initPhanCong() {
         <td>${escapeHtml(a.TenLop || '')}</td>
         <td>${escapeHtml(a.NamHoc || '')}</td>
         <td>${escapeHtml(a.HocKy || '')}</td>
-        <td><button class="delete-bomon" data-gv="${escapeHtml(a.MaGVBM)}" data-lop="${escapeHtml(a.MaLop)}" data-namhoc="${escapeHtml(a.NamHoc)}" data-hocky="${escapeHtml(a.HocKy)}" data-mon="${escapeHtml(a.TenMonHoc)}" style="background:#d9534f;color:#fff;padding:5px 10px;border:none;border-radius:4px;cursor:pointer;">Xóa</button></td>
       </tr>
     `).join('');
   }
@@ -554,33 +547,6 @@ function initPhanCong() {
   }
 
   // ==================== Khởi động ====================
-    // Xử lý nút xóa phân công bộ môn
-    assignmentTableTbody?.addEventListener('click', async (e) => {
-      const btn = e.target.closest('.delete-bomon');
-      if (!btn) return;
-      const MaGVBM = btn.dataset.gv;
-      const MaLop = btn.dataset.lop;
-      const NamHoc = btn.dataset.namhoc;
-      const HocKy = btn.dataset.hocky;
-      const TenMonHoc = btn.dataset.mon;
-      if (!confirm('Bạn có chắc chắn muốn xóa phân công này?')) return;
-      try {
-        const res = await fetch('/api/phancongchunhiembomon/delete-bomon', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ MaGVBM, MaLop, NamHoc, HocKy, TenMonHoc })
-        });
-        const result = await res.json();
-        if (result.success) {
-          Swal.fire('Thành công', 'Đã xóa phân công bộ môn!', 'success');
-          await loadAssignmentFilters();
-        } else {
-          Swal.fire('Lỗi', result.message || 'Không thể xóa!', 'error');
-        }
-      } catch (err) {
-        Swal.fire('Lỗi', 'Không thể xóa!', 'error');
-      }
-    });
   // Nếu đang ở tab chủ nhiệm → load ngay
   if (tabChunhiem?.classList.contains('active')) {
     loadClasses();

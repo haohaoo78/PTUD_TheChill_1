@@ -167,10 +167,10 @@ class PhanCongModel {
     const [rows] = await db.execute(`
       SELECT gv.MaGiaoVien, gv.TenGiaoVien, gv.TenMonHoc
       FROM GiaoVien gv
-      WHERE TRIM(gv.TenMonHoc) = TRIM(?)
+      WHERE (TRIM(gv.TenMonHoc) = TRIM(?) OR gv.TenMonHoc LIKE CONCAT('%', ?, '%'))
         AND gv.TrangThai = 'Đang công tác'
       ORDER BY gv.TenGiaoVien
-    `, [tenMonHoc]);
+    `, [tenMonHoc, tenMonHoc]);
     for (let row of rows) {
       row.load = await this.getTeacherWeeklyLoad(row.MaGiaoVien, namHoc, kyHoc);
       row.remaining = 40 - row.load;
@@ -293,14 +293,6 @@ class PhanCongModel {
       ORDER BY k.TenKhoi, gv.BoMon, g.TenGiaoVien, l.TenLop
     `, [namHoc, kyHoc]);
     return rows;
-  }
-
-  static async deleteBoMon(maGVBM, maLop, namHoc, hocKy, tenMonHoc) {
-    const [result] = await db.execute(`
-      DELETE FROM GVBoMon
-      WHERE MaGVBM = ? AND MaLop = ? AND NamHoc = ? AND HocKy = ? AND BoMon = ?
-    `, [maGVBM, maLop, namHoc, hocKy, tenMonHoc]);
-    return result;
   }
 }
 
