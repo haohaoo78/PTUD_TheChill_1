@@ -142,9 +142,6 @@
 
     <div id="chunhiem-panel" class="panel">
       <h3>Phân công giáo viên chủ nhiệm</h3>
-      <div class="actions">
-        <button id="load-classes">Tải danh sách lớp</button>
-      </div>
       <table id="classes-table" class="grid">
         <thead>
           <tr><th>STT</th><th>Mã lớp</th><th>Tên lớp</th><th>Giáo viên chủ nhiệm</th><th>Thao tác</th></tr>
@@ -164,8 +161,6 @@
         <select id="mon-select"></select>
         <label>Giáo viên:</label>
         <select id="gv-select"></select>
-          <span id="gv-load" style="margin-left:10px; font-size:12px; color:#666;"></span>
-        <button id="load-bomon-classes">Tải lớp</button>
       </div>
       <table id="classes-bomon-table" class="grid">
         <thead>
@@ -191,5 +186,11 @@
 </div>
 
 <script src="/js/PhanCongChuNhiemBoMon.js"></script>
+<script>
+  try {
+    if (window.initPhanCong) window.initPhanCong();
+    else document.addEventListener('DOMContentLoaded', function(){ if (window.initPhanCong) window.initPhanCong(); });
+  } catch (e) { console.error('Init PhanCong error', e); }
+</script>
 </body>
 </html>

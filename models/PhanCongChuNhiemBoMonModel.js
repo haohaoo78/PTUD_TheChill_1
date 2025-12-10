@@ -1,33 +1,52 @@
 const db = require('../config/database');
 
 class PhanCongModel {
+
+  // =======================
+  // 1. HỌC KỲ – NĂM HỌC
+  // =======================
   static async getNamHocList() {
     const [rows] = await db.execute(`SELECT DISTINCT NamHoc FROM HocKy ORDER BY NamHoc DESC`);
     return rows.map(r => r.NamHoc);
   }
 
   static async getKyHocList(namHoc) {
-    const [rows] = await db.execute(`SELECT KyHoc, NgayBatDau, NgayKetThuc, TrangThai FROM HocKy WHERE NamHoc = ? ORDER BY KyHoc`, [namHoc]);
+    const [rows] = await db.execute(`
+      SELECT KyHoc, NgayBatDau, NgayKetThuc, TrangThai
+      FROM HocKy
+      WHERE NamHoc = ?
+      ORDER BY KyHoc
+    `, [namHoc]);
     return rows;
   }
 
+  static async getHocKyStatus(namHoc, kyHoc) {
+    const [rows] = await db.execute(`
+      SELECT TrangThai
+      FROM HocKy
+      WHERE NamHoc = ? AND KyHoc = ?
+    `, [namHoc, kyHoc]);
+    return rows[0]?.TrangThai || null;
+  }
+
+  // =======================
+  // 2. KHỐI – LỚP
+  // =======================
   static async getKhoiList() {
     const [rows] = await db.execute(`SELECT MaKhoi, TenKhoi FROM Khoi ORDER BY TenKhoi`);
     return rows;
   }
 
-  static async getHocKyStatus(namHoc, kyHoc) {
-    const [rows] = await db.execute(`SELECT TrangThai FROM HocKy WHERE NamHoc = ? AND KyHoc = ?`, [namHoc, kyHoc]);
-    return rows[0]?.TrangThai || null;
-  }
-
   static async getClassesByNamHoc(namHoc) {
-    // Return list of classes and current GVCN if any
     const [rows] = await db.execute(`
-      SELECT l.MaLop, l.TenLop, COALESCE(gv.MaGiaoVien, '') AS MaGVCN, COALESCE(gv.TenGiaoVien, '') AS TenGVCN
+      SELECT l.MaLop, l.TenLop,
+             COALESCE(gv.MaGiaoVien, '') AS MaGVCN,
+             COALESCE(gv.TenGiaoVien, '') AS TenGVCN
       FROM Lop l
-      LEFT JOIN GVChuNhiem gvc ON l.MaLop = gvc.MaLop AND gvc.NamHoc = ?
-      LEFT JOIN GiaoVien gv ON gvc.MaGVCN = gv.MaGiaoVien
+      LEFT JOIN GVChuNhiem gvc
+          ON l.MaLop = gvc.MaLop AND gvc.NamHoc = ?
+      LEFT JOIN GiaoVien gv
+          ON gvc.MaGVCN = gv.MaGiaoVien
       ORDER BY l.TenLop
     `, [namHoc]);
     return rows;
@@ -44,21 +63,34 @@ class PhanCongModel {
   }
 
   static async getAvailableTeachersForChunhiem(namHoc, maLop) {
-    // include teachers that are not GVCN for other classes in the same year
-    // if maLop is provided, include current GVCN for that class
-    let sql = `SELECT gv.MaGiaoVien, gv.TenGiaoVien
+    let sql = `
+      SELECT gv.MaGiaoVien, gv.TenGiaoVien
       FROM GiaoVien gv
-      WHERE gv.TrangThai = 'Đang công tác'`;
+      WHERE gv.TrangThai = 'Đang công tác'
+    `;
     const params = [];
+
     if (maLop) {
-      // allow current teacher for the class (if exists), exclude others assigned
-      sql += ` AND (gv.MaGiaoVien NOT IN (SELECT MaGVCN FROM GVChuNhiem WHERE NamHoc = ?) OR gv.MaGiaoVien IN (SELECT MaGVCN FROM GVChuNhiem WHERE NamHoc = ? AND MaLop = ?))`;
+      sql += `
+        AND (gv.MaGiaoVien NOT IN (
+              SELECT MaGVCN FROM GVChuNhiem WHERE NamHoc = ?
+             )
+             OR gv.MaGiaoVien IN (
+              SELECT MaGVCN FROM GVChuNhiem WHERE NamHoc = ? AND MaLop = ?
+             ))
+      `;
       params.push(namHoc, namHoc, maLop);
     } else {
-      sql += ` AND gv.MaGiaoVien NOT IN (SELECT MaGVCN FROM GVChuNhiem WHERE NamHoc = ?)`;
+      sql += `
+        AND gv.MaGiaoVien NOT IN (
+          SELECT MaGVCN FROM GVChuNhiem WHERE NamHoc = ?
+        )
+      `;
       params.push(namHoc);
     }
+
     sql += ` ORDER BY gv.TenGiaoVien`;
+
     const [rows] = await db.execute(sql, params);
     return rows;
   }
@@ -67,10 +99,18 @@ class PhanCongModel {
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      // Remove existing GVCN for this class and year (if any)
-      await conn.execute(`DELETE FROM GVChuNhiem WHERE MaLop = ? AND NamHoc = ?`, [maLop, namHoc]);
-      // Insert new one
-      await conn.execute(`INSERT INTO GVChuNhiem (MaGVCN, MaLop, NamHoc) VALUES (?, ?, ?)`, [maGVCN, maLop, namHoc]);
+
+      await conn.execute(
+        `DELETE FROM GVChuNhiem WHERE MaLop = ? AND NamHoc = ?`,
+        [maLop, namHoc]
+      );
+
+      await conn.execute(
+        `INSERT INTO GVChuNhiem (MaGVCN, MaLop, NamHoc)
+         VALUES (?, ?, ?)`,
+        [maGVCN, maLop, namHoc]
+      );
+
       await conn.commit();
       return { success: true };
     } catch (err) {
@@ -81,56 +121,66 @@ class PhanCongModel {
     }
   }
 
-  // ---------- Bo Mon (subject) ----------
+  // =======================
+  // 3. PHÂN CÔNG BỘ MÔN
+  // =======================
+
   static async getSubjectsByKhoi(maKhoi) {
-    const [rows] = await db.execute(`SELECT TenMonHoc FROM MonHoc WHERE Khoi = ? ORDER BY TenMonHoc`, [maKhoi]);
+    const [rows] = await db.execute(`
+      SELECT TenMonHoc
+      FROM MonHoc
+      WHERE Khoi = ?
+      ORDER BY TenMonHoc
+    `, [maKhoi]);
     return rows.map(r => r.TenMonHoc);
   }
 
   static async getClassesByKhoi(maKhoi) {
-    const [rows] = await db.execute(`SELECT MaLop, TenLop FROM Lop WHERE Khoi = ? ORDER BY TenLop`, [maKhoi]);
+    const [rows] = await db.execute(`
+      SELECT MaLop, TenLop
+      FROM Lop
+      WHERE Khoi = ?
+      ORDER BY TenLop
+    `, [maKhoi]);
     return rows;
   }
 
-  static async getTeachersBySubject(tenMonHoc, NamHoc = null, KyHoc = null, Thu = null, TietHoc = null, MaLop = null) {
-    // If time slot provided (Thu + TietHoc + NamHoc + KyHoc), exclude teachers that are already scheduled at that time for other classes
-    let sql = `
-      SELECT DISTINCT gv.MaGiaoVien, gv.TenGiaoVien, gv.TenMonHoc
+  static async getTeachersBySubject(tenMonHoc, namHoc = null, kyHoc = null) {
+    const [rows] = await db.execute(`
+      SELECT gv.MaGiaoVien, gv.TenGiaoVien, gv.TenMonHoc
       FROM GiaoVien gv
-      LEFT JOIN GVBoMon gbm ON gbm.MaGVBM = gv.MaGiaoVien
-      WHERE (TRIM(gv.TenMonHoc) = TRIM(?) OR gbm.BoMon LIKE CONCAT('%', ?, '%')) AND gv.TrangThai = 'Đang công tác'
-    `;
-    const params = [tenMonHoc];
-    if (NamHoc && KyHoc && Thu && TietHoc) {
-      sql += ` AND gv.MaGiaoVien NOT IN (
-          SELECT t.MaGiaoVien FROM ThoiKhoaBieu t
-          WHERE t.NamHoc = ? AND t.KyHoc = ? AND t.Thu = ? AND t.TietHoc = ?`;
-      params.push(NamHoc, KyHoc, Thu, TietHoc);
-      if (MaLop) {
-        sql += ' AND (t.MaLop != ?)';
-        params.push(MaLop);
-      }
-      sql += ')';
+      WHERE (TRIM(gv.TenMonHoc) = TRIM(?) OR gv.TenMonHoc LIKE CONCAT('%', ?, '%'))
+        AND gv.TrangThai = 'Đang công tác'
+      ORDER BY gv.TenGiaoVien
+    `, [tenMonHoc, tenMonHoc]);
+    for (let row of rows) {
+      row.load = await this.getTeacherWeeklyLoad(row.MaGiaoVien, namHoc, kyHoc);
+      row.remaining = 40 - row.load;
     }
-    sql += ' ORDER BY gv.TenGiaoVien';
-    const [rows] = await db.execute(sql, params);
-    return rows;
+    return rows.filter(r => r.remaining > 0);
   }
 
+  // Lấy tổng số tiết 1 GV dạy trong TKB
   static async getTeacherWeeklyLoad(maGiaoVien, namHoc, kyHoc) {
     const [rows] = await db.execute(`
-      SELECT COUNT(*) as SoTietTuan
+      SELECT COUNT(*) AS SoTietTuan
       FROM ThoiKhoaBieu
-      WHERE MaGiaoVien = ? AND NamHoc = ? AND KyHoc = ?
+      WHERE MaGiaoVien = ?
+        AND NamHoc = ?
+        AND KyHoc = ?
     `, [maGiaoVien, namHoc, kyHoc]);
     return rows[0]?.SoTietTuan || 0;
   }
 
+  // Số tiết của môn trong 1 lớp
   static async getSubjectWeeklyCountForClass(maLop, namHoc, kyHoc, tenMonHoc) {
     const [rows] = await db.execute(`
-      SELECT COUNT(*) as SoTietTuan
+      SELECT COUNT(*) AS SoTietTuan
       FROM ThoiKhoaBieu
-      WHERE MaLop = ? AND NamHoc = ? AND KyHoc = ? AND TenMonHoc = ?
+      WHERE MaLop = ?
+        AND NamHoc = ?
+        AND KyHoc = ?
+        AND TenMonHoc = ?
     `, [maLop, namHoc, kyHoc, tenMonHoc]);
     return rows[0]?.SoTietTuan || 0;
   }
@@ -140,31 +190,58 @@ class PhanCongModel {
     try {
       await conn.beginTransaction();
 
-      // check teacher current load
-      const currentLoad = await this.getTeacherWeeklyLoad(maGiaoVien, namHoc, kyHoc);
+      // Validate inputs
+      if (!maGiaoVien || !classList.length || !namHoc || !kyHoc || !tenMonHoc) {
+        await conn.rollback();
+        return { success: false, message: 'Thiếu thông tin phân công.' };
+      }
+
+      // Get current load from ThoiKhoaBieu
+      const [loadRows] = await conn.execute(`
+        SELECT COUNT(*) AS SoTiet
+        FROM ThoiKhoaBieu
+        WHERE MaGiaoVien = ? AND NamHoc = ? AND KyHoc = ?
+      `, [maGiaoVien, namHoc, kyHoc]);
+      const currentLoad = loadRows[0]?.SoTiet || 0;
+
+      // Calculate additional load from selected classes
       let addedLoad = 0;
       for (const MaLop of classList) {
-        const soTiet = await this.getSubjectWeeklyCountForClass(MaLop, namHoc, kyHoc, tenMonHoc);
-        addedLoad += soTiet;
+        const [countRows] = await conn.execute(`
+          SELECT COUNT(*) AS SoTiet
+          FROM ThoiKhoaBieu
+          WHERE MaLop = ? AND NamHoc = ? AND KyHoc = ? AND TenMonHoc = ?
+        `, [MaLop, namHoc, kyHoc, tenMonHoc]);
+        addedLoad += countRows[0]?.SoTiet || 0;
       }
 
-      const MAX_LOAD = 40; // arbitrary weekly limit - can be changed
+      const MAX_LOAD = 40;
       if (currentLoad + addedLoad > MAX_LOAD) {
         await conn.rollback();
-        return { success: false, message: 'Số tiết của giáo viên sau khi phân công sẽ vượt quá giới hạn.' };
+        return {
+          success: false,
+          message: `Số tiết dạy của giáo viên vượt quá giới hạn. Số tiết hiện tại: ${currentLoad}, số tiết sẽ thêm: ${addedLoad}, tối đa: ${MAX_LOAD}.`
+        };
       }
 
-      // insert assignments, if exists ignore/replace
+      // Insert into GVBoMon
       for (const MaLop of classList) {
-        // check if already assigned
-        const [rows] = await conn.execute(`SELECT * FROM GVBoMon WHERE MaGVBM = ? AND MaLop = ? AND NamHoc = ? AND HocKy = ? AND BoMon = ?`, [maGiaoVien, MaLop, namHoc, kyHoc, tenMonHoc]);
-        if (!rows.length) {
-          await conn.execute(`INSERT INTO GVBoMon (MaGVBM, MaLop, NamHoc, HocKy, BoMon) VALUES (?, ?, ?, ?, ?)`, [maGiaoVien, MaLop, namHoc, kyHoc, tenMonHoc]);
+        const [checkRows] = await conn.execute(`
+          SELECT * FROM GVBoMon
+          WHERE MaGVBM = ? AND MaLop = ? AND NamHoc = ? AND HocKy = ? AND BoMon = ?
+        `, [maGiaoVien, MaLop, namHoc, kyHoc, tenMonHoc]);
+
+        if (!checkRows.length) {
+          await conn.execute(`
+            INSERT INTO GVBoMon (MaGVBM, MaLop, NamHoc, HocKy, BoMon)
+            VALUES (?, ?, ?, ?, ?)
+          `, [maGiaoVien, MaLop, namHoc, kyHoc, tenMonHoc]);
         }
       }
 
       await conn.commit();
-      return { success: true };
+      return { success: true, message: 'Phân công bộ môn thành công.' };
+
     } catch (err) {
       await conn.rollback();
       throw err;
