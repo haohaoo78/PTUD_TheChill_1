@@ -1,3 +1,4 @@
+// models/QuanLyLopModel.js
 const db = require('../config/database');
 
 class QuanLyLopModel {
@@ -7,7 +8,15 @@ class QuanLyLopModel {
   }
 
   static async getClassesByKhoi(MaKhoi) {
-    const [rows] = await db.execute('SELECT MaLop, TenLop, Khoi, MaToHop, TrangThai, SiSo FROM Lop WHERE Khoi = ? ORDER BY TenLop', [MaKhoi]);
+    const [rows] = await db.execute(`
+      SELECT l.MaLop, l.TenLop, l.Khoi, l.MaToHop, l.TrangThai, l.SiSo,
+             COALESCE(gv.TenGiaoVien, 'Chưa gán') AS TenGVCN
+      FROM Lop l
+      LEFT JOIN GVChuNhiem gvcn ON l.MaLop = gvcn.MaLop
+      LEFT JOIN GiaoVien gv ON gvcn.MaGVCN = gv.MaGiaoVien
+      WHERE l.Khoi = ?
+      ORDER BY l.TenLop
+    `, [MaKhoi]);
     return rows;
   }
 
@@ -16,27 +25,49 @@ class QuanLyLopModel {
     return rows[0]?.cnt || 0;
   }
 
-  static async classExists(TenLop) {
-    const [rows] = await db.execute('SELECT COUNT(*) as cnt FROM Lop WHERE TenLop = ?', [TenLop]);
+  static async classExists(TenLop, MaLop = null) {
+    let sql = 'SELECT COUNT(*) as cnt FROM Lop WHERE TenLop = ?';
+    const params = [TenLop];
+    if (MaLop) {
+      sql += ' AND MaLop != ?';
+      params.push(MaLop);
+    }
+    const [rows] = await db.execute(sql, params);
     return rows[0]?.cnt > 0;
   }
 
-  static async createClasses(MaKhoi, number, maTruong=null) {
+  static async createClasses(MaKhoi, number) {
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      // ensure MaTruong exist; if not try to fetch the first
-      const [tr] = await db.execute('SELECT MaTruong FROM Truong LIMIT 1');
-      if (tr && tr[0] && !maTruong) maTruong = tr[0].MaTruong;
-      const count = await this.countClassesByKhoi(MaKhoi);
-      const inserts = [];
+      
+      // Get the highest existing sequence number for this Khoi
+      const [maxRes] = await conn.execute(`
+        SELECT MAX(CAST(SUBSTRING(MaLop, 4) AS UNSIGNED)) AS MaxSeq
+        FROM Lop
+        WHERE Khoi = ?
+      `, [MaKhoi]);
+      const maxSeq = maxRes[0]?.MaxSeq || 0;
+      
+      const [truongRes] = await conn.execute('SELECT MaTruong FROM Truong LIMIT 1');
+      const maTruong = truongRes[0]?.MaTruong || 'T01';
+      
       for (let i = 1; i <= number; i++) {
-        const seq = count + i;
-        const maLop = `${MaKhoi}${seq}`;
-        const tenLop = `${MaKhoi}${seq}`;
-        inserts.push([maLop, tenLop, null, 'Đang học', MaKhoi, 0, maTruong]);
+        const seq = maxSeq + i;
+        const maLop = `${MaKhoi}${seq.toString().padStart(2, '0')}`;
+        
+        // Check if MaLop already exists
+        const [existing] = await conn.execute('SELECT MaLop FROM Lop WHERE MaLop = ?', [maLop]);
+        if (existing.length > 0) {
+          continue; // Skip if already exists
+        }
+        
+        const tenLop = `Lớp ${seq.toString().padStart(2, '0')} Khối ${MaKhoi.replace('K', '')}`;
+        await conn.execute(`
+          INSERT INTO Lop (MaLop, TenLop, MaToHop, TrangThai, Khoi, SiSo, MaTruong)
+          VALUES (?, ?, NULL, 'Đang mở', ?, 0, ?)
+        `, [maLop, tenLop, MaKhoi, maTruong]);
       }
-      await conn.query(`INSERT INTO Lop (MaLop, TenLop, MaToHop, TrangThai, Khoi, SiSo, MaTruong) VALUES ?`, [inserts]);
       await conn.commit();
       return { success: true };
     } catch (err) {
@@ -55,32 +86,30 @@ class QuanLyLopModel {
   static async updateClass(maLop, data) {
     const fields = [];
     const params = [];
-    if (data.TenLop) { fields.push('TenLop = ?'); params.push(data.TenLop); }
+    if (data.TenLop) {
+      if (await this.classExists(data.TenLop, maLop)) throw new Error('Tên lớp đã tồn tại');
+      if (!/^[a-zA-ZÀ-ỹ0-9\s]+$/.test(data.TenLop)) throw new Error('Tên lớp không hợp lệ');
+      fields.push('TenLop = ?');
+      params.push(data.TenLop);
+    }
     if (data.Khoi) { fields.push('Khoi = ?'); params.push(data.Khoi); }
-    if (data.MaToHop) { fields.push('MaToHop = ?'); params.push(data.MaToHop); }
     if (data.TrangThai) { fields.push('TrangThai = ?'); params.push(data.TrangThai); }
     if (data.SiSo !== undefined) { fields.push('SiSo = ?'); params.push(data.SiSo); }
-    if (fields.length === 0) return { success: false, message: 'Không có dữ liệu để cập nhật' };
     params.push(maLop);
+    if (fields.length === 0) throw new Error('Không có dữ liệu để cập nhật');
     const sql = `UPDATE Lop SET ${fields.join(', ')} WHERE MaLop = ?`;
-    const [result] = await db.execute(sql, params);
-    return { success: true, changedRows: result.affectedRows };
+    await db.execute(sql, params);
   }
 
-  static async assignGVCN(maLop, maGVCN, NamHoc=null) {
+  static async assignGVCN(maLop, maGVCN, namHoc = '2025-2026') {
     const conn = await db.getConnection();
     try {
-      // find latest NamHoc if not provided
-      if (!NamHoc) {
-        const [rows] = await db.execute('SELECT NamHoc FROM HocKy ORDER BY NamHoc DESC LIMIT 1');
-        NamHoc = rows[0]?.NamHoc || null;
-      }
-      if (!NamHoc) return { success: false, message: 'Không có năm học để gán giáo viên chủ nhiệm' };
       await conn.beginTransaction();
-      await conn.execute('DELETE FROM GVChuNhiem WHERE MaLop = ? AND NamHoc = ?', [maLop, NamHoc]);
-      await conn.execute('INSERT INTO GVChuNhiem (MaGVCN, MaLop, NamHoc) VALUES (?, ?, ?)', [maGVCN, maLop, NamHoc]);
+      await conn.execute('DELETE FROM GVChuNhiem WHERE MaLop = ? AND NamHoc = ?', [maLop, namHoc]);
+      if (maGVCN) {
+        await conn.execute('INSERT INTO GVChuNhiem (MaGVCN, MaLop, NamHoc) VALUES (?, ?, ?)', [maGVCN, maLop, namHoc]);
+      }
       await conn.commit();
-      return { success: true };
     } catch (err) {
       await conn.rollback();
       throw err;
@@ -90,20 +119,15 @@ class QuanLyLopModel {
   }
 
   static async deleteClass(maLop) {
-    // check students count
     const [rows] = await db.execute('SELECT COUNT(*) as cnt FROM HocSinh WHERE MaLop = ?', [maLop]);
-    const cnt = rows[0]?.cnt || 0;
-    if (cnt > 0) return { success: false, message: 'Lớp còn học sinh. Không thể xóa.' };
-
+    if (rows[0].cnt > 0) throw new Error('Không thể xóa lớp vì còn học sinh. Vui lòng xử lý dữ liệu trước.');
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      await conn.execute('DELETE FROM Lop WHERE MaLop = ?', [maLop]);
-      // Also possibly delete entries in GVChuNhiem, GVBoMon for the class
       await conn.execute('DELETE FROM GVChuNhiem WHERE MaLop = ?', [maLop]);
       await conn.execute('DELETE FROM GVBoMon WHERE MaLop = ?', [maLop]);
+      await conn.execute('DELETE FROM Lop WHERE MaLop = ?', [maLop]);
       await conn.commit();
-      return { success: true };
     } catch (err) {
       await conn.rollback();
       throw err;

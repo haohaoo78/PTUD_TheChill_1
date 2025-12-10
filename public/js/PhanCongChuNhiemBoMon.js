@@ -304,11 +304,12 @@ function initPhanCong() {
   }
 
   // Nút phân công bộ môn
-  assignBomonBtn?.addEventListener('click', async () => {
-    const MaGiaoVien = gvSelect.value;
-    const TenMonHoc = monSelect.value;
-    const NamHoc = namHocSelect.value;
-    const KyHoc = kyHocSelect.value;
+  assignBomonBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+      const MaGiaoVien = gvSelect.value;
+      const TenMonHoc = monSelect.value;
+      const NamHoc = namHocSelect.value;
+      const KyHoc = kyHocSelect.value;
 
     const selectedClasses = Array.from(document.querySelectorAll('.bomon-check:checked'))
       .map(cb => cb.closest('tr').dataset.id)

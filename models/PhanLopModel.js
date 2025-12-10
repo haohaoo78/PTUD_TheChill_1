@@ -1,3 +1,4 @@
+// models/PhanLopModel.js
 const db = require('../config/database');
 
 class PhanLopModel {
@@ -10,38 +11,55 @@ class PhanLopModel {
     const [rows] = await db.execute('SELECT DISTINCT NamHoc FROM HocKy ORDER BY NamHoc DESC');
     return rows.map(r => r.NamHoc);
   }
-  // get available students for a year & optional Khối: students with no MaLop (unassigned)
+
+  // Chỉ lấy học sinh chưa có lớp + đúng năm học + đúng khối (nếu có)
   static async getUnassignedStudents(namHoc, maKhoi = null) {
-    let sql = `SELECT hs.MaHocSinh, hs.TenHocSinh, hs.KhoaHoc, hs.MaLop, hs.GhiChu, hs.TrangThai, hs.GioiTinh, hs.Birthday
-               FROM HocSinh hs
-               LEFT JOIN Lop l ON hs.MaLop = l.MaLop
-               WHERE (hs.MaLop IS NULL OR hs.MaLop = '') AND hs.KhoaHoc = ?`;
-    const params = [namHoc];
+    let sql = `
+      SELECT hs.MaHocSinh, hs.TenHocSinh, hs.KhoaHoc, hs.GioiTinh, 
+             COALESCE(hs.GhiChu, 'Không có') AS ToHop,
+             hs.TrangThai
+      FROM HocSinh hs
+      LEFT JOIN Lop l ON hs.MaLop = l.MaLop
+      WHERE hs.KhoaHoc = ?
+        AND (hs.MaLop IS NULL OR hs.MaLop = '' OR l.Khoi != ? OR l.Khoi IS NULL)
+    `;
+    const params = [namHoc, maKhoi || ''];
+
     if (maKhoi) {
-      // If we know the student's Khối via s.t., this joins would return none; we include students without class but assumed for Khối
-      sql += ' AND (l.Khoi = ? OR l.Khoi IS NULL)';
-      params.push(maKhoi);
+      sql += ` AND (hs.GhiChu LIKE ? OR hs.GhiChu IS NULL OR hs.GhiChu = '')`;
+      params.push(`%${maKhoi}%`);
     }
-    sql += ' ORDER BY hs.TenHocSinh';
+
+    sql += ` ORDER BY hs.TenHocSinh`;
     const [rows] = await db.execute(sql, params);
     return rows;
   }
 
   static async getClassesByKhoi(maKhoi) {
-    const [rows] = await db.execute('SELECT MaLop, TenLop, SiSo FROM Lop WHERE Khoi = ? ORDER BY TenLop', [maKhoi]);
+    const [rows] = await db.execute(`
+      SELECT l.MaLop, l.TenLop, l.SiSo, l.MaToHop,
+             COALESCE(COUNT(hs.MaHocSinh), 0) AS CurrentCount
+      FROM Lop l
+      LEFT JOIN HocSinh hs ON l.MaLop = hs.MaLop
+      WHERE l.Khoi = ?
+      GROUP BY l.MaLop
+      ORDER BY l.TenLop
+    `, [maKhoi]);
     return rows;
   }
 
   static async saveAssignments(assignments) {
-    // assignments is array of { MaHocSinh, MaLop }
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      for (const a of assignments) {
-        await conn.execute('UPDATE HocSinh SET MaLop = ? WHERE MaHocSinh = ?', [a.MaLop, a.MaHocSinh]);
+      for (const { MaHocSinh, MaLop } of assignments) {
+        await conn.execute(
+          `UPDATE HocSinh SET MaLop = ? WHERE MaHocSinh = ?`,
+          [MaLop || null, MaHocSinh]
+        );
       }
       await conn.commit();
-      return { success: true };
+      return { success: true, message: 'Phân lớp thành công!' };
     } catch (err) {
       await conn.rollback();
       throw err;
@@ -50,21 +68,15 @@ class PhanLopModel {
     }
   }
 
-  static async getClassCounts(maKhoi) {
-    const [rows] = await db.execute(`SELECT MaLop, SiSo, (SELECT COUNT(*) FROM HocSinh hs WHERE hs.MaLop = l.MaLop) as CurrentCount
-      FROM Lop l
-      WHERE l.Khoi = ?`, [maKhoi]);
-    return rows;
-  }
-
-  static async getStudentsInClass(maLop, namHoc) {
+  static async getStudentsInClass(maLop) {
     const [rows] = await db.execute(`
-      SELECT hs.MaHocSinh, hs.TenHocSinh, hs.GioiTinh, hs.Birthday, hs.TrangThai
-      FROM HocSinh hs
-      WHERE hs.MaLop = ?
+      SELECT MaHocSinh, TenHocSinh, GioiTinh, TrangThai
+      FROM HocSinh
+      WHERE MaLop = ?
+      ORDER BY TenHocSinh
     `, [maLop]);
     return rows;
   }
-
 }
+
 module.exports = PhanLopModel;

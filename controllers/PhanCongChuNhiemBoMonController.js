@@ -40,7 +40,7 @@ class PhanCongController {
   async getAvailableTeachersForChunhiem(req, res) {
     try {
       const { NamHoc, MaLop } = req.body;
-      const teachers = await PhanCongModel.getAvailableTeachersForChunhiem(NamHoc, MaLop);
+      const teachers = await PhanCongModel.getAvailableTeachersForChunhiem(NamHoc || '2025-2026', MaLop);
       res.json({ success: true, teachers });
     } catch (err) {
       console.error(err);
@@ -51,7 +51,7 @@ class PhanCongController {
   async getGVCNByClass(req, res) {
     try {
       const { MaLop, NamHoc } = req.body;
-      const current = await PhanCongModel.getGVCNByClass(MaLop, NamHoc);
+      const current = await PhanCongModel.getGVCNByClass(MaLop, NamHoc || '2025-2026');
       res.json({ success: true, current });
     } catch (err) {
       console.error(err);
@@ -85,7 +85,8 @@ class PhanCongController {
 
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false, message: "Lỗi khi phân công" });
+      // include error message to help diagnose DB/save issues
+      res.status(500).json({ success: false, message: "Lỗi khi phân công: " + (err && err.message ? err.message : String(err)) });
     }
   }
 
@@ -125,7 +126,7 @@ class PhanCongController {
     try {
       const { TenMonHoc, NamHoc, KyHoc } = req.body;
       const teachers = await PhanCongModel.getTeachersBySubject(
-        TenMonHoc, NamHoc, KyHoc
+        TenMonHoc, NamHoc || '2025-2026', KyHoc || '1'
       );
       res.json({ success: true, teachers });
     } catch (err) {
@@ -253,7 +254,8 @@ class PhanCongController {
 
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false, message: "Lỗi khi phân công: " + err.message });
+      // return full message for debugging (can be toned down later)
+      res.status(500).json({ success: false, message: "Lỗi khi phân công: " + (err && err.message ? err.message : String(err)) });
     }
   }
 }

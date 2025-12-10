@@ -53,12 +53,13 @@ class PhanCongModel {
   }
 
   static async getGVCNByClass(maLop, namHoc) {
+    const nH = namHoc || '2025-2026'; // Use default if undefined
     const [rows] = await db.execute(`
       SELECT gv.MaGiaoVien, gv.TenGiaoVien
       FROM GVChuNhiem gvc
       JOIN GiaoVien gv ON gvc.MaGVCN = gv.MaGiaoVien
       WHERE gvc.MaLop = ? AND gvc.NamHoc = ?
-    `, [maLop, namHoc]);
+    `, [maLop, nH]);
     return rows[0] || null;
   }
 
@@ -162,18 +163,24 @@ class PhanCongModel {
 
   // Lấy tổng số tiết 1 GV dạy trong TKB
   static async getTeacherWeeklyLoad(maGiaoVien, namHoc, kyHoc) {
+    // Use defaults if undefined to avoid SQL NULL bind errors
+    const nH = namHoc || '2025-2026';
+    const kH = kyHoc || '1';
     const [rows] = await db.execute(`
       SELECT COUNT(*) AS SoTietTuan
       FROM ThoiKhoaBieu
       WHERE MaGiaoVien = ?
         AND NamHoc = ?
         AND KyHoc = ?
-    `, [maGiaoVien, namHoc, kyHoc]);
+    `, [maGiaoVien, nH, kH]);
     return rows[0]?.SoTietTuan || 0;
   }
 
   // Số tiết của môn trong 1 lớp
   static async getSubjectWeeklyCountForClass(maLop, namHoc, kyHoc, tenMonHoc) {
+    // Use defaults if undefined to avoid SQL NULL bind errors
+    const nH = namHoc || '2025-2026';
+    const kH = kyHoc || '1';
     const [rows] = await db.execute(`
       SELECT COUNT(*) AS SoTietTuan
       FROM ThoiKhoaBieu
@@ -181,7 +188,7 @@ class PhanCongModel {
         AND NamHoc = ?
         AND KyHoc = ?
         AND TenMonHoc = ?
-    `, [maLop, namHoc, kyHoc, tenMonHoc]);
+    `, [maLop, nH, kH, tenMonHoc]);
     return rows[0]?.SoTietTuan || 0;
   }
 
