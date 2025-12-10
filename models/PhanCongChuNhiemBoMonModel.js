@@ -1,3 +1,4 @@
+// models/PhanCongChuNhiemBoMonModel.js
 const db = require('../config/database');
 
 class PhanCongModel {
@@ -274,21 +275,20 @@ class PhanCongModel {
     }
   }
 
-  static async listAssignments(namHoc, kyHoc) {
+static async listAssignments(namHoc, kyHoc) {
     const [rows] = await db.execute(`
       SELECT 
-        gv.MaGVBM,
-        gv.MaLop,
-        l.TenLop,
+        k.TenKhoi AS Khoi,
         gv.BoMon AS TenMonHoc,
         g.TenGiaoVien,
-        k.TenKhoi AS Khoi,
+        gv.MaLop,
+        l.TenLop,
         gv.NamHoc,
         gv.HocKy
       FROM GVBoMon gv
-      LEFT JOIN Lop l ON gv.MaLop = l.MaLop
-      LEFT JOIN GiaoVien g ON gv.MaGVBM = g.MaGiaoVien
-      LEFT JOIN Khoi k ON l.Khoi = k.MaKhoi
+      JOIN Lop l ON gv.MaLop = l.MaLop
+      JOIN GiaoVien g ON gv.MaGVBM = g.MaGiaoVien
+      JOIN Khoi k ON l.Khoi = k.MaKhoi
       WHERE gv.NamHoc = ? AND gv.HocKy = ?
       ORDER BY k.TenKhoi, gv.BoMon, g.TenGiaoVien, l.TenLop
     `, [namHoc, kyHoc]);

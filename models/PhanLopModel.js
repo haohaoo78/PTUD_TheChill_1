@@ -12,21 +12,20 @@ class PhanLopModel {
     return rows.map(r => r.NamHoc);
   }
 
-  // Chỉ lấy học sinh chưa có lớp + đúng năm học + đúng khối (nếu có)
   static async getUnassignedStudents(namHoc, maKhoi = null) {
     let sql = `
       SELECT hs.MaHocSinh, hs.TenHocSinh, hs.KhoaHoc, hs.GioiTinh, 
              COALESCE(hs.GhiChu, 'Không có') AS ToHop,
              hs.TrangThai
       FROM HocSinh hs
-      LEFT JOIN Lop l ON hs.MaLop = l.MaLop
+      LEFT JOIN Lop l ON hs.MaLop = l.MaLop AND l.Khoi = ?
       WHERE hs.KhoaHoc = ?
-        AND (hs.MaLop IS NULL OR hs.MaLop = '' OR l.Khoi != ? OR l.Khoi IS NULL)
+        AND (hs.MaLop IS NULL OR hs.MaLop = '' OR l.MaLop IS NULL)
     `;
-    const params = [namHoc, maKhoi || ''];
+    const params = [maKhoi || '', namHoc];
 
     if (maKhoi) {
-      sql += ` AND (hs.GhiChu LIKE ? OR hs.GhiChu IS NULL OR hs.GhiChu = '')`;
+      sql += ` AND (hs.GhiChu LIKE ? OR hs.GhiChu IS NULL OR hs.GhiChu = '' OR hs.GhiChu = 'Không có')`;
       params.push(`%${maKhoi}%`);
     }
 
@@ -37,12 +36,12 @@ class PhanLopModel {
 
   static async getClassesByKhoi(maKhoi) {
     const [rows] = await db.execute(`
-      SELECT l.MaLop, l.TenLop, l.SiSo, l.MaToHop,
+      SELECT l.MaLop, l.TenLop, l.SiSo, COALESCE(l.MaToHop, '') AS MaToHop,
              COALESCE(COUNT(hs.MaHocSinh), 0) AS CurrentCount
       FROM Lop l
       LEFT JOIN HocSinh hs ON l.MaLop = hs.MaLop
       WHERE l.Khoi = ?
-      GROUP BY l.MaLop
+      GROUP BY l.MaLop, l.TenLop, l.SiSo, l.MaToHop
       ORDER BY l.TenLop
     `, [maKhoi]);
     return rows;

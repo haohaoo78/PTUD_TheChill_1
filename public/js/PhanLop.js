@@ -83,27 +83,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     distribution = data.distribution;
 
-    // Cập nhật giao diện
+    // Cập nhật bảng lớp: số lượng mới = hiện tại + phân mới
     document.querySelectorAll('#classes-table tr[data-id]').forEach(tr => {
       const maLop = tr.dataset.id;
-      const count = distribution[maLop]?.students?.length || 0;
-      tr.querySelector('.current-count').textContent = count;
+      const newCount = (distribution[maLop]?.students?.length || 0) + 
+                       parseInt(tr.querySelector('.current-count').textContent || 0);
+      tr.querySelector('.current-count').textContent = newCount;
     });
 
+    // Cập nhật cột "Lớp hiện tại" cho học sinh
     document.querySelectorAll('#students-table tr[data-id]').forEach(tr => {
-      const id = tr.dataset.id;
-      let found = false;
+      const maHS = tr.dataset.id;
+      let assignedClass = '—';
       for (const maLop in distribution) {
-        if (distribution[maLop].students.some(s => s.MaHocSinh === id)) {
-          tr.querySelector('.assigned-class').textContent = maLop;
-          found = true;
+        if (distribution[maLop].students.some(s => s.MaHocSinh === maHS)) {
+          assignedClass = maLop;
           break;
         }
       }
-      if (!found) tr.querySelector('.assigned-class').textContent = '—';
+      tr.querySelector('.assigned-class').textContent = assignedClass;
     });
 
-    Swal.fire('Thành công', 'Đã phân bổ tự động. Nhấn Lưu để cập nhật!', 'success');
+    Swal.fire('Thành công!', `Đã phân bổ ${data.totalAssigned} học sinh. Nhấn Lưu để cập nhật CSDL.`, 'success');
   };
 
   const saveAssign = async () => {

@@ -24,5 +24,6 @@ router.post('/assign-bomon', PhanCongController.assignBoMon);
 
 // Xem danh sách phân công
 router.post('/list-assignments', PhanCongController.listAssignments);
+router.post('/delete-bomon-assign', PhanCongController.deleteBoMonAssign);
 
 module.exports = router;

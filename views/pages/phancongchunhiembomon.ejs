@@ -6,143 +6,42 @@
 <title>Phân công giáo viên</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11" />
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f4f7fb;
-    margin: 0;
-    color: #1a2a44;
-  }
-  header {
-    background: #0a1d37;
-    padding: 20px 0;
-    text-align: center;
-    color: #fff;
-    font-size: 26px;
-    font-weight: bold;
-  }
-  .controls label {
-    font-weight: bold;
-    margin-right: 5px;
-  }
-  select {
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: white;
-    border: 1px solid #b8c2d1;
-    margin-right: 15px;
-    font-size: 14px;
-  }
-  .mode-tabs {
-    margin-top: 10px;
-  }
-  .mode {
-    padding: 8px 18px;
-    border: none;
-    background: #1b2d4f;
-    color: #fff;
-    border-radius: 6px;
-    margin-right: 8px;
-    cursor: pointer;
-    transition: 0.25s;
-  }
-  .mode.active,
-  .mode:hover {
-    background: #274374;
-  }
-  .panel {
-    background: #fff;
-    padding: 20px;
-    margin-top: 20px;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  }
-  .hide { display: none; }
-  .selectors {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  .selectors label {
-    font-weight: bold;
-    margin: 0;
-  }
-  .selectors select {
-    margin-right: 0;
-    min-width: 150px;
-  }
-  table.grid {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-  }
-  table.grid th {
-    background: #0a1d37;
-    color: #fff;
-    padding: 10px;
-  }
-  table.grid td {
-    padding: 10px;
-    border-bottom: 1px solid #d9e2f1;
-    background: #fff;
-  }
-  .actions button,
-  #load-classes,
-  #load-bomon-classes,
-  #assign-bomon {
-    background: #0a1d37;
-    color: #fff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.25s;
-  }
-  button:hover {
-    background: #1b3a61;
-  }
-  /* Modal */
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-  }
-  .modal-content {
-    background: #fff;
-    margin: 10% auto;
-    padding: 20px;
-    border-radius: 10px;
-    width: 50%;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  }
-  .close {
-    float: right;
-    font-size: 24px;
-    cursor: pointer;
-  }
+  body{font-family:Arial,sans-serif;background:#f4f7fb;margin:0;color:#1a2a44}
+  header{background:#0a1d37;padding:20px 0;text-align:center;color:#fff;font-size:26px;font-weight:bold}
+  .controls label{font-weight:bold;margin-right:5px}
+  select{padding:6px 10px;border-radius:6px;background:white;border:1px solid #b8c2d1;margin-right:15px;font-size:14px}
+  .mode-tabs{margin-top:10px}
+  .mode{padding:8px 18px;border:none;background:#1b2d4f;color:#fff;border-radius:6px;margin-right:8px;cursor:pointer}
+  .mode.active,.mode:hover{background:#274374}
+  .panel{background:#fff;padding:20px;margin-top:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.1)}
+  .hide{display:none}
+  .selectors{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin-bottom:15px}
+  table.grid{width:100%;border-collapse:collapse;margin-top:15px}
+  table.grid th{background:#0a1d37;color:#fff;padding:10px}
+  table.grid td{padding:10px;border-bottom:1px solid #d9e2f1;background:#fff}
+  button{background:#0a1d37;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer}
+  button:hover{background:#1b3a61}
+  .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);align-items:center;justify-content:center}
+  .modal-content{background:#fff;padding:20px;border-radius:10px;width:50%;max-width:500px;box-shadow:0 5px 15px rgba(0,0,0,0.3)}
+  .close{float:right;font-size:24px;cursor:pointer}
 </style>
 </head>
 <body>
-<header>
-  Phân công giáo viên
-</header>
+<header>Phân công giáo viên</header>
 <main>
   <section>
     <div class="controls">
       <label>Năm học:</label>
       <select id="namhoc-select">
         <% namHocList.forEach(n => { %>
-          <option value="<%= n %>" <%= n===selectedNamHoc ? 'selected' : '' %> ><%= n %></option>
+          <option value="<%= n %>" <%= n===selectedNamHoc ? 'selected' : '' %>><%= n %></option>
         <% }) %>
       </select>
 
       <label>Học kỳ:</label>
       <select id="kyhoc-select">
         <% kyHocList.forEach(k => { %>
-          <option value="<%= k %>" <%= k===selectedKyHoc ? 'selected' : '' %> ><%= k %></option>
+          <option value="<%= k %>" <%= k===selectedKyHoc ? 'selected' : '' %>><%= k %></option>
         <% }) %>
       </select>
 
@@ -152,18 +51,18 @@
       </div>
     </div>
 
+    <!-- Tab Chủ nhiệm -->
     <div id="chunhiem-panel" class="panel">
       <h3>Phân công giáo viên chủ nhiệm</h3>
       <table id="classes-table" class="grid">
         <thead>
           <tr><th>STT</th><th>Mã lớp</th><th>Tên lớp</th><th>Giáo viên chủ nhiệm</th><th>Thao tác</th></tr>
         </thead>
-        <tbody>
-          <tr><td colspan="5" class="text-center">Chưa có dữ liệu</td></tr>
-        </tbody>
+        <tbody><tr><td colspan="5">Đang tải...</td></tr></tbody>
       </table>
     </div>
 
+    <!-- Tab Bộ môn -->
     <div id="bomon-panel" class="panel hide">
       <h3>Phân công giáo viên bộ môn</h3>
       <div class="selectors">
@@ -174,56 +73,49 @@
         <label>Giáo viên:</label>
         <select id="gv-select"></select>
       </div>
+
       <table id="classes-bomon-table" class="grid">
         <thead>
           <tr><th>STT</th><th>Mã lớp</th><th>Tên lớp</th><th>Chọn</th><th>Số tiết môn</th></tr>
         </thead>
-        <tbody>
-          <tr><td colspan="5" class="text-center">Chưa có dữ liệu</td></tr>
-        </tbody>
+        <tbody><tr><td colspan="5">Chọn khối và môn để tải lớp</td></tr></tbody>
       </table>
-      <div class="actions">
+
+      <div style="margin-top:15px;">
         <button id="assign-bomon">Phân công bộ môn</button>
       </div>
+
       <h3 style="margin-top:32px;">Danh sách phân công giáo viên bộ môn</h3>
-      <div class="selectors" style="margin-bottom: 15px;">
+      <div class="selectors" style="margin-bottom:15px;">
         <label>Môn:</label>
-        <select id="filter-mon-select">
-          <option value="">-- Tất cả --</option>
-        </select>
+        <select id="filter-mon-select"><option value="">-- Tất cả môn --</option></select>
         <label>Giáo viên:</label>
-        <select id="filter-gv-select">
-          <option value="">-- Tất cả --</option>
-        </select>
-        <button id="filter-btn" style="padding:6px 12px;background:#0a1d37;color:#fff;border:none;border-radius:6px;cursor:pointer;">Lọc</button>
+        <select id="filter-gv-select"><option value="">-- Tất cả giáo viên --</option></select>
+        <button id="filter-btn">Lọc</button>
       </div>
+
       <table id="assignment-table" class="grid">
         <thead>
           <tr><th>STT</th><th>Khối</th><th>Môn</th><th>Giáo viên</th><th>Mã lớp</th><th>Tên lớp</th><th>Năm học</th><th>Học kỳ</th><th>Thao tác</th></tr>
         </thead>
-        <tbody>
-          <tr><td colspan="9" class="text-center">Chưa có dữ liệu</td></tr>
-        </tbody>
+        <tbody><tr><td colspan="8">Đang tải danh sách phân công...</td></tr></tbody>
       </table>
     </div>
-
   </section>
 </main>
 
+<!-- Modal -->
 <div id="assign-modal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
     <h3>Phân công giáo viên</h3>
-    <div id="modal-body"></div>
+    <div id="modal-body">Đang tải...</div>
   </div>
 </div>
 
 <script src="/js/PhanCongChuNhiemBoMon.js"></script>
 <script>
-  try {
-    if (window.initPhanCong) window.initPhanCong();
-    else document.addEventListener('DOMContentLoaded', function(){ if (window.initPhanCong) window.initPhanCong(); });
-  } catch (e) { console.error('Init PhanCong error', e); }
+  if (typeof initPhanCong === 'function') initPhanCong();
 </script>
 </body>
 </html>

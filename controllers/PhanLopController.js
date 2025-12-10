@@ -52,64 +52,93 @@ class PhanLopController {
       if (!students.length) return res.json({ success: false, message: 'Không có học sinh để phân lớp' });
       if (!classes.length) return res.json({ success: false, message: 'Không có lớp nào trong khối này' });
 
-      // Nhóm học sinh theo tổ hợp (lấy từ GhiChu hoặc MaToHop của lớp)
+      // Chuẩn hóa ToHop: nếu là "Không có" → coi như không có tổ hợp
+      const normalizeToHop = (str) => (str && str.trim() !== 'Không có' && str.trim() !== '') ? str.trim() : null;
+
+      // Nhóm học sinh theo tổ hợp
       const groups = {};
       students.forEach(s => {
-        let key = s.ToHop?.trim() || 'KHONG_XAC_DINH';
+        const key = normalizeToHop(s.ToHop) || 'KHONG_TO_HOP';
         if (!groups[key]) groups[key] = [];
         groups[key].push(s);
       });
 
-      // Tạo bản đồ lớp
+      // Bản đồ lớp
       const classMap = {};
       classes.forEach(c => {
         classMap[c.MaLop] = {
-          MaLop: c.MaLop,
-          TenLop: c.TenLop,
-          MaToHop: c.MaToHop,
-          SiSo: c.SiSo || max,
-          CurrentCount: c.CurrentCount || 0,
-          students: []
+          ...c,
+          maxSize: c.SiSo > 0 ? c.SiSo : max,
+          current: c.CurrentCount || 0,
+          students: [],
+          toHop: normalizeToHop(c.MaToHop)
         };
       });
 
       const classList = Object.values(classMap);
 
-      // Phân bổ theo tổ hợp trước
+      // Ưu tiên phân học sinh có tổ hợp vào lớp đúng tổ hợp
       for (const toHop in groups) {
         const hsList = groups[toHop];
-        const suitableClasses = classList.filter(c => 
-          !c.MaToHop || c.MaToHop === toHop || toHop === 'KHONG_XAC_DINH'
-        );
+        const suitableClasses = classList.filter(c =>
+          c.toHop === null || c.toHop === toHop || toHop === 'KHONG_TO_HOP'
+        ).sort((a, b) => a.current - b.current); // cân bằng sĩ số
 
-        if (suitableClasses.length === 0) continue;
+        const fallbackClasses = classList.filter(c => c.toHop === null || toHop === 'KHONG_TO_HOP'
+        ).sort((a, b) => a.current - b.current);
 
         hsList.forEach(student => {
-          // Tìm lớp còn chỗ
           let assigned = false;
+
+          // Ưu tiên lớp đúng tổ hợp
           for (let cls of suitableClasses) {
-            if (cls.students.length < max) {
+            if (cls.current + cls.students.length < cls.maxSize) {
               cls.students.push(student);
               assigned = true;
               break;
             }
           }
-          // Nếu không tìm được lớp phù hợp → tìm lớp bất kỳ còn chỗ
+
+          // Nếu không được → lớp không ràng buộc tổ hợp
           if (!assigned) {
-            for (let cls of classList) {
-              if (cls.students.length < max) {
+            for (let cls of fallbackClasses) {
+              if (cls.current + cls.students.length < cls.maxSize) {
                 cls.students.push(student);
+                assigned = true;
                 break;
               }
+            }
+          }
+
+          // Vẫn chưa được → lớp bất kỳ còn chỗ
+          if (!assigned) {
+            const anyClass = classList
+              .filter(c => c.current + c.students.length < c.maxSize)
+              .sort((a, b) => (a.current + a.students.length) - (b.current + b.students.length))[0];
+            if (anyClass) {
+              anyClass.students.push(student);
+              assigned = true;
             }
           }
         });
       }
 
+      // Chuẩn bị dữ liệu trả về
+      const distribution = {};
+      let totalAssigned = 0;
+      for (const cls of classList) {
+        distribution[cls.MaLop] = {
+          TenLop: cls.TenLop,
+          students: cls.students
+        };
+        totalAssigned += cls.students.length;
+      }
+
       res.json({
         success: true,
-        distribution: classMap,
-        totalAssigned: students.length
+        distribution,
+        totalAssigned,
+        message: `Đã phân bổ ${totalAssigned} học sinh`
       });
 
     } catch (err) {

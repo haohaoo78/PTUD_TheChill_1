@@ -22,7 +22,7 @@ router.post('/save', PhanLopController.saveAssignment);
 // 6. API xem danh sách học sinh trong một lớp (khi double click vào lớp)
 router.post('/class-students', PhanLopController.getStudentsInClass);
 
-// Bonus: nếu bạn vẫn muốn dùng đếm sĩ số hiện tại (t (không bắt buộc vì đã có trong /classes)
+// Bonus: nếu bạn vẫn muốn dùng đếm sĩ số hiện tại (không bắt buộc vì đã có trong /classes)
 router.post('/class-counts', PhanLopController.getClassesByKhoi); // có thể bỏ nếu không dùng
 
 module.exports = router;

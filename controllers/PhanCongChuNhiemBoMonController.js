@@ -1,3 +1,4 @@
+// controllers/PhanCongChuNhiemBoMonController.js
 const PhanCongModel = require('../models/PhanCongChuNhiemBoMonModel');
 
 class PhanCongController {
@@ -277,16 +278,48 @@ class PhanCongController {
     }
   }
 
-  async listAssignments(req, res) {
-    try {
-      const { NamHoc, KyHoc } = req.body;
-      const assignments = await PhanCongModel.listAssignments(NamHoc || '2025-2026', KyHoc || '1');
-      res.json({ success: true, assignments });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, message: "Lỗi khi lấy danh sách phân công" });
-    }
+async listAssignments(req, res) {
+  try {
+    const { NamHoc = '2025-2026', KyHoc = '1' } = req.body;
+    const assignments = await PhanCongModel.listAssignments(NamHoc, KyHoc);
+    res.json({ success: true, assignments });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Lỗi khi lấy danh sách phân công" });
   }
+}
+
+async deleteBoMonAssign(req, res) {
+  try {
+    const { MaLop, MaGiaoVien, TenMonHoc, NamHoc, KyHoc } = req.body;
+
+    if (!MaLop || !MaGiaoVien || !TenMonHoc || !NamHoc || !KyHoc) {
+      return res.status(400).json({ success: false, message: "Thiếu dữ liệu xóa" });
+    }
+
+    const [gvRows] = await global.db.execute(
+      `SELECT MaGiaoVien FROM GiaoVien WHERE TenGiaoVien = ?`, [MaGiaoVien]
+    );
+    if (!gvRows.length) {
+      return res.status(400).json({ success: false, message: "Không tìm thấy giáo viên" });
+    }
+    const MaGV = gvRows[0].MaGiaoVien;
+
+    const [del] = await global.db.execute(`
+      DELETE FROM GVBoMon 
+      WHERE MaGVBM = ? AND MaLop = ? AND BoMon = ? AND NamHoc = ? AND HocKy = ?
+    `, [MaGV, MaLop, TenMonHoc, NamHoc, KyHoc]);
+
+    if (del.affectedRows === 0) {
+      return res.json({ success: false, message: "Không tìm thấy phân công để xóa" });
+    }
+
+    res.json({ success: true, message: "Xóa phân công thành công" });
+  } catch (err) {
+    console.error('deleteBoMonAssign error:', err);
+    res.status(500).json({ success: false, message: "Lỗi khi xóa: " + err.message });
+  }
+}
 
 }
 
