@@ -25,6 +25,8 @@ const ThongTinHSRoutes = require('./routes/ThongTinHSRoutes');
 const taotaikhoanRoutes = require('./routes/taotaikhoanRoutes');
 const QuanLyTruongRoutes = require('./routes/QuanLyTruongRoutes');
 const quanlymonhocRoutes = require('./routes/quanlymonhocRoutes');
+const PhanBoHocSinhVaoTruongRoutes = require('./routes/PhanBoHocSinhVaoTruongRoutes');
+
 
 const app = express();
 
@@ -61,6 +63,7 @@ app.use('/api/thongtinhs', ThongTinHSRoutes);
 app.use('/api/taotk', taotaikhoanRoutes);
 app.use('/api/quanlytruong', QuanLyTruongRoutes);
 app.use('/api/quanlymonhoc', quanlymonhocRoutes);
+app.use('/api/phanbohocsinhvaotruong', PhanBoHocSinhVaoTruongRoutes)
 
 
 
