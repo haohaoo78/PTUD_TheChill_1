@@ -36,47 +36,53 @@ class QuanLyLopModel {
     return rows[0]?.cnt > 0;
   }
 
-  static async createClasses(MaKhoi, number) {
-    const conn = await db.getConnection();
-    try {
-      await conn.beginTransaction();
+static async createClasses(MaKhoi, number) {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    
+    // Get the highest existing sequence number for this Khoi
+    const [maxRes] = await conn.execute(`
+      SELECT MAX(CAST(SUBSTRING(MaLop, 4) AS UNSIGNED)) AS MaxSeq
+      FROM Lop
+      WHERE Khoi = ?
+    `, [MaKhoi]);
+    const maxSeq = maxRes[0]?.MaxSeq || 0;
+    
+    const [truongRes] = await conn.execute('SELECT MaTruong FROM Truong LIMIT 1');
+    const maTruong = truongRes[0]?.MaTruong || 'T01';
+    
+    for (let i = 1; i <= number; i++) {
+      const seq = maxSeq + i;
+      const maLop = `${MaKhoi}${seq.toString().padStart(2, '0')}`;
       
-      // Get the highest existing sequence number for this Khoi
-      const [maxRes] = await conn.execute(`
-        SELECT MAX(CAST(SUBSTRING(MaLop, 4) AS UNSIGNED)) AS MaxSeq
-        FROM Lop
-        WHERE Khoi = ?
-      `, [MaKhoi]);
-      const maxSeq = maxRes[0]?.MaxSeq || 0;
-      
-      const [truongRes] = await conn.execute('SELECT MaTruong FROM Truong LIMIT 1');
-      const maTruong = truongRes[0]?.MaTruong || 'T01';
-      
-      for (let i = 1; i <= number; i++) {
-        const seq = maxSeq + i;
-        const maLop = `${MaKhoi}${seq.toString().padStart(2, '0')}`;
-        
-        // Check if MaLop already exists
-        const [existing] = await conn.execute('SELECT MaLop FROM Lop WHERE MaLop = ?', [maLop]);
-        if (existing.length > 0) {
-          continue; // Skip if already exists
-        }
-        
-        const tenLop = `Lớp ${seq.toString().padStart(2, '0')} Khối ${MaKhoi.replace('K', '')}`;
-        await conn.execute(`
-          INSERT INTO Lop (MaLop, TenLop, MaToHop, TrangThai, Khoi, SiSo, MaTruong)
-          VALUES (?, ?, NULL, 'Đang mở', ?, 0, ?)
-        `, [maLop, tenLop, MaKhoi, maTruong]);
+      // Check if MaLop already exists
+      const [existing] = await conn.execute('SELECT MaLop FROM Lop WHERE MaLop = ?', [maLop]);
+      if (existing.length > 0) {
+        continue; // Skip if already exists
       }
-      await conn.commit();
-      return { success: true };
-    } catch (err) {
-      await conn.rollback();
-      throw err;
-    } finally {
-      conn.release();
+      
+      const tenLop = `Lớp ${seq.toString().padStart(2, '0')} Khối ${MaKhoi.replace('K', '')}`;
+
+      // ❗❗ FIXED: Gửi trạng thái đúng ENUM
+      const trangThaiMacDinh = "Đang học";
+
+      await conn.execute(`
+        INSERT INTO Lop (MaLop, TenLop, MaToHop, TrangThai, Khoi, SiSo, MaTruong)
+        VALUES (?, ?, NULL, ?, ?, 0, ?)
+      `, [maLop, tenLop, trangThaiMacDinh, MaKhoi, maTruong]);
     }
+
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
   }
+}
+
 
   static async getTeachers() {
     const [rows] = await db.execute('SELECT MaGiaoVien, TenGiaoVien FROM GiaoVien WHERE TrangThai = "Đang công tác" ORDER BY TenGiaoVien');
