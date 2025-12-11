@@ -2,8 +2,9 @@
 
 <section class="content">
   <h2>Đăng Ký Tuyển Sinh - Năm <%= namThi || '2025' %></h2>
-  <div id="toast-message" class="toast"></div>
+  <div id="toast" class="toast"></div>
 
+  <!-- Thông tin thí sinh -->
   <div class="info-card">
     <h4>Thông tin thí sinh</h4>
     <div class="info-grid">
@@ -21,6 +22,7 @@
     <div class="alert alert-success"><%= success %></div>
   <% } %>
 
+  <!-- Form đăng ký nguyện vọng -->
   <div class="form-section">
     <h4>Đăng ký nguyện vọng xét tuyển</h4>
     <form id="form-dangky-nguyenvong">
@@ -52,6 +54,7 @@
     </form>
   </div>
 
+  <!-- Danh sách nguyện vọng -->
   <div class="table-section">
     <h4>Nguyện vọng đã đăng ký</h4>
     <% if (nguyenVong && nguyenVong.length > 0) { %>
@@ -78,8 +81,14 @@
                   <%= nv.TrangThai %>
                 </span>
               </td>
-              <td>
-                <button class="btn btn-danger btn-huy" data-mangv="<%= nv.MaNguyenVong %>">Hủy</button>
+              <td class="action-cell">
+                <div class="action-menu">
+                  <button class="btn-action-dots">⋮</button>
+                  <div class="action-dropdown">
+                    <div class="action-item xem" data-mangv="<%= nv.MaNguyenVong %>" data-matruong="<%= nv.MaTruong %>">Xem</div>
+                    <div class="action-item huy" data-mangv="<%= nv.MaNguyenVong %>">Hủy</div>
+                  </div>
+                </div>
               </td>
             </tr>
           <% }) %>
@@ -94,5 +103,13 @@
   </div>
 </section>
 
-<script src="/js/DangKyTuyenSinh.js"></script>
-<script>if (typeof initDangKyTuyenSinh === 'function') initDangKyTuyenSinh();</script>
+<!-- Modal Xem Phòng Thi -->
+<div id="modalPhongThi" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>Thông tin phòng thi</h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="/js/DangKyTuyenSinh.js?v=2025"></script>

@@ -48,7 +48,6 @@ class XemBaiTapModel {
 
             return {
                 subject: row.subject,
-                MaBaiTap: row.MaBaiTap,
                 title: row.NoiDung.length > 70 ? row.NoiDung.substring(0, 67) + '...' : row.NoiDung,
                 fullDescription: `
                     <div style="font-size:15px; line-height:2; color:#1e293b;">
@@ -107,42 +106,6 @@ class XemBaiTapModel {
         const expired = realAssignments.filter(a => a.expired).length;
 
         return { assignments: finalAssignments, total, active, expired };
-    }
-
-    static async getAssignmentById(maBaiTap) {
-        const [rows] = await db.execute(`
-            SELECT bt.MaBaiTap, bt.NoiDung, bt.NgayGiao, bt.NgayHetHan, gv.TenGiaoVien, gv.TenMonHoc AS subject
-            FROM BaiTap bt
-            JOIN GiaoVien gv ON bt.MaGiaoVien = gv.MaGiaoVien
-            WHERE bt.MaBaiTap = ?
-            LIMIT 1
-        `, [maBaiTap]);
-        if (!rows.length) return null;
-        const row = rows[0];
-        const today = new Date(); today.setHours(0,0,0,0);
-        const due = new Date(row.NgayHetHan);
-        const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-        const remaining = diffDays < 0 ? 0 : diffDays;
-        const expired = diffDays < 0;
-        const fullDescription = `
-            <div style="font-size:15px; line-height:2; color:#1e293b;">
-                ${row.NoiDung.replace(/\n/g, '<br>')}
-                <hr style="margin:24px 0; border:0; border-top:1px dashed #e2e8f0;">
-                <p style="margin:8px 0; color:#475569;"><strong style="color:#1e40af;">Giáo viên:</strong> ${row.TenGiaoVien}</p>
-                <p style="margin:8px 0; color:#475569;"><strong style="color:#1e40af;">Giao ngày:</strong> ${new Date(row.NgayGiao).toLocaleDateString('vi-VN')}</p>
-                <p style="margin:8px 0; color:#dc2626; font-weight:600;"><strong style="color:#dc2626;">Hạn nộp:</strong> ${new Date(row.NgayHetHan).toLocaleDateString('vi-VN')}</p>
-            </div>
-        `.trim();
-        return {
-            MaBaiTap: row.MaBaiTap,
-            subject: row.subject,
-            title: row.NoiDung.length > 70 ? row.NoiDung.substring(0, 67) + '...' : row.NoiDung,
-            fullDescription,
-            teacher: row.TenGiaoVien,
-            dueDate: row.NgayHetHan,
-            expired,
-            remainingDays: remaining
-        };
     }
 }
 

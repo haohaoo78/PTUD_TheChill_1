@@ -95,9 +95,6 @@
     cursor: pointer;
 }
 
-/* Ensure assignments are clickable and above potential overlays */
-.assignments-grid .assignment { pointer-events: auto; z-index: 1; position: relative; }
-
 .assignment:hover {
     transform: translateY(-6px);
     box-shadow: 0 12px 25px rgba(0,0,0,0.12);
