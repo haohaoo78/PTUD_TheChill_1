@@ -100,6 +100,15 @@ class DangKyTuyenSinhModel {
     );
     return rows[0] || null;
   }
+
+  static async checkTrungNV(maThiSinh, maTruong, toHop) {
+  const [rows] = await db.query(
+    `SELECT 1 FROM NguyenVong WHERE MaThiSinh=? AND MaTruong=? AND ToHopMon=?`,
+    [maThiSinh, maTruong, toHop]
+  );
+  return rows.length > 0;
 }
+}
+
 
 module.exports = DangKyTuyenSinhModel;

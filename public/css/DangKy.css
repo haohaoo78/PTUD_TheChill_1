@@ -184,3 +184,15 @@
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* pick student */
+.pick_student {
+  width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #b0b0b0;
+    font-size: 14px;
+    background-color: #ffffff;
+    color: #0d1b3d;
+}
