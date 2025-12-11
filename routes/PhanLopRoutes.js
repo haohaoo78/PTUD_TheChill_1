@@ -1,28 +1,26 @@
-// routes/PhanLopRoutes.js
-
 const express = require('express');
 const router = express.Router();
 const PhanLopController = require('../controllers/PhanLopController');
 
 // 1. Render trang phân lớp
-router.get('/render', PhanLopController.renderPage);
+router.get('/render', PhanLopController.renderPage.bind(PhanLopController));
 
-// 2. API lấy học sinh chưa có lớp (dùng cho danh sách bên trái)
-router.post('/students', PhanLopController.getUnassignedStudents);
+// 2. API lấy học sinh theo khối
+router.post('/students', PhanLopController.getStudentsByKhoi.bind(PhanLopController));
 
-// 3. API lấy danh sách lớp theo khối (dùng cho bảng lớp bên phải)
-router.post('/classes', PhanLopController.getClassesByKhoi);
+// 3. API lấy danh sách lớp theo khối
+router.post('/classes', PhanLopController.getClassesByKhoi.bind(PhanLopController));
 
 // 4. API phân lớp tự động
-router.post('/auto-assign', PhanLopController.autoAssign);
+router.post('/auto-assign', PhanLopController.autoAssign.bind(PhanLopController));
 
 // 5. API lưu phân lớp vào DB
-router.post('/save', PhanLopController.saveAssignment);
+router.post('/save', PhanLopController.saveAssignment.bind(PhanLopController));
 
-// 6. API xem danh sách học sinh trong một lớp (khi double click vào lớp)
-router.post('/class-students', PhanLopController.getStudentsInClass);
+// 6. API xem danh sách học sinh trong một lớp
+router.post('/class-students', PhanLopController.getStudentsInClass.bind(PhanLopController));
 
-// Bonus: nếu bạn vẫn muốn dùng đếm sĩ số hiện tại (không bắt buộc vì đã có trong /classes)
-router.post('/class-counts', PhanLopController.getClassesByKhoi); // có thể bỏ nếu không dùng
+// 7. API điều chỉnh thủ công
+router.post('/manual-assign', PhanLopController.manualAssign.bind(PhanLopController));
 
 module.exports = router;
