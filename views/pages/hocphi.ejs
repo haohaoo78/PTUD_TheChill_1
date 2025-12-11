@@ -1,0 +1,64 @@
+<link rel="stylesheet" href="/css/HocPhi.css">
+
+<div class="hocphi-container">
+  <h2>Thanh Toán Học Phí</h2>
+
+  <div class="filter-section">
+    <div class="form-group">
+      <label for="namHoc">Năm học:</label>
+      <select id="namHoc">
+        <option value="2023-2024">2023-2024</option>
+        <option value="2024-2025">2024-2025</option>
+        <option value="2025-2026">2025-2026</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="hocKy">Học kỳ:</label>
+      <select id="hocKy">
+        <option value="1">Học kỳ 1</option>
+        <option value="2">Học kỳ 2</option>
+      </select>
+    </div>
+    <button id="btn-xem" class="btn-primary">Xem Học Phí</button>
+  </div>
+
+  <div id="tuition-info" class="info-card" style="display: none;">
+    <div class="card-header">Thông tin học phí</div>
+    <div class="card-body">
+      <p><strong>Mã học phí:</strong> <span id="hp-id"></span></p>
+      <p><strong>Số tiền:</strong> <span id="hp-amount" class="amount"></span> VND</p>
+      <p><strong>Trạng thái:</strong> <span id="hp-status" class="status-badge"></span></p>
+      <p><strong>Hạn đóng:</strong> <span id="hp-deadline"></span></p>
+      
+      <div id="payment-details" style="display: none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+          <h4>Chi tiết thanh toán</h4>
+          <div class="form-group">
+              <label>Chọn khoản phí:</label>
+              <div>
+                  <input type="checkbox" id="fee-tuition" checked disabled> <label for="fee-tuition">Học phí kỳ này (<span id="fee-amount-display"></span> VND)</label>
+              </div>
+          </div>
+          <div class="form-group">
+              <label>Tổng tiền:</label>
+              <span id="total-amount" class="amount"></span> VND
+          </div>
+          <div class="form-group">
+              <label for="payment-method">Phương thức thanh toán:</label>
+              <select id="payment-method">
+                  <option value="">-- Chọn phương thức --</option>
+                  <option value="VNPAY">VNPAY</option>
+                  <option value="MOMO">MOMO</option>
+                  <option value="BANK">Chuyển khoản ngân hàng</option>
+              </select>
+          </div>
+          <button id="btn-pay" class="btn-success">Thanh Toán Ngay</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="no-data" style="display: none; text-align: center; margin-top: 20px;">
+    <p>Không có công nợ.</p>
+  </div>
+</div>
+
+<script src="/js/HocPhi.js"></script>

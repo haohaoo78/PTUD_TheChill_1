@@ -1,0 +1,46 @@
+<link rel="stylesheet" href="/css/NhapHoc.css">
+
+<div class="nhaphoc-container">
+  <h2>Xác Nhận Nhập Học</h2>
+
+  <% if (error) { %>
+    <div class="alert-error"><%= error %></div>
+  <% } else { %>
+    <div class="status-card">
+      <p>Xin chào, <strong id="student-name">...</strong></p>
+      <p>Trạng thái nhập học hiện tại: <span id="status-text" class="status-badge">Đang tải...</span></p>
+      
+      <div id="action-area" style="margin-top: 30px; display: none;">
+        <p>Bạn đã trúng tuyển vào trường. Vui lòng chọn khối học và xác nhận nhập học.</p>
+        
+        <div class="form-group" style="margin: 20px 0;">
+            <label for="khoiHoc">Chọn khối học:</label>
+            <select id="khoiHoc" style="padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                <option value="">-- Chọn khối --</option>
+                <option value="KHTN">Khối Khoa học Tự nhiên</option>
+                <option value="KHXH">Khối Khoa học Xã hội</option>
+            </select>
+        </div>
+
+        <button id="btn-confirm" class="btn-confirm">Xác Nhận Nhập Học Ngay</button>
+      </div>
+
+      <div id="success-area" style="margin-top: 30px; display: none;">
+        <div class="success-message">
+          ✅ Bạn đã xác nhận nhập học thành công!
+        </div>
+        <div class="info-box" style="margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #eee; border-radius: 5px;">
+            <p><strong>Khối học đã chọn:</strong> <span id="selected-khoi"></span></p>
+            <p><strong>Thông tin liên hệ nhà trường:</strong></p>
+            <ul>
+                <li>Phòng Đào tạo: 028.38352020</li>
+                <li>Email: daotao@thpt-thechill.edu.vn</li>
+                <li>Địa chỉ: 280 An Dương Vương, Q.5, TP.HCM</li>
+            </ul>
+        </div>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<script src="/js/NhapHoc.js"></script>

@@ -1,0 +1,56 @@
+<link rel="stylesheet" href="/css/XemDiem.css">
+
+<div class="xemdiem-container">
+  <h2>Xem Điểm Học Tập</h2>
+
+  <div class="filter-section">
+    <div class="form-group">
+      <label for="namHoc">Năm học:</label>
+      <select id="namHoc">
+        <option value="2023-2024">2023-2024</option>
+        <option value="2024-2025">2024-2025</option>
+        <option value="2025-2026">2025-2026</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="hocKy">Học kỳ:</label>
+      <select id="hocKy">
+        <option value="1">Học kỳ 1</option>
+        <option value="2">Học kỳ 2</option>
+      </select>
+    </div>
+    <button id="btn-xem" class="btn-primary">Xem Kết Quả</button>
+  </div>
+
+  <div id="student-info" class="info-box" style="display: none;">
+    <h3>Thông tin học sinh</h3>
+    <p><strong>Họ tên:</strong> <span id="info-name"></span></p>
+    <p><strong>Mã HS:</strong> <span id="info-id"></span></p>
+    <p><strong>Lớp:</strong> <span id="info-class"></span></p>
+  </div>
+
+  <div id="result-section" style="display: none;">
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>Môn Học</th>
+          <th>Điểm Miệng</th>
+          <th>15 Phút</th>
+          <th>1 Tiết</th>
+          <th>Thi HK</th>
+          <th>ĐTB Môn</th>
+        </tr>
+      </thead>
+      <tbody id="score-body">
+        <!-- Data will be populated here -->
+      </tbody>
+    </table>
+
+    <div class="summary-box">
+      <p><strong>Hạnh kiểm:</strong> <span id="hanh-kiem">--</span></p>
+      <p><strong>Học lực:</strong> <span id="hoc-luc">--</span></p>
+    </div>
+  </div>
+</div>
+
+<script src="/js/XemDiem.js"></script>
