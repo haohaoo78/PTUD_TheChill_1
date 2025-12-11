@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quản lý Trường</title>
+  <link rel="stylesheet" href="/css/quanlyTruong.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="ql-container">
+      <h2>Quản lý Danh sách Trường</h2>
+      <div class="filter-pane">
+  <div class="filter-group">
+    <label for="filterMaTruong">Mã Trường:</label>
+    <input 
+      type="text" 
+      id="filterMaTruong"
+      placeholder="Nhập mã trường..."
+      class="filter-input"
+    >
+  </div>
+  <div class="filter-group">
+    <label for="filterTenTruong">Tên Trường:</label>
+    <input 
+      type="text" 
+      id="filterTenTruong"
+      placeholder="Nhập tên trường..."
+      class="filter-input"
+    >
+  </div>
+  <div class="filter-group">
+    <label for="filterTrangThai">Trạng Thái:</label>
+    <select id="filterTrangThai" class="filter-select">
+      <option value="">-- Tất cả --</option>
+      <option value="1">Hoạt động</option>
+      <option value="0">Ngừng hoạt động</option>
+    </select>
+  </div>
+  <button id="btn-xem" class="btn-view">Xem</button>
+  <button id="btn-them" class="btn-add">+ Thêm Trường</button>
+</div>
+      <table id="truong-table" class="table">
+        <thead>
+          <tr>
+            <th>Mã Trường</th>
+            <th>Tên Trường</th>
+            <th>Địa Chỉ</th>
+            <th>Email</th>
+            <th>SĐT</th>
+            <th>Hiệu Trưởng</th>
+            <th>Trạng Thái</th>
+            <th>Hành Động</th>
+          </tr>
+        </thead>
+        <tbody></tbody> <!-- JS SẼ ĐIỀN DỮ LIỆU -->
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal-truong" class="modal">
+    <div class="modal-content">
+      <span class="modal-close">×</span>
+      <h3 id="modal-title">Thêm Trường Mới</h3>
+      <form id="modal-form">
+        <input type="hidden" id="modal-id">
+
+        <label>Mã Trường <span class="required">*</span></label>
+        <input type="text" id="MaTruong" maxlength="5" required>
+
+        <label>Tên Trường <span class="required">*</span></label>
+        <input type="text" id="TenTruong" required>
+
+        <label>Địa Chỉ <span class="required">*</span></label>
+        <input type="text" id="DiaChi" required>
+
+        <label>Email <span class="required">*</span></label>
+        <input type="email" id="Email" required>
+
+        <label>Số Điện Thoại <span class="required">*</span></label>
+        <input type="text" id="SDT" required>
+
+        <label>Trạng Thái</label>
+        <select id="TrangThai">
+          <option value="1">Hoạt động</option>
+          <option value="0">Ngừng hoạt động</option>
+        </select>
+
+        <div class="modal-actions">
+          <button type="submit" id="btn-save">Lưu</button>
+          <button type="button" id="btn-cancel">Hủy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/quanlyTruong.js"></script>
+</body>
+</html>

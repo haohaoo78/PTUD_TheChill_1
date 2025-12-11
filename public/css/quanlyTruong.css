@@ -1,0 +1,400 @@
+/* ========================================================= */
+/* ============== CÁC KHỐI CHỨA NỘI DUNG (Content Wrapper) ============== */
+/* ========================================================= */
+
+.ql-container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); /* Shadow nhẹ */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+h2 {
+    text-align: left;
+    color: #1e40af; /* Màu xanh đậm cho tiêu đề */
+    font-size: 24px;
+    margin-bottom: 25px;
+    font-weight: 700;
+    border-bottom: 2px solid #eef2ff; /* Kẻ dưới tiêu đề nhẹ */
+    padding-bottom: 15px;
+}
+
+.required {
+    color: #e74c3c; /* Màu đỏ nổi bật */
+    font-weight: bold;
+}
+
+/* ========================================================= */
+/* ==================== PHẦN THANH LỌC VÀ NÚT THÊM ===================== */
+/* ========================================================= */
+.filter-pane {
+    display: flex;
+    align-items: center;
+    /* Dùng justify-content: flex-start nếu muốn các bộ lọc nằm bên trái,
+       hoặc flex-end nếu chỉ có nút Thêm như trong các ví dụ trước */
+    justify-content: space-between; /* Để tách Filter và Nút Thêm */
+    gap: 12px;
+    padding: 0 0 10px 0; 
+    margin-bottom: 25px;
+    flex-wrap: wrap; /* Cho phép xuống dòng trên mobile */
+}
+
+/* Group chứa các bộ lọc (nếu có) */
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Thiết lập cho Select box và Button Xem */
+select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+}
+
+/* Nút Xem */
+.view-btn {
+    padding: 8px 15px;
+    background: #2563eb; /* Màu xanh dương */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.view-btn:hover {
+    background: #1d4ed8;
+}
+
+/* NÚT THÊM (Dùng cho #btn-them hoặc class .add-btn) */
+.add-btn {
+    padding: 10px 20px;
+    background: #10b981; /* Màu xanh lá cây nổi bật */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
+}
+
+.add-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+/* ========================================================= */
+/* ======================== BẢNG DỮ LIỆU ======================= */
+/* ========================================================= */
+.table {
+    width: 100%;
+    border-collapse: collapse; /* Sử dụng collapse cho vẻ ngoài gọn gàng */
+    margin-top: 20px;
+}
+
+.table thead th {
+    background: #f1f5f9; /* Màu nền header bảng */
+    padding: 12px;
+    font-weight: 600;
+    color: #475569;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+}
+/* Căn trái cho các cột dữ liệu chữ/ID/Tên */
+.table thead th:nth-child(2), .table thead th:nth-child(3), .table thead th:nth-child(4), .table thead th:nth-child(5) {
+    text-align: left;
+}
+
+.table tbody tr {
+    background: white;
+    transition: background-color 0.2s;
+}
+
+.table tbody tr:hover {
+    background-color: #f7f9fc;
+}
+
+.table td {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 14px;
+    color: #374151;
+}
+
+/* Căn trái cho các cột dữ liệu chữ/ID/Tên */
+.table td:nth-child(2), .table td:nth-child(3), .table td:nth-child(4), .table td:nth-child(5) {
+    text-align: left;
+}
+
+/* Badge Dữ liệu (Mã tổ hợp, Khối) */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge.code { /* Áp dụng cho Mã tổ hợp (TH01, TH03...) */
+    background: #fffbe6;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.badge.block { /* Áp dụng cho Khối (Khối 10, Khối 11...) */
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+/* Badge Trạng Thái (dùng trong JS: .status) */
+.status {
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status.active { /* Trạng thái "Đang dạy" hoặc "Hoạt động" */
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status.inactive { /* Trạng thái "Dừng" hoặc "Ngừng hoạt động" */
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Nút Hành Động trong bảng (dùng class .btn và .edit-btn/.delete-btn) */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0 4px;
+    font-size: 13px;
+    transition: opacity 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.edit-btn { 
+    background: #ffc107; /* Vàng/Cam (Sửa) */
+    color: #333;
+}
+
+.delete-btn { 
+    background: #dc3545; /* Đỏ (Xóa/Dừng) */
+    color: white;
+}
+/* ==================== CONTAINER HORIZONTAL GỌN SÁT ===================== */
+.filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;          /* khoảng cách cực nhỏ giữa các nhóm */
+  align-items: center; 
+  margin-bottom: 20px;
+}
+
+/* Nhóm filter nằm ngang */
+.filter-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-width: auto;
+}
+
+.filter-group label {
+  font-weight: 500;
+  margin-right: 4px; /* label sát input */
+  color: #333;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Input & Select nhỏ gọn */
+.filter-input,
+.filter-select {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  width: auto;
+  min-width: 80px;   /* chiều rộng tối thiểu */
+}
+
+/* Nút gọn sát nhau */
+.buttons-group {
+  display: flex;
+  gap: 6px;         /* khoảng cách giữa nút cực nhỏ */
+  align-items: center;
+}
+
+button {
+  cursor: pointer;
+  padding: 6px 14px;  /* nút nhỏ gọn */
+  border-radius: 4px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* Nút Xem */
+.btn-view {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.btn-view:hover {
+  background-color: #1d4ed8;
+}
+
+/* Nút Thêm */
+.btn-add {
+  background-color: #10b981;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
+}
+
+.btn-add:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .filters-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .filter-group,
+  .filter-input,
+  .filter-select,
+  .buttons-group,
+  button {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .filter-group label {
+    margin-bottom: 3px;
+    margin-right: 0;
+  }
+}
+
+/* ========================================================= */
+/* ========================= MODAL ========================= */
+/* ========================================================= */
+/* Modal cho Quản lý Trường (Ánh xạ tới #modal-truong) */
+.modal { 
+    display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); justify-content: center; align-items: center; backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+.modal-close {
+    position: absolute; top: 10px; right: 15px; font-size: 30px; font-weight: bold; cursor: pointer; color: #999;
+}
+.modal-close:hover { color: #333; }
+
+#modal-title {
+    text-align: center; color: #1e40af; font-size: 22px; font-weight: 700; margin: 0 0 20px 0; padding-bottom: 10px; border-bottom: 1px solid #eee;
+}
+
+#modal-form label { display: block; margin-top: 10px; margin-bottom: 5px; font-weight: 600; color: #374151; font-size: 14px; }
+
+#modal-form input:not([type="hidden"]), #modal-form select {
+    width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s;
+}
+#modal-form input:focus, #modal-form select:focus { outline: none; border-color: #1e40af; }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+
+#btn-save { padding: 10px 20px; background: #1e40af; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+#btn-save:hover { background: #1d4ed8; }
+
+#btn-cancel { padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+#btn-cancel:hover { background: #5a6268; }
+
+/* ========================================================= */
+/* ========================= TOAST MESSAGE ========================= */
+/* ========================================================= */
+.toast {
+    visibility: hidden; min-width: 250px; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 10000; left: 50%; bottom: 20px; transform: translateX(-50%); box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-size: 14px; opacity: 0; transition: opacity 0.5s, visibility 0.5s;
+}
+.toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 3.5s; opacity: 1; }
+.toast.error { background-color: #e74c3c; }
+.toast.success { background-color: #2ecc71; }
+@keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+@keyframes fadeout { from { opacity: 1; } to { to { opacity: 0; } } }
+
+/* ========================================================= */
+/* ======================= RESPONSIVE CHO BẢNG ====================== */
+/* ========================================================= */
+@media (max-width: 768px) {
+    /* Đảm bảo bảng cuộn ngang trên mobile nếu nội dung quá dài */
+    .ql-container {
+        overflow-x: auto; 
+        padding: 15px;
+    }
+    
+    .table {
+        min-width: 700px; /* Đảm bảo bảng cuộn được */
+    }
+    
+    .modal-content {
+        margin: 15px;
+        padding: 20px;
+    }
+    
+    .modal-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+    }
+    
+    #btn-save, #btn-cancel {
+        width: 100%;
+    }
+    
+    .filter-pane {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    select, .view-btn, .add-btn {
+        width: 100%;
+    }
+    
+}

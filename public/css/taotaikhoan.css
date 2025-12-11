@@ -1,0 +1,670 @@
+/* ===================================================== */
+/*     taotaikhoan.css – Dành riêng cho file JS bạn gửi     */
+/*     Đẹp, hiện đại, mượt mà, responsive 100%            */
+/* ===================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  margin: 0;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+/* =============== TOAST THÔNG BÁO =============== */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  min-width: 340px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  transform: translateX(120%);
+  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toast.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toast.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast.show {
+  transform: translateX(0);
+}
+
+/* =============== BẢNG DANH SÁCH =============== */
+#account-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  margin-top: 20px;
+}
+
+#account-table th {
+  background: #f1f5f9;
+  padding: 16px 14px;
+  text-align: center;
+  font-weight: 600;
+  color: #475569;
+  font-size: 15px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+#account-table td {
+  background: #ffffff;
+  padding: 18px 14px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+#account-table tbody tr:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* =============== NÚT SỬA & XÓA =============== */
+.btn-edit,
+.btn-delete {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  margin: 0 6px;
+  transition: all 0.25s ease;
+  min-width: 70px;
+}
+
+.btn-edit {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+}
+
+.btn-delete {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}
+
+/* =============== NÚT THÊM MỚI =============== */
+#btn-them {
+  padding: 13px 30px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+  transition: all 0.3s ease;
+}
+
+#btn-them:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.4);
+}
+
+#btn-them:active {
+  transform: translateY(0);
+}
+
+/* =============== MODAL =============== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  background: white;
+  padding: 34px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  position: relative;
+  animation: modalShow 0.4s ease-out;
+}
+
+@keyframes modalShow {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 36px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.modal-close:hover {
+  color: #1e293b;
+  transform: rotate(90deg);
+}
+
+#modal-title {
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+}
+
+/* =============== FORM TRONG MODAL =============== */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14.5px;
+}
+
+.form-group label .required {
+  color: #ef4444;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.8px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 15px;
+  transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.15);
+  background: #ffffff;
+}
+
+.form-group input:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* =============== NÚT TRONG MODAL =============== */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+#btn-cancel {
+  padding: 12px 26px;
+  background: #e2e8f0;
+  color: #475569;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#btn-cancel:hover {
+  background: #cbd5e1;
+}
+
+#btn-save {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s;
+}
+
+#btn-save:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+}
+
+/* =============== RESPONSIVE =============== */
+@media (max-width: 768px) {
+  body { padding: 15px; }
+  .modal-content { padding: 26px; }
+  #account-table th,
+  #account-table td { padding: 12px 8px; font-size: 14px; }
+  .btn-edit,
+  .btn-delete { padding: 8px 14px; font-size: 13px; }
+  #btn-them { width: 100%; padding: 14px; }
+  .toast {
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    min-width: auto;
+    font-size: 14.5px;
+  }
+  /* =============== FORM TRONG MODAL (CHUẨN ĐẸP) =============== */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14.5px;
+}
+
+.form-group label .required {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.8px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.form-group input::placeholder {
+  color: #94a3b8;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.15);
+  background: #ffffff;
+}
+
+/* Khi đang sửa → disable mã tài khoản */
+.form-group input:disabled {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* =============== NÚT TRONG MODAL =============== */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 28px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+#btn-cancel {
+  padding: 11px 24px;
+  background: #e2e8f0;
+  color: #475569;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#btn-cancel:hover {
+  background: #cbd5e1;
+}
+
+#btn-save {
+  padding: 11px 32px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s;
+}
+
+#btn-save:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+}
+}
+/* ====================== FILTER PANE ĐẸP NHƯ TRANG MÔN HỌC ====================== */
+.filter-pane {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  background: #f8f9fa;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Ô tìm kiếm */
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 300px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 13px 50px 13px 18px;
+  font-size: 15px;
+  border: 2px solid #dfe1e6;
+  border-radius: 14px;
+  outline: none;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.search-box input:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 5px rgba(78, 115, 223, 0.18);
+}
+
+.search-box span {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #9da5b4;
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.search-box input:focus + span,
+.search-box input:not(:placeholder-shown) + span {
+  color: #4e73df;
+}
+
+/* Label + Select */
+.filter-pane label {
+  font-weight: 600;
+  color: #2d3748;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.filter-pane select {
+  padding: 11px 14px;
+  border: 2px solid #dfe1e6;
+  border-radius: 12px;
+  background-color: white;
+  font-size: 15px;
+  min-width: 170px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.filter-pane select:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 5px rgba(78, 115, 223, 0.18);
+}
+
+/* Nút + Tạo tài khoản mới */
+.add-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 13px 26px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.35s ease;
+  box-shadow: 0 5px 18px rgba(102, 126, 234, 0.45);
+  white-space: nowrap;
+}
+
+.add-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.55);
+}
+
+.add-btn:active {
+  transform: translateY(-1px);
+}
+
+/* Badge trạng thái */
+.badge-hoatdong {
+  background: #d4edda;
+  color: #155724;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badge-khoa {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Responsive đẹp như trang Môn học */
+@media (max-width: 992px) {
+  .filter-pane {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .search-box {
+    min-width: 100%;
+  }
+  .filter-pane select {
+    min-width: 100%;
+  }
+  .add-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .search-box input {
+    font-size: 16px; /* Tránh zoom trên iPhone */
+  }
+}
+/* ============== BADGE TRẠNG THÁI TÀI KHOẢN – ĐẸP CẤP ĐỘ THẦN THÁNH ============== */
+.badge {
+  display: inline-block;
+  min-width: 90px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.badge.active {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  animation: pulseActive 2s infinite;
+}
+
+.badge.locked {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  animation: pulseLocked 2s infinite;
+}
+
+/* Hiệu ứng nhấp nháy nhẹ cho “Hoạt động” */
+@keyframes pulseActive {
+  0%   { box-shadow: 0 2px 6px rgba(46, 204, 113, 0.4); }
+  50%  { box-shadow: 0 4px 16px rgba(46, 204, 113, 0.7); }
+  100% { box-shadow: 0 2px 6px rgba(46, 204, 113, 0.4); }
+}
+
+/* Hiệu ứng nhấp nháy nhẹ cho “Đã khóa” */
+@keyframes pulseLocked {
+  0%   { box-shadow: 0 2px 6px rgba(231, 76, 60, 0.4); }
+  50%  { box-shadow: 0 4px 16px rgba(231, 76, 60, 0.7); }
+  100% { box-shadow: 0 2px 6px rgba(231, 76, 60, 0.4); }
+}
+
+/* Hover thì sáng bừng lên */
+.badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important;
+}
+
+/* Nếu anh thích kiểu “phẳng” hơn mà vẫn sang thì dùng cái này thay 2 cái trên */
+/*
+.badge.active  { background:#2ecc71; color:white; }
+.badge.locked  { background:#e74c3c; color:white; }
+*//* MODAL ĐẸP – KHÔNG LỘN XỘN – CHẠY NGON 100% */
+.modal-flex {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.modal-content {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px; right: 16px;
+  font-size: 32px;
+  cursor: pointer;
+  color: #999;
+}
+.modal-close:hover { color: #e74c3c; }
+
+.modal-content h3 {
+  margin: 0 0 25px;
+  text-align: center;
+  color: #2c3e50;
+  font-size: 22px;
+}
+
+.modal-content label {
+  display: block;
+  margin: 18px 0 8px;
+  font-weight: 600;
+  color: #34495e;
+}
+.required { color: #e74c3c; }
+
+.modal-content input,
+.modal-content select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+.modal-content input:focus,
+.modal-content select:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.modal-actions {
+  margin-top: 25px;
+  text-align: right;
+}
+.modal-actions button {
+  padding: 11px 24px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.modal-actions button[type="submit"] {
+  background: #27ae60;
+  color: white;
+}
+.modal-actions button[type="submit"]:hover { background: #219a52; }
+#btn-cancel {
+  background: #ecf0f1;
+  color: #7f8c8d;
+}
+#btn-cancel:hover { background: #d5dbdb; }

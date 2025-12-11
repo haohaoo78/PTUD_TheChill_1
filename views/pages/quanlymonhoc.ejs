@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quản lý Môn học</title>
+  <link rel="stylesheet" href="/css/quanlyMonHoc.css"/>
+</head>
+<body>
+
+  <div class="container">
+    <div class="ql-container">
+      <h2>Quản lý Thông tin Môn học</h2>
+
+      <div class="filter-pane">
+  <div class="search-box">
+    <input type="text" id="search-monhoc" placeholder="Tìm mã hoặc tên môn học...">
+    <span>Tìm kiếm</span>
+  </div>
+
+  <label>Khối:</label>
+  <select id="filter-khoi">
+    <option value="">-- Tất cả --</option>
+    <option value="10">Khối 10</option>
+    <option value="11">Khối 11</option>
+    <option value="12">Khối 12</option>
+  </select>
+
+  <label>Trạng thái:</label>
+  <select id="filter-trangthai">
+    <option value="">-- Tất cả --</option>
+    <option value="1">Đang dạy</option>
+    <option value="0">Dừng dạy</option>
+  </select>
+
+  <button id="btn-them" class="add-btn">+ Thêm Môn học</button>
+</div>
+
+<table id="monhoc-table" class="table">
+  <thead>
+    <tr>
+      <th>Mã môn học</th>
+      <th>Tên môn học</th>
+      <th>Số tiết</th>
+      <th>Mã tổ hợp</th>
+      <th>Khối</th>
+      <th>Trạng thái</th>
+      <th>Hành động</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+    </div>
+  </div>
+
+  <!-- MODAL SẠCH – DÙNG CSS NGOÀI -->
+  <div id="modal-monhoc">
+    <div class="modal-content">
+      <span class="modal-close">×</span>
+      <h3 id="modal-title">Thêm Môn học</h3>
+      <form id="modal-form">
+        <input type="hidden" id="modal-id">
+        <div id="modal-fields"></div>
+        <button type="submit">Lưu</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/quanlyMonHoc.js"></script>
+</body>
+</html>
