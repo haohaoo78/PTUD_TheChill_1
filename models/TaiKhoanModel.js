@@ -3,9 +3,9 @@ const bcrypt = require('bcrypt');
 
 const TaiKhoanModel = {
 
-  // Lấy danh sách tài khoản, có lọc search, loai, trangthai
+  // ==================== LẤY DANH SÁCH (có lọc search, loại, trạng thái) ====================
   async getList({ search = '', loai = '', trangthai = '' } = {}) {
-    let sql = `SELECT TenTaiKhoan, LoaiTaiKhoan, TrangThai, MatKhauGoc FROM TaiKhoan WHERE 1=1`;
+    let sql = `SELECT TenTaiKhoan, LoaiTaiKhoan, TrangThai FROM TaiKhoan WHERE 1=1`;
     const params = [];
 
     if (search) {
@@ -26,24 +26,24 @@ const TaiKhoanModel = {
     return rows;
   },
 
-  // Lấy tất cả tài khoản
+  // ==================== LẤY TẤT CẢ ====================
   async getAll() {
     const [rows] = await db.execute(
-      'SELECT TenTaiKhoan, LoaiTaiKhoan, TrangThai, MatKhauGoc FROM TaiKhoan ORDER BY TenTaiKhoan'
+      'SELECT TenTaiKhoan, LoaiTaiKhoan, TrangThai FROM TaiKhoan ORDER BY TenTaiKhoan'
     );
     return rows;
   },
 
-  // Lấy 1 tài khoản theo TenTaiKhoan
+  // ==================== LẤY 1 TÀI KHOẢN ====================
   async getOne(ma) {
     const [rows] = await db.execute(
-      'SELECT TenTaiKhoan, LoaiTaiKhoan, TrangThai, MatKhauGoc FROM TaiKhoan WHERE TenTaiKhoan = ? LIMIT 1',
+      'SELECT TenTaiKhoan, LoaiTaiKhoan, TrangThai FROM TaiKhoan WHERE TenTaiKhoan = ? LIMIT 1',
       [ma]
     );
     return rows[0] || null;
   },
 
-  // Kiểm tra tài khoản có tồn tại
+  // ==================== KIỂM TRA TỒN TẠI ====================
   async isExists(ma) {
     const [rows] = await db.execute(
       'SELECT 1 FROM TaiKhoan WHERE TenTaiKhoan = ? LIMIT 1',
@@ -52,37 +52,42 @@ const TaiKhoanModel = {
     return rows.length > 0;
   },
 
-  // Tạo mới tài khoản
+  // ==================== TẠO MỚI TÀI KHOẢN ====================
   async create(ma, password, loaiTK, trangThai = 1) {
     const hashed = await bcrypt.hash(password, 10);
+
     await db.execute(
-      'INSERT INTO TaiKhoan (TenTaiKhoan, MatKhau, MatKhauGoc, LoaiTaiKhoan, TrangThai) VALUES (?, ?, ?, ?, ?)',
-      [ma, hashed, password, loaiTK, trangThai]
+      'INSERT INTO TaiKhoan (TenTaiKhoan, MatKhau, LoaiTaiKhoan, TrangThai) VALUES (?, ?, ?, ?)',
+      [ma, hashed, loaiTK, trangThai]
     );
   },
 
-  // Cập nhật tài khoản
+  // ==================== CẬP NHẬT TÀI KHOẢN ====================
   async update(ma, data) {
     const fields = [];
     const values = [];
 
+    // Cập nhật mật khẩu
     if (data.MatKhau) {
       const hashed = await bcrypt.hash(data.MatKhau, 10);
-      fields.push('MatKhau = ?', 'MatKhauGoc = ?');
-      values.push(hashed, data.MatKhau);
+      fields.push('MatKhau = ?');
+      values.push(hashed);
     }
 
+    // Cập nhật loại tài khoản
     if (data.LoaiTaiKhoan) {
       fields.push('LoaiTaiKhoan = ?');
       values.push(data.LoaiTaiKhoan);
     }
 
+    // Cập nhật trạng thái
     if (data.TrangThai !== undefined) {
       fields.push('TrangThai = ?');
       values.push(data.TrangThai);
     }
 
-    if (fields.length === 0) return;
+    if (fields.length === 0) return; // Không có gì để cập nhật
+
     values.push(ma);
 
     await db.execute(
@@ -91,7 +96,7 @@ const TaiKhoanModel = {
     );
   },
 
-  // Xóa tài khoản
+  // ==================== XOÁ TÀI KHOẢN ====================
   async delete(ma) {
     await db.execute(
       'DELETE FROM TaiKhoan WHERE TenTaiKhoan = ?',

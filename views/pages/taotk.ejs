@@ -6,11 +6,14 @@
   <title>Quản lý Tài khoản</title>
   <link rel="stylesheet" href="/css/taotaikhoan.css"/>
 </head>
+
 <body>
   <div class="container">
     <div class="ql-container">
       <h2>Quản lý Danh sách Tài khoản</h2>
-<div class="filter-pane">
+
+      <!-- BỘ LỌC -->
+      <div class="filter-pane">
         <div class="search-box">
           <input type="text" id="search-taikhoan" placeholder="Tìm mã tài khoản...">
           <span>Tìm kiếm</span>
@@ -38,47 +41,47 @@
         <button id="btn-them" class="add-btn">+ Tạo Tài khoản mới</button>
       </div>
 
+      <!-- BẢNG DỮ LIỆU -->
       <table id="account-table" class="table">
         <thead>
           <tr>
             <th>Mã tài khoản</th>
-            <th>Mật khẩu</th>
             <th>Loại tài khoản</th>
             <th>Trạng thái</th>
             <th>Hành động</th>
           </tr>
         </thead>
-        <tbody></tbody> <!-- JS sẽ fill dữ liệu -->
+        <tbody></tbody> <!-- JS sẽ fill -->
       </table>
     </div>
   </div>
 
- <!-- MODAL – CHỈ THÊM 1 CLASS LÀ ĐẸP NGAY -->
-<div id="modal-account" class="modal modal-flex">
-  <div class="modal-content">
-    <span class="modal-close">×</span>
-    <h3 id="modal-title">Thêm / Sửa Tài khoản</h3>
-    <form id="modal-form">
+  <!-- MODAL -->
+  <div id="modal-account" class="modal modal-flex">
+    <div class="modal-content">
+      <span class="modal-close">×</span>
+      <h3 id="modal-title">Thêm / Sửa Tài khoản</h3>
 
-      <label>Mã tài khoản <span class="required">*</span></label>
-      <input type="text" id="ma" maxlength="20" required>
+      <form id="modal-form">
 
-      <label>Loại tài khoản <span class="required">*</span></label>
-      <select id="loaiTK" required>
-        <option value="">-- Chọn loại --</option>
-        <!-- JS sẽ fill -->
-      </select>
+        <label>Mã tài khoản <span class="required">*</span></label>
+        <input type="text" id="ma" maxlength="20" required>
 
-      <label>Mật khẩu <span class="required">*</span></label>
-      <input type="password" id="password" required>
+        <label>Loại tài khoản <span class="required">*</span></label>
+        <select id="loaiTK" required>
+          <option value="">-- Chọn loại --</option>
+        </select>
 
-      <div class="modal-actions">
-        <button type="submit" id="btn-save">Lưu</button>
-        <button type="button" id="btn-cancel">Hủy</button>
-      </div>
-    </form>
+        <label>Mật khẩu <span class="required">*</span></label>
+        <input type="password" id="password" required>
+
+        <div class="modal-actions">
+          <button type="submit" id="btn-save">Lưu</button>
+          <button type="button" id="btn-cancel">Hủy</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
   <script src="/js/taikhoan.js"></script>
 </body>

@@ -27,6 +27,10 @@ const QuanLyTruongRoutes = require('./routes/QuanLyTruongRoutes');
 const quanlymonhocRoutes = require('./routes/quanlymonhocRoutes');
 const PhanBoHocSinhVaoTruongRoutes = require('./routes/PhanBoHocSinhVaoTruongRoutes');
 
+const XemDiemRoutes = require('./routes/XemDiemRoutes');
+const XinPhepRoutes = require('./routes/XinPhepRoutes');
+const HocPhiRoutes = require('./routes/HocPhiRoutes');
+const NhapHocRoutes = require('./routes/NhapHocRoutes');
 
 const app = express();
 
@@ -59,11 +63,15 @@ app.use('/api/quanlylop', QuanLyLopRoutes);
 app.use('/api/phanlophocsinh', PhanLopRoutes);
 app.use('/api/xembaitap', XemBaiTapRoutes);
 app.use('/api/dangkytuyensinh', DangKyTuyenSinhRoutes);
-app.use('/api/thongtinhs', ThongTinHSRoutes);
 app.use('/api/taotk', taotaikhoanRoutes);
 app.use('/api/quanlytruong', QuanLyTruongRoutes);
 app.use('/api/quanlymonhoc', quanlymonhocRoutes);
 app.use('/api/phanbohocsinhvaotruong', PhanBoHocSinhVaoTruongRoutes)
+
+app.use('/api/xemdiem', XemDiemRoutes)
+app.use('/api/xinphep', XinPhepRoutes)
+app.use('/api/hocphi', HocPhiRoutes)
+app.use('/api/nhaphoc', NhapHocRoutes)
 
 
 

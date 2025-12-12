@@ -1,4 +1,4 @@
-// public/js/taikhoan.js – HOÀN HẢO TUYỆT ĐỐI, CÓ DẤU ĐẸP, KHÔNG NHÂN ĐÔI, TẠO MỚI CÓ LOẠI
+// public/js/taikhoan.js – SỬA LỖI TẠO & LỌC LOẠI TÀI KHOẢN
 
 const modal         = document.getElementById('modal-account');
 const modalTitle    = document.getElementById('modal-title');
@@ -10,6 +10,7 @@ const passwordInput = document.getElementById('password');
 const btnThem       = document.getElementById('btn-them');
 
 let editId = null;
+let LOAI_LIST = []; // cached list of account types
 
 // TOAST
 function showToast(message, type = 'success') {
@@ -18,12 +19,13 @@ function showToast(message, type = 'success') {
   toast.className = `toast ${type}`;
   toast.textContent = message;
   document.body.appendChild(toast);
-  toast.offsetHeight;
+  // force reflow
+  void toast.offsetWidth;
   toast.classList.add('show');
-  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3500);
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
 }
 
-// HIỂN THỊ TÊN ĐẸP DÙ DB CÓ DẤU HAY KHÔNG
+// TÊN ĐẸP
 function roleName(code) {
   const map = {
     'HieuTruong': 'Hiệu trưởng',
@@ -32,138 +34,175 @@ function roleName(code) {
     'GiaoVu': 'Giáo vụ',
     'ThiSinh': 'Thí sinh',
     'CanBoSGD': 'Cán bộ SGD',
-    'QuanTriVien': 'Quản trị hệ thống',
-    'Hiệu trưởng': 'Hiệu trưởng',
-    'Giáo viên': 'Giáo viên',
-    'Học sinh': 'Học sinh',
-    'Giáo vụ': 'Giáo vụ',
-    'Thí sinh': 'Thí sinh',
-    'Cán bộ SGD': 'Cán bộ SGD',
-    'Quản trị hệ thống': 'Quản trị hệ thống'
+    'QuanTriVien': 'Quản trị hệ thống'
   };
   return map[code] || code;
 }
 
-// MỞ MODAL + TỰ ĐỘNG LOAD LOẠI TK KHI TẠO MỚI (SỬA Ở ĐÂY!)
-async function openModal(isEdit = false, data = null) {
+// Load danh sách loại tài khoản 1 lần và cache
+async function loadLoaiTaiKhoan() {
+  if (LOAI_LIST.length) return LOAI_LIST;
+  try {
+    const res = await fetch('/api/taotk/loai');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || 'Lỗi load loại');
+    LOAI_LIST = Array.isArray(json.loaiList) ? json.loaiList : [];
+  } catch (err) {
+    console.error('Lỗi loadLoaiTaiKhoan:', err);
+    LOAI_LIST = [];
+  }
+
+  // Fill select filter
+  const filterEl = document.getElementById('filter-loai');
+  if (filterEl) {
+    filterEl.innerHTML = `<option value="">-- Tất cả --</option>` +
+      LOAI_LIST.map(l => `<option value="${l}">${roleName(l)}</option>`).join('');
+  }
+
+  // Fill modal select (if exists)
+  if (loaiTKInput) {
+    loaiTKInput.innerHTML = `<option value="">-- Chọn loại --</option>` +
+      LOAI_LIST.map(l => `<option value="${l}">${roleName(l)}</option>`).join('');
+  }
+
+  return LOAI_LIST;
+}
+
+// MỞ MODAL
+function openModal(isEdit = false, data = null) {
   modal.style.display = 'flex';
   modalTitle.textContent = isEdit ? 'Sửa Tài khoản' : 'Tạo Tài khoản mới';
   editId = isEdit ? data.TenTaiKhoan : null;
 
-  maInput.value = data?.TenTaiKhoan || '';
+  maInput.value = isEdit ? data.TenTaiKhoan : '';
   maInput.disabled = isEdit;
   passwordInput.value = '';
 
-  if (!isEdit) {
-    // TỰ ĐỘNG LOAD LOẠI TÀI KHOẢN VÀO SELECT KHI TẠO MỚI
-    try {
-      const res = await fetch('/api/taotk/loai');
-      const json = await res.json();
-      if (json.success && json.loaiList) {
-        loaiTKInput.innerHTML = json.loaiList.map(l => 
-          `<option value="${l}">${roleName(l)}</option>`
-        ).join('');
-      }
-    } catch (err) {
-      console.error('Lỗi load loại tài khoản:', err);
+  // Nếu là sửa, set loại; nếu là tạo thì đảm bảo select đã load
+  if (isEdit) {
+    // đảm bảo select đã load trước khi set value (nếu chưa load thì load rồi set)
+    if (!LOAI_LIST.length) {
+      loadLoaiTaiKhoan().then(() => {
+        loaiTKInput.value = data.LoaiTaiKhoan || '';
+      });
+    } else {
+      loaiTKInput.value = data.LoaiTaiKhoan || '';
     }
   } else {
-    loaiTKInput.value = data?.LoaiTaiKhoan || '';
+    // tạo mới: nếu chưa load loại thì load; nếu đã load thì reset về placeholder
+    if (!LOAI_LIST.length) {
+      loadLoaiTaiKhoan();
+    } else {
+      loaiTKInput.value = '';
+    }
   }
 
-  setTimeout(() => isEdit ? loaiTKInput.focus() : maInput.focus(), 100);
+  // focus
+  setTimeout(() => (isEdit ? loaiTKInput.focus() : maInput.focus()), 120);
 }
 
+// ĐÓNG MODAL
 function closeModal() {
   modal.style.display = 'none';
   modalForm.reset();
-  editId = null;
   maInput.disabled = false;
+  editId = null;
 }
 
 document.querySelector('.modal-close').onclick = closeModal;
 document.getElementById('btn-cancel').onclick = closeModal;
 window.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
-// LOAD DANH SÁCH + TÌM KIẾM + LỌC
+// LOAD DANH SÁCH TÀI KHOẢN
 async function loadAccounts() {
   try {
-    const search    = document.getElementById('search-taikhoan')?.value.trim() || '';
-    const loaiEl    = document.querySelector('#filter-loai, #filter-loaitk, #loaiTK');
-    const loai      = loaiEl?.value || '';
+    const search = (document.getElementById('search-taikhoan')?.value || '').trim();
+    const loai = document.getElementById('filter-loai')?.value || '';
     const trangthai = document.getElementById('filter-trangthai')?.value || '';
 
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (loai) params.append('loai', loai);
-    if (trangthai) params.append('trangthai', trangthai);
+    if (trangthai !== '') params.append('trangthai', trangthai);
 
     const res = await fetch(`/api/taotk/list?${params.toString()}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     if (!json.success) throw new Error(json.message || 'Lỗi server');
 
-    const accounts = json.accounts || [];
+    const accounts = Array.isArray(json.accounts) ? json.accounts : [];
 
     if (accounts.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:50px; color:#7f8c8d;">
-        Không tìm thấy tài khoản nào.<br><br>
-        ${search || loai || trangthai ? 'Thử thay đổi bộ lọc.' : 'Nhấn <strong style="color:#27ae60;">+ Tạo Tài khoản mới</strong> để bắt đầu.'}
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px; color:#666;">
+        Không tìm thấy tài khoản.
       </td></tr>`;
       return;
     }
 
-   tbody.innerHTML = accounts.map(acc => `
-  <tr>
-    <td><strong>${acc.TenTaiKhoan}</strong></td>
-   <td>${acc.MatKhauGoc || '(không có)'}</td> <!-- cột mật khẩu gốc -->
-    <td>${roleName(acc.LoaiTaiKhoan)}</td>
-    
-    <td><span class="badge ${acc.TrangThai == 1 ? 'active' : 'locked'}">
-      ${acc.TrangThai == 1 ? 'Hoạt động' : 'Đã khóa'}
-    </span></td>
-    <td>
-      <button class="btn-edit" data-id="${acc.TenTaiKhoan}">Sửa</button>
-      <button class="btn-delete" data-id="${acc.TenTaiKhoan}">Xóa</button>
-    </td>
-  </tr>
-`).join('');
+    tbody.innerHTML = accounts.map(acc => `
+      <tr>
+        <td><strong>${acc.TenTaiKhoan}</strong></td>
+        <td>${roleName(acc.LoaiTaiKhoan)}</td>
+        <td>
+          <span class="badge ${acc.TrangThai == 1 ? 'active' : 'locked'}">
+            ${acc.TrangThai == 1 ? 'Hoạt động' : 'Đã khóa'}
+          </span>
+        </td>
+        <td>
+          <button class="btn-edit" data-id="${acc.TenTaiKhoan}">Sửa</button>
+          <button class="btn-delete" data-id="${acc.TenTaiKhoan}">Xóa</button>
+        </td>
+      </tr>
+    `).join('');
 
+    // attach events
     tbody.querySelectorAll('.btn-edit').forEach(btn => {
-      btn.onclick = () => openModal(true, accounts.find(a => a.TenTaiKhoan === btn.dataset.id));
+      btn.onclick = () => {
+        const id = btn.dataset.id;
+        const acc = accounts.find(a => a.TenTaiKhoan === id);
+        if (acc) openModal(true, acc);
+      };
     });
 
     tbody.querySelectorAll('.btn-delete').forEach(btn => {
       btn.onclick = async () => {
-        const ma = btn.dataset.id;
-        if (!confirm(`XÓA tài khoản "${ma}"?\nKhông thể khôi phục!`)) return;
-        const delRes = await fetch('/api/taotk/delete', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ma })
-        });
-        const delJson = await delRes.json();
-        showToast(delJson.message || (delJson.success ? 'Xóa thành công' : 'Lỗi xóa'), delJson.success ? 'success' : 'error');
-        if (delJson.success) loadAccounts();
+        const id = btn.dataset.id;
+        if (!confirm(`XÓA tài khoản "${id}"?\nĐiều này KHÔNG thể khôi phục!`)) return;
+        try {
+          const res = await fetch('/api/taotk/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ma: id })
+          });
+          const json = await res.json();
+          showToast(json.message || (json.success ? 'Xóa thành công' : 'Lỗi'), json.success ? 'success' : 'error');
+          if (json.success) loadAccounts();
+        } catch (err) {
+          showToast('Lỗi xóa', 'error');
+          console.error(err);
+        }
       };
     });
 
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#e74c3c; padding:40px;">Lỗi: ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#c0392b;">Lỗi: ${err.message}</td></tr>`;
+    console.error('Lỗi loadAccounts:', err);
   }
 }
 
-// LƯU (TẠO / SỬA)
-modalForm.onsubmit = async e => {
+// HANDLE SUBMIT (TẠO / SỬA)
+modalForm.onsubmit = async (e) => {
   e.preventDefault();
-  const payload = { 
-    ma: maInput.value.trim(), 
-    loaiTK: loaiTKInput.value, 
-    password: passwordInput.value 
+
+  const payload = {
+    ma: maInput.value.trim(),
+    loaiTK: loaiTKInput.value,
+    password: passwordInput.value
   };
 
   if (!payload.ma || !payload.loaiTK || (!editId && !payload.password)) {
-    return showToast('Vui lòng nhập đầy đủ thông tin!', 'error');
+    return showToast('Vui lòng nhập đầy đủ thông tin', 'error');
   }
 
   const isEdit = !!editId;
@@ -171,47 +210,39 @@ modalForm.onsubmit = async e => {
   const method = isEdit ? 'PUT' : 'POST';
   if (isEdit) payload.ma = editId;
 
-  const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-  const json = await res.json();
-  showToast(json.message || (json.success ? (isEdit ? 'Cập nhật thành công!' : 'Tạo tài khoản thành công!') : 'Có lỗi xảy ra'), json.success ? 'success' : 'error');
-  if (json.success) { closeModal(); loadAccounts(); }
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+    showToast(json.message || (json.success ? (isEdit ? 'Cập nhật thành công' : 'Tạo thành công') : 'Lỗi'), json.success ? 'success' : 'error');
+    if (json.success) {
+      closeModal();
+      loadAccounts();
+    }
+  } catch (err) {
+    console.error('Lỗi submit:', err);
+    showToast('Lỗi server', 'error');
+  }
 };
 
-// NÚT THÊM + TÌM KIẾM + LỌC
-btnThem.onclick = () => openModal(false);
-
-const debounce = (func, delay) => {
-  let timer;
-  return (...args) => { clearTimeout(timer); timer = setTimeout(() => func.apply(this, args), delay); };
+// SỰ KIỆN LỌC + TÌM KIẾM
+const debounce = (fn, delay = 400) => {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
 };
 
 document.getElementById('search-taikhoan')?.addEventListener('input', debounce(loadAccounts, 400));
-document.querySelector('#filter-loai, #filter-loaitk, #loaiTK')?.addEventListener('change', loadAccounts);
+document.getElementById('filter-loai')?.addEventListener('change', loadAccounts);
 document.getElementById('filter-trangthai')?.addEventListener('change', loadAccounts);
 
-// LOAD BỘ LỌC
-async function loadFilters() {
-  try {
-    const res = await fetch('/api/taotk/loai');
-    const json = await res.json();
-    const selectLoai = document.querySelector('#filter-loai, #filter-loaitk, #loaiTK');
-    if (selectLoai && json.success && json.loaiList) {
-      selectLoai.innerHTML = `<option value="">Tất cả loại tài khoản</option>`;
-      json.loaiList.forEach(loai => {
-        selectLoai.innerHTML += `<option value="${loai}">${roleName(loai)}</option>`;
-      });
-    }
-    const selectTT = document.getElementById('filter-trangthai');
-    if (selectTT) {
-      selectTT.innerHTML = `<option value="">Tất cả trạng thái</option><option value="1">Hoạt động</option><option value="0">Đã khóa</option>`;
-    }
-  } catch (err) {
-    console.error('Lỗi load bộ lọc:', err);
-  }
-}
+// NÚT TẠO
+btnThem.onclick = () => openModal(false);
 
-// KHỞI ĐỘNG
+// KHỞI ĐỘNG: nạp loại trước rồi nạp danh sách
 (async () => {
-  await loadFilters();
-  loadAccounts();
+  await loadLoaiTaiKhoan(); // đảm bảo cả filter + modal đều có option
+  await loadAccounts();
 })();
