@@ -1,11 +1,18 @@
+// controllers/ThoiKhoaBieuController.js
 const ThoiKhoaBieu = require('../models/ThoiKhoaBieuModel');
 
 class ThoiKhoaBieuController {
   async renderPage(req, res) {
     try {
-      const khoiList = await ThoiKhoaBieu.getKhoiList();
+      if (!req.session.user || req.session.user.loaiTaiKhoan !== 'GiaoVu' || !req.session.user.maTruong) {
+        return res.status(403).send('Bạn không có quyền truy cập chức năng này (chỉ dành cho Giáo vụ).');
+      }
+
+      const MaTruong = req.session.user.maTruong;
+
+      const khoiList = await ThoiKhoaBieu.getKhoiList(MaTruong);
       const firstKhoi = khoiList[0]?.MaKhoi || '';
-      const classes = await ThoiKhoaBieu.getClassesByKhoi(firstKhoi);
+      const classes = await ThoiKhoaBieu.getClassesByKhoi(firstKhoi, MaTruong);
       const firstClass = classes[0]?.MaLop || '';
 
       const namHocList = await ThoiKhoaBieu.getNamHocList();
@@ -38,9 +45,16 @@ class ThoiKhoaBieuController {
 
   async getLopTheoKhoi(req, res) {
     try {
+      if (!req.session.user || req.session.user.loaiTaiKhoan !== 'Giáo vụ' || !req.session.user.maTruong) {
+        return res.status(403).json({ error: 'Không có quyền truy cập.' });
+      }
+
+      const MaTruong = req.session.user.maTruong;
+
       const { MaKhoi } = req.body;
       if (!MaKhoi) return res.json([]);
-      const classes = await ThoiKhoaBieu.getClassesByKhoi(MaKhoi);
+
+      const classes = await ThoiKhoaBieu.getClassesByKhoi(MaKhoi, MaTruong);
       res.json(classes);
     } catch (err) {
       console.error(err);
@@ -120,23 +134,21 @@ class ThoiKhoaBieuController {
     }
   }
 
-async saveAll(req, res) {
-  try {
-    const { timetable = [], selectedNamHocStart } = req.body; 
-    if (!selectedNamHocStart) 
-      return res.status(400).json({ error: 'Thiếu ngày bắt đầu học kỳ' });
+  async saveAll(req, res) {
+    try {
+      const { timetable = [], selectedNamHocStart } = req.body; 
+      if (!selectedNamHocStart) 
+        return res.status(400).json({ error: 'Thiếu ngày bắt đầu học kỳ' });
 
-    // Gọi luôn updateMultiple, kể cả timetable rỗng
-    await ThoiKhoaBieu.updateMultiple(timetable, selectedNamHocStart);
+      // Gọi luôn updateMultiple, kể cả timetable rỗng
+      await ThoiKhoaBieu.updateMultiple(timetable, selectedNamHocStart);
 
-    res.json({ message: 'Lưu thời khóa biểu thành công!' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Lỗi khi lưu TKB' });
+      res.json({ message: 'Lưu thời khóa biểu thành công!' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Lỗi khi lưu TKB' });
+    }
   }
-}
-
-
 
   async resetWeek(req, res) {
     try {
@@ -150,7 +162,6 @@ async saveAll(req, res) {
     }
   }
 
-  // ✅ Hàm xóa cell – cập nhật lại đúng cách
   async deleteCell(req, res) {
     try {
       const { MaLop, NamHoc, KyHoc, LoaiTKB, Thu, TietHoc, TenMonHoc } = req.body;
@@ -160,7 +171,6 @@ async saveAll(req, res) {
         return res.json({ error: 0, message: 'Không có dữ liệu để xóa, cell đã trống' });
       }
 
-      // 🔹 Sau khi xóa, đếm lại tổng số tiết của môn đó trong DB
       const SoTietTuan = TenMonHoc
         ? await ThoiKhoaBieu.countSubjectWeeklyInDB(MaLop, NamHoc, KyHoc, TenMonHoc, LoaiTKB)
         : 0;
@@ -171,36 +181,33 @@ async saveAll(req, res) {
       res.status(500).json({ error: 1, message: 'Lỗi khi xóa cell' });
     }
   }
-// ✅ Chỉ đếm số tiết đang hiển thị trong UI (không cộng DB)
-async checkSubjectLimit(req, res) {
-  try {
-    const { cells } = req.body;
 
-    // 🔹 Gom nhóm các cell theo môn học (chỉ trong UI)
-    const cellCount = {};
-    for (const c of cells) {
-      if (!c.TenMonHoc) continue;
-      cellCount[c.TenMonHoc] = (cellCount[c.TenMonHoc] || 0) + 1;
+  async checkSubjectLimit(req, res) {
+    try {
+      const { cells } = req.body;
+
+      const cellCount = {};
+      for (const c of cells) {
+        if (!c.TenMonHoc) continue;
+        cellCount[c.TenMonHoc] = (cellCount[c.TenMonHoc] || 0) + 1;
+      }
+
+      const warnings = [];
+
+      for (const [TenMonHoc, soHienTai] of Object.entries(cellCount)) {
+        const soToiDa = await ThoiKhoaBieu.getSubjectWeeklyLimit(TenMonHoc);
+        warnings.push({ TenMonHoc, soHienTai, soToiDa });
+      }
+
+      return res.json({
+        status: 'ok',
+        warnings
+      });
+    } catch (err) {
+      console.error("Lỗi checkSubjectLimit:", err);
+      return res.status(500).json({ status: 'error', message: err.message });
     }
-
-    const warnings = [];
-
-    // 🔹 Lấy giới hạn từng môn và tạo danh sách cảnh báo
-    for (const [TenMonHoc, soHienTai] of Object.entries(cellCount)) {
-      const soToiDa = await ThoiKhoaBieu.getSubjectWeeklyLimit(TenMonHoc);
-      warnings.push({ TenMonHoc, soHienTai, soToiDa });
-    }
-
-    return res.json({
-      status: 'ok',
-      warnings
-    });
-  } catch (err) {
-    console.error("Lỗi checkSubjectLimit:", err);
-    return res.status(500).json({ status: 'error', message: err.message });
   }
 }
-}
-
 
 module.exports = new ThoiKhoaBieuController();

@@ -13,21 +13,21 @@
         <% }) %>
       </select>
 
-      <label>Giáo viên:</label>
+      <!-- <label>Giáo viên:</label>
       <select id="filter-giaovien-hs">
         <option value="">-- Chọn giáo viên --</option>
-        <% teacherList.forEach(t => { %>
-          <option value="<%= t.MaGiaoVien %>" <%= selectedTeacher===t.MaGiaoVien?'selected':'' %>><%= t.TenGiaoVien %></option>
+        <% (typeof teacherList !== 'undefined' ? teacherList : []).forEach(t => { %>
+          <option value="<%= t.MaGiaoVien %>" <%= (typeof selectedTeacher !== 'undefined' && selectedTeacher===t.MaGiaoVien)?'selected':'' %>><%= t.TenGiaoVien %></option>
         <% }) %>
-      </select>
+      </select> -->
 
-      <label>Lớp:</label>
+      <!-- <label>Lớp:</label>
       <select id="filter-lop-hs">
         <option value="">-- Chọn lớp --</option>
-        <% classes.forEach(c => { %>
-          <option value="<%= c.MaLop %>" <%= selectedClass===c.MaLop?'selected':'' %>><%= c.TenLop %></option>
+        <% (typeof classes !== 'undefined' ? classes : []).forEach(c => { %>
+          <option value="<%= c.MaLop %>" <%= (typeof selectedClass !== 'undefined' && selectedClass===c.MaLop)?'selected':'' %>><%= c.TenLop %></option>
         <% }) %>
-      </select>
+      </select> -->
 
       <button id="btn-xem-hs" class="btn primary">Xem</button>
       <!-- <button class="btn secondary" onclick="openModalHS()">Thêm Học sinh</button> -->
@@ -45,11 +45,13 @@
           <th>Trạng thái</th>
           <th>Hạnh kiểm</th>
           <th>Rèn luyện</th>
-          <th>Hành động</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      <th>Hành động</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Dữ liệu học sinh sẽ được JS tải và gắn vào đây -->
+  </tbody>
+</table>
   </section>
 </div>
 
@@ -73,6 +75,12 @@
     <h3 id="modal-hk-rl-title">Hạnh kiểm / Rèn luyện</h3>
     <form id="modal-hk-rl-form">
       <input type="hidden" id="modal-hk-rl-hs">
+      <label>Mã học sinh:</label>
+      <input type="text" id="modal-hk-rl-mahs" readonly>
+
+      <label>Tên học sinh:</label>
+      <input type="text" id="modal-hk-rl-tenhs" readonly>
+
       <label>Học kỳ:</label>
       <select id="modal-hk-rl-hocky">
         <option value="1">HK1</option>
@@ -81,6 +89,7 @@
 
       <label>Hạnh kiểm:</label>
       <select id="modal-hk-rl-hanhkiem">
+        <option value="">-- Chọn hạnh kiểm --</option>
         <option value="Tốt">Tốt</option>
         <option value="Khá">Khá</option>
         <option value="Trung bình">Trung bình</option>
@@ -89,6 +98,7 @@
 
       <label>Rèn luyện:</label>
       <select id="modal-hk-rl-renluyen">
+        <option value="">-- Chọn rèn luyện --</option>
         <option value="Xuất sắc">Xuất sắc</option>
         <option value="Tốt">Tốt</option>
         <option value="Khá">Khá</option>

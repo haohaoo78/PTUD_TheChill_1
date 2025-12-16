@@ -5,18 +5,21 @@ class QuanLyHSGVController {
   async renderPage(req, res) {
     try {
       const namHocList = await QLModel.getNamHocList();
-      const teacherList = await QLModel.getTeacherList();
-      const selectedNamHoc = namHocList[0]?.NamHoc || '';
-      const selectedTeacher = teacherList[0]?.MaGiaoVien || '';
-      const classes = await QLModel.getClasses(selectedTeacher, selectedNamHoc);
+      const currentNamHoc = await QLModel.getCurrentNamHoc();
+      const selectedNamHoc = currentNamHoc || namHocList[0]?.NamHoc || '';
+      // const selectedTeacher = teacherList[0]?.MaGiaoVien || '';
+      // const classes = await QLModel.getClasses(selectedTeacher, selectedNamHoc);
 
+      // tìm các tempale ejs có pages/xetdiemrenluyen.ejs trong views đã cấu hình mặc định trước đó
+      // nó sẽ render (biên dịch) tempale đó thành html thuần
+      // trong quá trình biên dịch thì nó sẽ truyền các biến ... vào để bạn dùng trong ejs
       res.render('pages/xetdiemrenluyen', {
         namHocList,
-        teacherList,
+        // teacherList,
         selectedNamHoc,
-        selectedTeacher,
-        selectedClass: '',
-        classes,
+        // selectedTeacher,
+        // selectedClass: '',
+        // classes,
       });
     } catch (err) {
       console.error(err);
@@ -27,11 +30,32 @@ class QuanLyHSGVController {
   // HỌC SINH
   async getHocSinh(req, res) {
     try {
-      const { namHoc, maGiaoVien, maLop } = req.query;
-      const classes = await QLModel.getClasses(maGiaoVien, namHoc, maLop);
-      const lopId = classes.length > 0 && maLop ? maLop : null;
-      const data = await QLModel.getStudentList(lopId, namHoc);
-      res.json({ success: true, data });
+      const { namHoc, maLop } = req.query;
+      // Lấy mã GVCN từ session đăng nhập
+      const maGiaoVien = req.session?.user?.username || null;
+      if (!maGiaoVien) {
+        return res.status(401).json({ success: false, message: 'Chưa đăng nhập hoặc không có mã giáo viên chủ nhiệm' });
+      }
+
+      // Ưu tiên năm học đang diễn ra, nếu client không truyền
+      let effectiveNamHoc = namHoc;
+      if (!effectiveNamHoc) {
+        effectiveNamHoc = await QLModel.getCurrentNamHoc();
+      }
+      if (!effectiveNamHoc) {
+        return res.status(400).json({ success: false, message: 'Không xác định được năm học hiện tại' });
+      }
+
+      // Lấy các lớp mà giáo viên này chủ nhiệm trong năm học
+      const classes = await QLModel.getClasses(maGiaoVien, effectiveNamHoc, maLop);
+      if (!classes || classes.length === 0) {
+        return res.json({ success: true, data: [], namHoc: effectiveNamHoc, message: 'Giáo viên chưa chủ nhiệm lớp nào trong năm học này' });
+      }
+
+      // Chỉ chấp nhận MaLop thuộc danh sách lớp của giáo viên; nếu không, chọn lớp đầu tiên
+      const lopId = classes.find(c => c.MaLop === maLop)?.MaLop || classes[0].MaLop;
+      const data = await QLModel.getStudentList(lopId, effectiveNamHoc);
+      res.json({ success: true, data, namHoc: effectiveNamHoc, maLop: lopId });
     } catch (err) {
       res.json({ success: false, message: err.message });
     }
@@ -147,8 +171,11 @@ class QuanLyHSGVController {
 
   async updateHocBa(req, res) {
     try {
-      const { maHS, namHoc, hocKy, HanhKiem, RenLuyen } = req.body;
-      await QLModel.updateHocBa(maHS, namHoc, hocKy, { HanhKiem, RenLuyen });
+      const { maHS, namHoc, hocKy, HanhKiem, RenLuyen, NhanXet } = req.body;
+      if (!maHS || !namHoc || !hocKy) {
+        return res.json({ success: false, message: 'Thiếu thông tin bắt buộc (maHS, namHoc, hocKy)' });
+      }
+      await QLModel.updateHocBa(maHS, namHoc, hocKy, { HanhKiem, RenLuyen, NhanXet });
       res.json({ success: true, message: 'Cập nhật thành công' });
     } catch (err) {
       res.json({ success: false, message: err.message });

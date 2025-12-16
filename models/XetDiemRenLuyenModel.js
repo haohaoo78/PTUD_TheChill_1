@@ -9,6 +9,21 @@ class QLModel {
     return rows;
   }
 
+  // Năm học đang diễn ra (ưu tiên trạng thái đang học, fallback năm mới nhất)
+  static async getCurrentNamHoc() {
+    const [active] = await db.execute(
+      `SELECT NamHoc 
+       FROM HocKy 
+       WHERE TrangThai = 'Đang học'
+       ORDER BY NamHoc DESC
+       LIMIT 1`
+    );
+    if (active.length > 0) return active[0].NamHoc;
+
+    const list = await this.getNamHocList();
+    return list[0]?.NamHoc || null;
+  }
+
   // GIÁO VIÊN CHỦ NHIỆM
   static async getTeacherList(namHoc) {
     let sql = `
@@ -28,7 +43,7 @@ class QLModel {
 
   // LỚP THEO GIÁO VIÊN
   static async getClasses(maGiaoVien, namHoc, maLop) {
-    if (!namHoc) return [];
+    if (!namHoc || !maGiaoVien) return [];
     let sql = `
       SELECT l.MaLop, l.TenLop
       FROM Lop l
@@ -36,10 +51,8 @@ class QLModel {
       WHERE gvc.NamHoc = ?
     `;
     const params = [namHoc];
-    if (maGiaoVien) {
-      sql += ' AND gvc.MaGVCN = ?';
-      params.push(maGiaoVien);
-    }
+    sql += ' AND gvc.MaGVCN = ?';
+    params.push(maGiaoVien);
     sql += ' ORDER BY l.TenLop';
     const [rows] = await db.execute(sql, params);
     if (maLop) return rows.filter(l => l.MaLop === maLop);
@@ -48,12 +61,13 @@ class QLModel {
 
   // HỌC SINH
   static async getStudentList(maLop, namHoc) {
-    if (!namHoc) return [];
+    if (!maLop || !namHoc) return [];
     let sql = `
       SELECT hs.MaHocSinh, hs.TenHocSinh, hs.Birthday, hs.GioiTinh, hs.TrangThai,
              l.MaLop, l.TenLop,
-             COALESCE(hb.HanhKiem, 'Tốt') AS HanhKiem,
-             COALESCE(hb.RenLuyen, 'Tốt') AS RenLuyen
+             hb.HanhKiem,
+             hb.RenLuyen,
+             hb.NhanXet
       FROM HocSinh hs
       JOIN Lop l ON hs.MaLop = l.MaLop
       LEFT JOIN HocBa hb 
@@ -64,13 +78,9 @@ class QLModel {
           FROM HocBa
           WHERE MaHocSinh = hs.MaHocSinh AND NamHoc = ?
         )
-      WHERE hs.KhoaHoc = ?
+      WHERE l.MaLop = ?
     `;
-    const params = [namHoc, namHoc, namHoc];
-    if (maLop) {
-      sql += ' AND l.MaLop = ?';
-      params.push(maLop);
-    }
+    const params = [namHoc, namHoc, maLop];
     sql += ' ORDER BY hs.TenHocSinh ASC';
     const [rows] = await db.execute(sql, params);
     return rows;
@@ -101,24 +111,36 @@ class QLModel {
 
   // HẠNH KIỂM / RÈN LUYỆN
   static async getHocBa(maHS, namHoc, hocKy) {
-    const [rows] = await db.execute(
-      `SELECT HanhKiem, RenLuyen, NhanXet 
-       FROM HocBa 
-       WHERE MaHocSinh = ? AND NamHoc = ? AND HocKy = ?`,
-      [maHS, namHoc, hocKy]
-    );
+    if (!maHS || !namHoc) return null;
+    let sql = `
+      SELECT HanhKiem, RenLuyen, NhanXet, HocKy
+      FROM HocBa 
+      WHERE MaHocSinh = ? AND NamHoc = ?
+    `;
+    const params = [maHS, namHoc];
+    if (hocKy) {
+      sql += ' AND HocKy = ?';
+      params.push(hocKy);
+    } else {
+      sql += ' ORDER BY HocKy DESC LIMIT 1';
+    }
+    const [rows] = await db.execute(sql, params);
     return rows[0] || null;
   }
 
   static async updateHocBa(maHS, namHoc, hocKy, data) {
-    const fields = [];
-    const params = [];
-    if (data.HanhKiem) fields.push('HanhKiem = ?'), params.push(data.HanhKiem);
-    if (data.RenLuyen) fields.push('RenLuyen = ?'), params.push(data.RenLuyen);
-    if (fields.length === 0) return;
-    const sql = `UPDATE HocBa SET ${fields.join(', ')} WHERE MaHocSinh = ? AND NamHoc = ? AND HocKy = ?`;
-    params.push(maHS, namHoc, hocKy);
-    await db.execute(sql, params);
+    const hanhKiem = data.HanhKiem || null;
+    const renLuyen = data.RenLuyen || null;
+    const nhanXet = data.NhanXet || null;
+    await db.execute(
+      `INSERT INTO HocBa (MaHocSinh, NamHoc, HocKy, HanhKiem, RenLuyen, NhanXet)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         HanhKiem = VALUES(HanhKiem),
+         RenLuyen = VALUES(RenLuyen),
+         NhanXet = VALUES(NhanXet)`,
+      [maHS, namHoc, hocKy, hanhKiem, renLuyen, nhanXet]
+    );
   }
 
   // TỔNG HỢP HẠNH KIỂM / RÈN LUYỆN THEO NĂM (HK1 + HK2)

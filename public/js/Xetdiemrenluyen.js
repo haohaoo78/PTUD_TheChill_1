@@ -1,151 +1,26 @@
-// ================= MODAL HỌC SINH =================
-const modalHS = document.getElementById('modal-hs');
-const modalHSFields = document.getElementById('modal-hs-fields');
-const modalHSForm = document.getElementById('modal-hs-form');
-const modalHSClose = document.getElementById('modal-hs-close');
-
-async function openModalHS(data = {}) {
-  modalHS.style.display = 'flex';
-  document.getElementById('modal-hs-title').innerText = data.MaHocSinh ? 'Sửa Học sinh' : 'Thêm Học sinh';
-  document.getElementById('modal-hs-id').value = data.MaHocSinh || '';
-
-  let classOptions = '';
-  if (data.NamHoc) {
-    const res = await fetch(`/api/xetdiemrenluyen/lop?namHoc=${data.NamHoc}${data.MaGiaoVien ? `&maGiaoVien=${data.MaGiaoVien}` : ''}`);
-    const classData = await res.json();
-    if (classData.success) {
-      classOptions = classData.data.map(l => `<option value="${l.MaLop}" ${data.MaLop===l.MaLop?'selected':''}>${l.TenLop}</option>`).join('');
-    }
-  }
-
-  modalHSFields.innerHTML = `
-    <label>Họ tên:</label>
-    <input type="text" id="modal-hs-ten" value="${data.TenHocSinh || ''}">
-    <label>Ngày sinh:</label>
-    <input type="date" id="modal-hs-ngaysinh" value="${data.Birthday?.split('T')[0] || ''}">
-    <label>Giới tính:</label>
-    <select id="modal-hs-gioitinh">
-      <option ${data.GioiTinh==='Nam'?'selected':''}>Nam</option>
-      <option ${data.GioiTinh==='Nữ'?'selected':''}>Nữ</option>
-    </select>
-    <label>Lớp:</label>
-    <select id="modal-hs-lop">
-      <option value="">-- Chọn lớp --</option>
-      ${classOptions}
-    </select>
-    <label>Trạng thái:</label>
-    <select id="modal-hs-trangthai">
-      <option ${data.TrangThai==='Đang học'?'selected':''}>Đang học</option>
-      <option ${data.TrangThai==='Nghỉ học'?'selected':''}>Nghỉ học</option>
-    </select>
-  `;
-}
-
-modalHSClose.onclick = () => modalHS.style.display='none';
-
-modalHSForm.onsubmit = async e => {
-  e.preventDefault();
-  const id = document.getElementById('modal-hs-id').value;
-  const payload = {
-    TenHocSinh: document.getElementById('modal-hs-ten').value || null,
-    Birthday: document.getElementById('modal-hs-ngaysinh').value || null,
-    GioiTinh: document.getElementById('modal-hs-gioitinh').value || null,
-    MaLop: document.getElementById('modal-hs-lop').value || null,
-    TrangThai: document.getElementById('modal-hs-trangthai').value || 'Đang học'
-  };
-
-  // filters hiện tại
-  const filters = {
-    namHoc: document.getElementById('filter-namhoc-hs').value || '',
-    maGiaoVien: document.getElementById('filter-giaovien-hs').value || '',
-    maLop: document.getElementById('filter-lop-hs').value || ''
-  };
-
-  try {
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/api/xetdiemrenluyen/hocsinh/${id}` : '/api/xetdiemrenluyen/hocsinh';
-    const res = await fetch(url, {
-      method,
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if(result.success){ modalHS.style.display='none'; loadHS(filters); }
-    else alert(result.message||'Thao tác thất bại');
-  } catch(err){ console.error(err); alert('Lỗi server'); }
-};
-
-// ================= LOAD HỌC SINH =================
-async function loadHS(filters={}) {
-  const query = new URLSearchParams(filters).toString();
-  const res = await fetch(`/api/xetdiemrenluyen/hocsinh?${query}`);
-  const data = await res.json();
-  if(!data.success) return;
-
-  // Lấy học sinh
-  const hsList = data.data;
-
-  // Lấy Hạnh kiểm / Rèn luyện theo học kỳ gần nhất
-  const namHoc = filters.namHoc || '';
-  const promises = hsList.map(async hs => {
-    const resHB = await fetch(`/api/xetdiemrenluyen/hocba?maHS=${hs.MaHocSinh}&namHoc=${namHoc}`);
-    const dataHB = await resHB.json();
-    if(dataHB.success && dataHB.data){
-      hs.HanhKiem = dataHB.data.HanhKiem || 'Tốt';
-      hs.RenLuyen = dataHB.data.RenLuyen || 'Tốt';
-    } else {
-      hs.HanhKiem = 'Tốt';
-      hs.RenLuyen = 'Tốt';
-    }
-    return hs;
-  });
-
-  const hsFull = await Promise.all(promises);
-
-  document.querySelector('#hs-table tbody').innerHTML = hsFull.map(hs => `
-    <tr>
-      <td>${hs.MaHocSinh}</td>
-      <td>${hs.TenHocSinh}</td>
-      <td>${hs.Birthday?.split('T')[0]||''}</td>
-      <td>${hs.TenLop||''}</td>
-      <td>${hs.GioiTinh}</td>
-      <td>${hs.TrangThai}</td>
-      <td>${hs.HanhKiem}</td>
-      <td>${hs.RenLuyen}</td>
-      <td>
-        <button class="table-btn hk" onclick='openModalHKRL("${hs.MaHocSinh}")'>Hạnh kiểm / Rèn luyện</button>
-      </td>
-    </tr>
-  `).join('');
-}
+// Cache danh sách học sinh đã tải để mở modal nhanh
+const studentCache = new Map();
 
 // ================= MODAL HẠNH KIỂM / RÈN LUYỆN =================
 const modalHKRL = document.getElementById('modal-hk-rl');
 const modalHKRLClose = document.getElementById('modal-hk-rl-close');
 const modalHKRLForm = document.getElementById('modal-hk-rl-form');
 
-modalHKRLClose.onclick = () => modalHKRL.style.display='none';
+modalHKRLClose.onclick = () => (modalHKRL.style.display = 'none');
 
-async function openModalHKRL(maHS){
-  modalHKRL.style.display='flex';
+async function openModalHKRL(maHS) {
+  const hs = studentCache.get(maHS);
+  if (!hs) return;
+  modalHKRL.style.display = 'flex';
   document.getElementById('modal-hk-rl-hs').value = maHS;
+  document.getElementById('modal-hk-rl-mahs').value = maHS;
+  document.getElementById('modal-hk-rl-tenhs').value = hs.TenHocSinh || '';
 
-  const namHoc = document.getElementById('filter-namhoc-hs').value || '';
-
-  // Lấy hạnh kiểm/rèn luyện cả năm
-  const res = await fetch(`/api/xetdiemrenluyen/hocba_nam?maHS=${maHS}&namHoc=${namHoc}`);
-  const data = await res.json();
-  if(data.success && data.data){
-    document.getElementById('modal-hk-rl-hanhkiem').value = data.data.HanhKiem || '';
-    document.getElementById('modal-hk-rl-renluyen').value = data.data.RenLuyen || '';
-    document.getElementById('modal-hk-rl-ghichu').value = data.data.NhanXet || '';
-  } else {
-    document.getElementById('modal-hk-rl-hanhkiem').value = '';
-    document.getElementById('modal-hk-rl-renluyen').value = '';
-    document.getElementById('modal-hk-rl-ghichu').value = '';
-  }
+  // Gắn dữ liệu đã lưu (nếu có), mặc định để trống
+  document.getElementById('modal-hk-rl-hanhkiem').value = hs.HanhKiem || '';
+  document.getElementById('modal-hk-rl-renluyen').value = hs.RenLuyen || '';
+  document.getElementById('modal-hk-rl-ghichu').value = hs.NhanXet || '';
 }
-
 
 modalHKRLForm.onsubmit = async e => {
   e.preventDefault();
@@ -158,67 +33,106 @@ modalHKRLForm.onsubmit = async e => {
     NhanXet: document.getElementById('modal-hk-rl-ghichu').value || ''
   };
 
-  const filters = {
-    namHoc: document.getElementById('filter-namhoc-hs').value || '',
-    maGiaoVien: document.getElementById('filter-giaovien-hs').value || '',
-    maLop: document.getElementById('filter-lop-hs').value || ''
-  };
+  if (!payload.maHS || !payload.namHoc || !payload.hocKy) {
+    alert('Thiếu thông tin bắt buộc (mã HS, năm học, học kỳ)');
+    return;
+  }
 
   try {
     const res = await fetch('/api/xetdiemrenluyen/hocba', {
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     const result = await res.json();
-    if(result.success){ modalHKRL.style.display='none'; loadHS(filters); }
-    else alert(result.message||'Lưu thất bại');
-  } catch(err){ console.error(err); alert('Lỗi server'); }
+    if (result.success) {
+      // Cập nhật cache và UI
+      const hs = studentCache.get(payload.maHS) || {};
+      hs.HanhKiem = payload.HanhKiem || '';
+      hs.RenLuyen = payload.RenLuyen || '';
+      hs.NhanXet = payload.NhanXet || '';
+      studentCache.set(payload.maHS, hs);
+      modalHKRL.style.display = 'none';
+      loadHS({ namHoc: payload.namHoc });
+    } else {
+      alert(result.message || 'Lưu thất bại');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Lỗi server');
+  }
 };
 
-// ================= BỘ LỌC =================
-async function loadNamHoc(){
+// ================= LOAD HỌC SINH =================
+async function loadHS(filters = {}) {
+  const namHocSelect = document.getElementById('filter-namhoc-hs');
+  const effectiveNamHoc = filters.namHoc || namHocSelect.value || '';
+  const query = new URLSearchParams({ namHoc: effectiveNamHoc }).toString();
+  const res = await fetch(`/api/xetdiemrenluyen/hocsinh?${query}`);
+  const data = await res.json();
+  if (!data.success) {
+    alert(data.message || 'Không lấy được danh sách học sinh');
+    return;
+  }
+
+  // Cập nhật năm học và lớp đang dùng (server quyết định)
+  if (data.namHoc) namHocSelect.value = data.namHoc;
+  if (data.maLop) {
+    const lopSelect = document.getElementById('filter-lop-hs');
+    if (lopSelect) lopSelect.value = data.maLop;
+  }
+
+  studentCache.clear();
+  data.data.forEach(hs => studentCache.set(hs.MaHocSinh, hs));
+
+  document.querySelector('#hs-table tbody').innerHTML = data.data
+    .map(
+      hs => `
+    <tr>
+      <td>${hs.MaHocSinh}</td>
+      <td>${hs.TenHocSinh}</td>
+      <td>${hs.Birthday ? hs.Birthday.split('T')[0] : ''}</td>
+      <td>${hs.TenLop || ''}</td>
+      <td>${hs.GioiTinh || ''}</td>
+      <td>${hs.TrangThai || ''}</td>
+      <td>${hs.HanhKiem || ''}</td>
+      <td>${hs.RenLuyen || ''}</td>
+      <td>
+        <button class="table-btn hk" onclick='openModalHKRL("${hs.MaHocSinh}")'>Đánh giá</button>
+      </td>
+    </tr>
+  `
+    )
+    .join('');
+}
+
+// ================= NĂM HỌC =================
+async function loadNamHoc() {
   const res = await fetch('/api/xetdiemrenluyen/namhoc');
   const data = await res.json();
-  if(!data.success) return;
-  document.getElementById('filter-namhoc-hs').innerHTML =
-    '<option value="">-- Chọn năm học --</option>' + data.data.map(n=>`<option value="${n.NamHoc}">${n.NamHoc}</option>`).join('');
-}
+  if (!data.success) return;
+  const select = document.getElementById('filter-namhoc-hs');
+  select.innerHTML =
+    '<option value="">-- Chọn năm học --</option>' +
+    data.data.map(n => `<option value="${n.NamHoc}">${n.NamHoc}</option>`).join('');
 
-async function loadTeachers(){
-  const namHoc = document.getElementById('filter-namhoc-hs').value||'';
-  const res = await fetch(`/api/xetdiemrenluyen/giaovien?namHoc=${namHoc}`);
-  const data = await res.json();
-  if(!data.success) return;
-  document.getElementById('filter-giaovien-hs').innerHTML =
-    '<option value="">-- Chọn giáo viên --</option>' + data.data.map(t=>`<option value="${t.MaGiaoVien}">${t.TenGiaoVien}</option>`).join('');
-}
-
-async function loadClasses(){
-  const maGiaoVien = document.getElementById('filter-giaovien-hs').value||'';
-  const namHoc = document.getElementById('filter-namhoc-hs').value||'';
-  if(!namHoc) return;
-  const res = await fetch(`/api/xetdiemrenluyen/lop?namHoc=${namHoc}${maGiaoVien?`&maGiaoVien=${maGiaoVien}`:''}`);
-  const data = await res.json();
-  if(!data.success) return;
-  document.getElementById('filter-lop-hs').innerHTML =
-    '<option value="">-- Chọn lớp --</option>' + data.data.map(l=>`<option value="${l.MaLop}">${l.TenLop}</option>`).join('');
+  // Auto-select năm học mới nhất và tải danh sách học sinh
+  if (data.data.length > 0) {
+    select.value = data.data[0].NamHoc;
+    await loadHS({ namHoc: select.value });
+  }
 }
 
 // ================= EVENT LISTENERS =================
-document.getElementById('filter-namhoc-hs').addEventListener('change', ()=>{
-  loadTeachers();
-  document.getElementById('filter-lop-hs').innerHTML='<option value="">-- Chọn lớp --</option>';
+document.getElementById('filter-namhoc-hs').addEventListener('change', () => {
+  const namHoc = document.getElementById('filter-namhoc-hs').value || '';
+  loadHS({ namHoc });
 });
-document.getElementById('filter-giaovien-hs').addEventListener('change', loadClasses);
-document.getElementById('btn-xem-hs').addEventListener('click', ()=>{
-  const namHoc = document.getElementById('filter-namhoc-hs').value||'';
-  const maGiaoVien = document.getElementById('filter-giaovien-hs').value||'';
-  const maLop = document.getElementById('filter-lop-hs').value||'';
-  loadHS({namHoc, maGiaoVien, maLop});
+
+document.getElementById('btn-xem-hs').addEventListener('click', () => {
+  const namHoc = document.getElementById('filter-namhoc-hs').value || '';
+  loadHS({ namHoc });
 });
 
 // ================= KHỞI TẠO =================
 loadNamHoc();
-loadTeachers();
-loadClasses();

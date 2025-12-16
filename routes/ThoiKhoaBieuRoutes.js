@@ -1,3 +1,4 @@
+// Router: ThoiKhoaBieuRouter.js
 const express = require('express');
 const ThoiKhoaBieuController = require('../controllers/ThoiKhoaBieuController');
 const router = express.Router();

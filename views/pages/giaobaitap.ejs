@@ -1,0 +1,123 @@
+<link rel="stylesheet" href="/css/GiaoBaiTap.css">
+
+<div class="gbt-container">
+  <h2>Giao bài tập</h2>
+
+  <!-- Danh sách lớp -->
+  <section class="class-section">
+    <div class="section-header">
+      <h3>Danh sách lớp</h3>
+    </div>
+    <div class="class-grid" id="class-grid">
+      <% if ((classList || []).length === 0) { %>
+        <div class="empty-note">Chưa có lớp nào được gán.</div>
+      <% } else { %>
+        <% classList.forEach(c => { %>
+          <div class="class-card" data-malop="<%= c.MaLop %>">
+            <div class="class-name"><%= c.TenLop || c.MaLop %></div>
+            <div class="class-meta">Mã lớp: <%= c.MaLop %></div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </section>
+  <hr style="margin-bottom: 10px;">
+  <!-- Danh sách bài tập + form (ẩn tới khi chọn lớp) -->
+  <section class="assign-section <%= selectedClass ? '' : 'hidden' %>">
+    <div class="section-header">
+      <h3>Bài tập</h3>
+      <div class="selected-class" id="selected-class-label">
+        <% if (selectedClass) { %>
+          Lớp: <%= selectedClass %>
+        <% } else { %>
+          Chọn một lớp để xem bài tập
+        <% } %>
+      </div>
+    </div>
+
+    <div class="assign-layout">
+      <div class="assign-list-wrapper">
+        <div class="assign-list" id="assign-list">
+          <% if ((assignments || []).length === 0) { %>
+            <div class="empty-note">Chưa có bài tập.</div>
+          <% } else { %>
+            <% assignments.forEach(bt => { %>
+              <div class="assign-card">
+                <div class="assign-title">Mã bài tập: <%= bt.MaBaiTap %></div>
+                <div class="assign-body"><%= bt.NoiDung || '—' %></div>
+                <div class="assign-meta">
+                  <span>Ngày giao: <%= bt.NgayGiao || '—' %></span>
+                  <span>Hạn: <%= bt.NgayHetHan || '—' %></span>
+                  <span>Mã GV: <%= bt.MaGiaoVien || '—' %></span>
+                  <span>Mã lớp: <%= bt.MaLop || '—' %></span>
+                </div>
+                <div class="assign-actions">
+                  <button class="btn-secondary assign-add" data-action="add" data-malop="<%= bt.MaLop %>">Thêm</button>
+                  <button class="btn-primary assign-edit" data-action="edit" data-id="<%= bt.MaBaiTap %>">Sửa</button>
+                </div>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="form-section assign-form-wrapper">
+        <div class="section-header">
+          <h4>Thêm bài tập mới</h4>
+        </div>
+        <form id="assign-form">
+          <input type="hidden" id="assign-id">
+          <div class="form-group">
+            <label for="assign-content">Nội dung bài tập</label>
+            <textarea id="assign-content" rows="4" placeholder="Nhập nội dung..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="assign-duedate">Hạn nộp</label>
+              <input type="date" id="assign-duedate">
+            </div>
+            <div class="form-group">
+              <label for="assign-class">Mã lớp</label>
+              <input type="text" id="assign-class" placeholder="Nhập mã lớp">
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">Thêm bài tập</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Modal add/edit -->
+<div id="assign-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="assign-modal-close" class="modal-close">&times;</span>
+    <h3 id="assign-modal-title">Bài tập</h3>
+    <form id="assign-modal-form">
+      <input type="hidden" id="modal-assign-id">
+      <div class="form-group">
+        <label for="modal-assign-content">Nội dung</label>
+        <textarea id="modal-assign-content" rows="4" placeholder="Nhập nội dung..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="modal-assign-duedate">Hạn nộp</label>
+        <input type="date" id="modal-assign-duedate">
+      </div>
+      <div class="form-group">
+        <label for="modal-assign-class">Mã lớp</label>
+        <input type="text" id="modal-assign-class" placeholder="Nhập mã lớp">
+      </div>
+      <button type="submit" class="btn-primary">Lưu</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  window.gbtData = {
+    classList: <%- JSON.stringify(classList || []) %>,
+    assignments: <%- JSON.stringify(assignments || []) %>,
+    selectedClass: "<%= selectedClass || '' %>"
+  };
+</script>
+<script src="/js/GiaoBaiTap.js"></script>
