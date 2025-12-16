@@ -26,7 +26,6 @@ const taotaikhoanRoutes = require('./routes/taotaikhoanRoutes');
 const QuanLyTruongRoutes = require('./routes/QuanLyTruongRoutes');
 const quanlymonhocRoutes = require('./routes/quanlymonhocRoutes');
 const PhanBoHocSinhVaoTruongRoutes = require('./routes/PhanBoHocSinhVaoTruongRoutes');
-
 const XemDiemRoutes = require('./routes/XemDiemRoutes');
 const XinPhepRoutes = require('./routes/XinPhepRoutes');
 const HocPhiRoutes = require('./routes/HocPhiRoutes');
