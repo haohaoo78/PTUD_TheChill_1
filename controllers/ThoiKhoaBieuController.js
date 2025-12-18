@@ -4,8 +4,8 @@ const ThoiKhoaBieu = require('../models/ThoiKhoaBieuModel');
 class ThoiKhoaBieuController {
   async renderPage(req, res) {
     try {
-      if (!req.session.user || req.session.user.loaiTaiKhoan !== 'GiaoVu' || !req.session.user.maTruong) {
-        return res.status(403).send('Bạn không có quyền truy cập chức năng này (chỉ dành cho Giáo vụ).');
+      if (!req.session.user || req.session.user.loaiTaiKhoan !== 'Giáo vụ' || !req.session.user.maTruong) {
+        return res.status(403).send('Bạn không có quyền truy cập chức năng này (chỉ dành cho GiaoVu).');
       }
 
       const MaTruong = req.session.user.maTruong;

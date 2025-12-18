@@ -2,15 +2,17 @@ const XinPhepModel = require('../models/XinPhepModel');
 const ThongTinHSModel = require('../models/ThongTinHSModel');
 
 const XinPhepController = {
+
   renderPage: async (req, res) => {
     const user = req.session.user;
     if (!user) return res.status(401).send('Unauthorized');
-    
+
     let student = null;
     try {
-        student = await ThongTinHSModel.getInfo(user.userId);
+      // ✅ entityId = SDT phụ huynh
+      student = await ThongTinHSModel.getInfo(user.entityId);
     } catch (e) {
-        console.error("Error fetching student info:", e);
+      console.error("Error fetching student info:", e);
     }
 
     res.render('pages/xinphep', { user, student });
@@ -18,16 +20,23 @@ const XinPhepController = {
 
   createRequest: async (req, res) => {
     try {
-      const { ngayNghi, lyDo, tenCon } = req.body;
+      const { ngayNghi, lyDo } = req.body;
       const user = req.session.user;
-      
-      if (!user) return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
-      // tenCon is read-only in UI now, but validation is fine.
-      if (!lyDo) return res.status(400).json({ success: false, message: 'Vui lòng điền lý do xin phép' });
-      if (!ngayNghi) return res.status(400).json({ success: false, message: 'Vui lòng chọn ngày nghỉ' });
 
-      await XinPhepModel.createRequest(user.userId, ngayNghi, lyDo);
+      if (!user)
+        return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
+
+      if (!lyDo)
+        return res.status(400).json({ success: false, message: 'Vui lòng điền lý do' });
+
+      if (!ngayNghi)
+        return res.status(400).json({ success: false, message: 'Vui lòng chọn ngày nghỉ' });
+
+      // ✅ entityId
+      await XinPhepModel.createRequest(user.entityId, ngayNghi, lyDo);
+
       res.json({ success: true, message: 'Gửi đơn xin phép thành công!' });
+
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: 'Lỗi khi gửi đơn' });
@@ -38,8 +47,10 @@ const XinPhepController = {
     try {
       const user = req.session.user;
       if (!user) return res.status(401).json({ success: false });
-      
-      const history = await XinPhepModel.getHistory(user.userId);
+
+      // ✅ entityId
+      const history = await XinPhepModel.getHistory(user.entityId);
+
       res.json({ success: true, history });
     } catch (err) {
       console.error(err);
@@ -49,17 +60,21 @@ const XinPhepController = {
 
   renderDuyetPage: (req, res) => {
     const user = req.session.user;
-    if (!user || user.role !== 'Giáo viên') return res.status(403).send('Forbidden');
+    if (!user || user.loaiTaiKhoan !== 'GiaoVien')
+      return res.status(403).send('Forbidden');
+
     res.render('pages/duyetxinphep', { user });
   },
 
   getTeacherRequests: async (req, res) => {
     try {
       const user = req.session.user;
-      if (!user || user.role !== 'Giáo viên') return res.status(403).json({ success: false, message: 'Không có quyền' });
+      if (!user || user.loaiTaiKhoan !== 'GiaoVien')
+        return res.status(403).json({ success: false, message: 'Không có quyền' });
 
-      const requests = await XinPhepModel.getRequestsByTeacher(user.userId);
+      const requests = await XinPhepModel.getRequestsByTeacher(user.entityId);
       res.json({ success: true, requests });
+
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -70,10 +85,13 @@ const XinPhepController = {
     try {
       const { maPhieu, trangThai } = req.body;
       const user = req.session.user;
-      if (!user || user.role !== 'Giáo viên') return res.status(403).json({ success: false, message: 'Không có quyền' });
+
+      if (!user || user.loaiTaiKhoan !== 'GiaoVien')
+        return res.status(403).json({ success: false, message: 'Không có quyền' });
 
       await XinPhepModel.updateStatus(maPhieu, trangThai);
       res.json({ success: true, message: 'Cập nhật thành công' });
+
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: 'Lỗi cập nhật' });

@@ -31,6 +31,8 @@ const XinPhepRoutes = require('./routes/XinPhepRoutes');
 const HocPhiRoutes = require('./routes/HocPhiRoutes');
 const NhapHocRoutes = require('./routes/NhapHocRoutes');
 
+const GiaoBaiTapRoutes = require('./routes/GiaoBaiTapRoutes');
+
 const app = express();
 
 // VIEW ENGINE
@@ -72,6 +74,8 @@ app.use('/api/xinphep', XinPhepRoutes)
 app.use('/api/hocphi', HocPhiRoutes)
 app.use('/api/nhaphoc', NhapHocRoutes)
 
+app.use('/api/giaobaitap', GiaoBaiTapRoutes)
+app.use('/api/thongtinhs', ThongTinHSRoutes)
 
 
 // TRANG CHÍNH

@@ -2,19 +2,20 @@
 const TaiKhoan = require('../models/DangNhapModel');
 const db = require('../config/database');
 
-// Map chuẩn hóa: CÓ DẤU → KHÔNG DẤU (dùng cho phân quyền)
-const normalizeMap = {
-  'Hiệu trưởng': 'HieuTruong',
-  'Giáo vụ': 'GiaoVu',
-  'Giáo viên': 'GiaoVien',
-  'Học sinh': 'HocSinh',
-  'Phụ huynh': 'PhuHuynh',
-  'Quản trị hệ thống': 'QuanTriVien',
-  'Cán bộ SGD': 'CanBoSGD',
-  'Thí sinh': 'ThiSinh'
+// Map: KHÔNG DẤU → CÓ DẤU (GIỐNG FILE CŨ)
+const roleMap = {
+  HieuTruong: 'Hiệu trưởng',
+  GiaoVu: 'Giáo vụ',
+  GiaoVien: 'Giáo viên',
+  HocSinh: 'Học sinh',
+  PhuHuynh: 'Phụ huynh',
+  QuanTriVien: 'Quản trị hệ thống',
+  CanBoSGD: 'Cán bộ SGD',
+  ThiSinh: 'Thí sinh'
 };
 
 class DangNhapController {
+
   renderLogin(req, res) {
     res.render('pages/dangnhap', {
       title: 'Đăng nhập hệ thống',
@@ -34,7 +35,6 @@ class DangNhapController {
       }
 
       const user = await TaiKhoan.login(username, password);
-
       if (!user) {
         return res.json({
           success: false,
@@ -42,47 +42,52 @@ class DangNhapController {
         });
       }
 
-      // ===== 1. Lấy loại tài khoản từ DB (CÓ DẤU)
-      const loaiTaiKhoanDB = user.LoaiTaiKhoan.trim();
+      // ===== 1. Loại tài khoản (GIỮ NGUYÊN)
+      const loaiTaiKhoan = user.LoaiTaiKhoan.trim(); // vd: "Phụ huynh"
+      const role = roleMap[loaiTaiKhoan] || loaiTaiKhoan;
+      const entityId = user.TenTaiKhoan.trim(); // SĐT phụ huynh
 
-      // ===== 2. Chuẩn hóa loại tài khoản (KHÔNG DẤU)
-      const loaiTaiKhoan =
-        normalizeMap[loaiTaiKhoanDB] || loaiTaiKhoanDB;
+      // ===== 2. Lấy mã trường / mã học sinh
+      let maTruong = null;
+      let maHocSinh = null;
 
-      const entityId = user.TenTaiKhoan.trim();
+      if (loaiTaiKhoan === 'Giáo vụ') {
+        const [rows] = await db.execute(
+          'SELECT MaTruong FROM GiaoVu WHERE MaGiaoVu = ?',
+          [entityId]
+        );
+        maTruong = rows[0]?.MaTruong || null;
+      }
 
-      // ===== 3. Lấy mã trường (chỉ với Giáo vụ)
-// ===== 3. Lấy mã trường (Giáo vụ + Hiệu trưởng)
-let maTruong = null;
+      if (loaiTaiKhoan === 'Hiệu trưởng') {
+        const [rows] = await db.execute(
+          'SELECT MaTruong FROM HieuTruong WHERE MaHieuTruong = ?',
+          [entityId]
+        );
+        maTruong = rows[0]?.MaTruong || null;
+      }
 
-if (loaiTaiKhoan === 'GiaoVu') {
-  const [rows] = await db.execute(
-    'SELECT MaTruong FROM GiaoVu WHERE MaGiaoVu = ?',
-    [entityId]
-  );
-  maTruong = rows[0]?.MaTruong || null;
-}
+      // ✅ CHỈ THÊM ĐOẠN NÀY: PHỤ HUYNH → LẤY MÃ HỌC SINH
+      if (loaiTaiKhoan === 'Phụ huynh') {
+        const [rows] = await db.execute(
+          'SELECT MaHocSinh FROM PhuHuynh WHERE SDT = ?',
+          [entityId]
+        );
+        maHocSinh = rows[0]?.MaHocSinh || null;
+      }
 
-if (loaiTaiKhoan === 'HieuTruong') {
-  const [rows] = await db.execute(
-    'SELECT MaTruong FROM HieuTruong WHERE MaHieuTruong = ?',
-    [entityId]
-  );
-  maTruong = rows[0]?.MaTruong || null;
-}
-
-
-      // ===== 4. Lưu session (CHUẨN)
+      // ===== 3. Session user (GIỮ NGUYÊN + THÊM maHocSinh)
       req.session.user = {
         username: entityId,
-        role: loaiTaiKhoanDB,     // HIỂN THỊ (có dấu)
-        loaiTaiKhoan: loaiTaiKhoan, // PHÂN QUYỀN (không dấu)
-        entityId: entityId,
+        role,                 // CÓ DẤU
+        loaiTaiKhoan,         // CÓ DẤU (GIỮ NGUYÊN)
+        entityId,             // SĐT phụ huynh
+        maHocSinh,            // ✅ MÃ CON
         isAuthenticated: true,
-        maTruong: maTruong
+        maTruong
       };
 
-      // ===== 5. Lưu session phụ theo từng role
+      // ===== 4. Session phụ (GIỮ NGUYÊN)
       switch (loaiTaiKhoan) {
         case 'GiaoVu':
           req.session.MaGiaoVu = entityId;
@@ -96,7 +101,7 @@ if (loaiTaiKhoan === 'HieuTruong') {
         case 'HocSinh':
           req.session.MaHocSinh = entityId;
           break;
-        case 'PhuHuynh':
+        case 'Phụ huynh':
           req.session.SDTPhuHuynh = entityId;
           break;
       }
