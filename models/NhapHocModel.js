@@ -106,6 +106,45 @@ const NhapHocModel = {
       conn.release();
     }
   }
+  // === Hàm riêng: Thêm học sinh trúng tuyển vào bảng HocSinh ===
+  insertAllocatedStudents: async (results, nam_thi) => {
+    const khoaHoc = await PhanBoHocSinhVaoTruongModel.getKhoaHoc(nam_thi);
+
+    for (const r of results) {
+      const [thiSinh] = await db.execute(`
+        SELECT HoTen, NgaySinh, GioiTinh 
+        FROM ThiSinhDuThi 
+        WHERE MaThiSinh = ?
+      `, [r.MaThiSinh]);
+
+      if (thiSinh.length === 0) continue; // Bỏ qua nếu không tìm thấy thí sinh
+
+      const insertHSQuery = `
+        INSERT INTO HocSinh (MaHocSinh, TenHocSinh, Birthday, KhoaHoc, GioiTinh, TrangThai, MaLop, MaTruong, ToHop)
+        VALUES (?, ?, ?, ?, ?, 'Đang học', NULL, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          TenHocSinh = VALUES(TenHocSinh),
+          Birthday = VALUES(Birthday),
+          KhoaHoc = VALUES(KhoaHoc),
+          GioiTinh = VALUES(GioiTinh),
+          TrangThai = 'Đang học',
+          MaLop = NULL,
+          MaTruong = VALUES(MaTruong),
+          ToHop = VALUES(ToHop)
+      `;
+
+      await db.execute(insertHSQuery, [
+        r.MaThiSinh,
+        thiSinh[0].HoTen,
+        thiSinh[0].NgaySinh,
+        khoaHoc,
+        thiSinh[0].GioiTinh || 'Nam',
+        r.MaTruong,
+        r.ToHopMon
+      ]);
+    }
+  },
+
 };
 
 module.exports = NhapHocModel;
