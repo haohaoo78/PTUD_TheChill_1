@@ -83,6 +83,24 @@ class DangNhapController {
         );
         maHocSinh = rows[0]?.MaHocSinh || entityId;
       }
+      // ===== 2.5. Kiểm tra vai trò GIÁO VIÊN
+      let isGVBoMon = false;
+      let isGVChuNhiem = false;
+
+      if (loaiTaiKhoan === 'Giáo viên') {
+        const [bm] = await db.execute(
+          'SELECT 1 FROM GVBoMon WHERE MaGVBM = ? LIMIT 1',
+          [entityId]
+        );
+
+        const [cn] = await db.execute(
+          'SELECT 1 FROM GVChuNhiem WHERE MaGVCN = ? LIMIT 1',
+          [entityId]
+        );
+
+        isGVBoMon = bm.length > 0;
+        isGVChuNhiem = cn.length > 0;
+      }
 
 
       // ===== 3. Session user (GIỮ NGUYÊN + THÊM maHocSinh)
@@ -93,7 +111,10 @@ class DangNhapController {
         entityId,             // SĐT phụ huynh
         maHocSinh,            // ✅ MÃ CON
         isAuthenticated: true,
-        maTruong
+        maTruong,
+         // ✅ THÊM 2 CỜ PHÂN QUYỀN GV
+        isGVBoMon,
+        isGVChuNhiem
       };
 
       // ===== 4. Session phụ (GIỮ NGUYÊN)

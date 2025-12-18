@@ -15,12 +15,25 @@
         <li><a href="#" data-page="xemthongkeketqua">Xem thống kê</a></li>
 
       <% } else if (user.loaiTaiKhoan === 'Giáo viên') { %>
-        <li><a href="#" data-page="diemdanh">Điểm danh</a></li>
-        <li><a href="#" data-page="giaobaitap">Giao bài tập</a></li>
-        <li><a href="#" data-page="quanlydiem">Quản lý điểm môn học</a></li>
-        <li><a href="#" data-page="nhanxethocsinh">Nhận xét học sinh</a></li>
-        <li><a href="#" data-page="xetdiemrenluyen">Xét hạnh kiểm, học lực</a></li>
-        <li><a href="#" data-page="xemthongkeketqua">Xem thống kê</a></li>
+
+        <% if (user.isGVBoMon && user.isGVChuNhiem) { %>
+          <li><a href="#" data-page="diemdanh">Điểm danh</a></li>
+          <li><a href="#" data-page="giaobaitap">Giao bài tập</a></li>
+          <li><a href="#" data-page="quanlydiem">Quản lý điểm</a></li>
+          <li><a href="#" data-page="nhanxethocsinh">Nhận xét</a></li>
+          <li><a href="#" data-page="xetdiemrenluyen">Xét hạnh kiểm</a></li>
+          <li><a href="#" data-page="xemthongkeketqua">Xem thống kê</a></li>
+
+        <% } else if (user.isGVBoMon && !user.isGVChuNhiem) { %>
+          <li><a href="#" data-page="diemdanh">Điểm danh</a></li>
+          <li><a href="#" data-page="giaobaitap">Giao bài tập</a></li>
+          <li><a href="#" data-page="quanlydiem">Quản lý điểm</a></li>
+          <li><a href="#" data-page="nhanxethocsinh">Nhận xét</a></li>
+
+        <% } else if (!user.isGVBoMon && user.isGVChuNhiem) { %>
+          <li><a href="#" data-page="xemthongkeketqua">Xem thống kê</a></li>
+          <li><a href="#" data-page="xetdiemrenluyen">Xét hạnh kiểm</a></li>
+        <% } %>
 
       <% } else if (user.loaiTaiKhoan === 'Phụ huynh') { %>
         <li><a href="#" data-page="xemdiem">Xem điểm học kỳ, hạnh kiểm</a></li>
