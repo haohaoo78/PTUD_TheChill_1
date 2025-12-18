@@ -30,8 +30,10 @@ const XemDiemRoutes = require('./routes/XemDiemRoutes');
 const XinPhepRoutes = require('./routes/XinPhepRoutes');
 const HocPhiRoutes = require('./routes/HocPhiRoutes');
 const NhapHocRoutes = require('./routes/NhapHocRoutes');
-
 const GiaoBaiTapRoutes = require('./routes/GiaoBaiTapRoutes');
+
+const DiemDanhRoutes = require('./routes/DiemDanhRoutes');
+const NhanXetHocSinhRoutes = require('./routes/NhanXetHocSinhRoutes');
 
 const app = express();
 
@@ -77,6 +79,8 @@ app.use('/api/nhaphoc', NhapHocRoutes)
 app.use('/api/giaobaitap', GiaoBaiTapRoutes)
 app.use('/api/thongtinhs', ThongTinHSRoutes)
 
+app.use('/api/diemdanh', DiemDanhRoutes)
+app.use('/api/nhanxethocsinh', NhanXetHocSinhRoutes)
 
 // TRANG CHÍNH
 app.get('/', (req, res) => {

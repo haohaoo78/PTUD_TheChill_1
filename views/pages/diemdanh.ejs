@@ -1,0 +1,56 @@
+<link rel="stylesheet" href="/css/DiemDanh.css">
+
+<div class="dd-container">
+  <h2>Điểm danh</h2>
+
+  <!-- Danh sách lớp -->
+  <section class="class-section">
+    <div class="section-header">
+      <h3>Danh sách lớp có tiết trong ngày</h3>
+    </div>
+    <div class="class-grid" id="dd-class-grid">
+      <!-- render bằng JS: mỗi thẻ lớp hiển thị tên lớp, tiết học; lưu data-malop, data-tiet -->
+    </div>
+  </section>
+
+  <hr style="margin: 16px 0 10px;">
+
+  <!-- Danh sách học sinh -->
+  <section class="student-section hidden">
+    <div class="section-header">
+      <h3>Danh sách học sinh</h3>
+      <div class="selected-class" id="dd-selected-class-label">Chọn lớp để điểm danh</div>
+    </div>
+    <div class="student-table-wrapper">
+      <table class="student-table" id="dd-student-table">
+        <thead>
+          <tr>
+            <th style="display:none;">Mã HS</th>
+            <th>STT</th>
+            <th>Họ tên</th>
+            <th>Giới tính</th>
+            <th>Ngày sinh</th>
+            <th>Trạng thái</th>
+            <th>Lớp</th>
+            <th>Điểm danh</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="dd-empty-note" class="empty-note">Chưa có học sinh.</div>
+      <div class="dd-actions">
+        <button id="dd-cancel" class="btn-secondary">Hủy</button>
+        <button id="dd-confirm" class="btn-primary">Xác nhận</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  window.ddData = {
+    classList: [],
+    students: [],
+    selectedClass: ''
+  };
+</script>
+<script src="/js/DiemDanh.js"></script>

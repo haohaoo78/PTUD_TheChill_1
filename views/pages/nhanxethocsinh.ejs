@@ -1,0 +1,97 @@
+<% const _classList = typeof classList !== 'undefined' ? classList : []; %>
+<% const _students = typeof students !== 'undefined' ? students : []; %>
+<% const _selectedClass = typeof selectedClass !== 'undefined' ? selectedClass : ''; %>
+
+<link rel="stylesheet" href="/css/NhanXetHocSinh.css">
+
+<div class="nx-container">
+  <h2>Nhận xét học sinh</h2>
+
+  <!-- Danh sách lớp -->
+  <section class="class-section">
+    <div class="section-header">
+      <h3>Danh sách lớp</h3>
+    </div>
+    <div class="class-grid" id="nx-class-grid">
+      <% if ((_classList || []).length === 0) { %>
+        <div class="empty-note">Chưa có lớp nào được gán.</div>
+      <% } else { %>
+        <% _classList.forEach(c => { %>
+          <div class="class-card" data-malop="<%= c.MaLop %>">
+            <div class="class-name"><%= c.TenLop || c.MaLop %></div>
+            <div class="class-meta">Mã lớp: <%= c.MaLop %></div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </section>
+
+  <hr style="margin-bottom: 10px; margin-top: 20px;">
+
+  <!-- Danh sách học sinh -->
+  <section class="comment-section <%= _selectedClass ? '' : 'hidden' %>">
+    <div class="section-header">
+      <h3>Danh sách học sinh</h3>
+      <div class="selected-class" id="nx-selected-class-label">
+        <% if (_selectedClass) { %>Lớp: <%= _selectedClass %><% } else { %>Chọn lớp để xem học sinh<% } %>
+      </div>
+    </div>
+
+    <!-- Khung nhận xét chung -->
+    <div class="bulk-comment-box">
+      <label for="nx-bulk-comment">Nhận xét chung cho toàn bộ học sinh</label>
+      <div class="bulk-input-wrap">
+        <input type="text" id="nx-bulk-comment" placeholder="Nhập nhận xét chung...">
+        <button type="button" id="nx-bulk-btn" class="btn-primary">Nhận xét</button>
+      </div>
+    </div>
+
+    <div class="student-table-wrapper">
+      <table class="student-table" id="nx-student-table">
+        <thead>
+          <tr>
+            <th style="display:none;">Mã HS</th>
+            <th>STT</th>
+            <th>Họ tên</th>
+            <th>Giới tính</th>
+            <th>Ngày sinh</th>
+            <th>Trạng thái</th>
+            <th>Khóa học</th>
+            <th>Nhận xét</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (_students || []).forEach((hs, idx) => { %>
+            <tr>
+              <td style="display:none;"><%= hs.MaHocSinh %></td>
+              <td><%= idx + 1 %></td>
+              <td><%= hs.TenHocSinh %></td>
+              <td><%= hs.GioiTinh || '' %></td>
+              <td><%= hs.Birthday ? hs.Birthday.toString().slice(0,10) : '' %></td>
+              <td><%= hs.TrangThai || '' %></td>
+              <td><%= hs.KhoaHoc || '' %></td>
+              <td class="comment-cell">
+                <div class="comment-input-wrap">
+                  <input type="text" class="comment-input" value="<%= hs.NhanXet || '' %>" data-mahs="<%= hs.MaHocSinh %>">
+                  <button type="button" class="btn-primary btn-comment" data-mahs="<%= hs.MaHocSinh %>">Nhận xét</button>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% if ((_students || []).length === 0) { %>
+        <div class="empty-note">Chưa có học sinh.</div>
+      <% } %>
+    </div>
+  </section>
+</div>
+
+<script>
+  window.nxData = {
+    classList: <%- JSON.stringify(_classList || []) %>,
+    students: <%- JSON.stringify(_students || []) %>,
+    selectedClass: "<%= _selectedClass || '' %>"
+  };
+</script>
+<script src="/js/NhanXetHocSinh.js"></script>
