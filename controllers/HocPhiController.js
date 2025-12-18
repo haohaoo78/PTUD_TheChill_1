@@ -2,313 +2,273 @@ const HocPhiModel = require('../models/HocPhiModel');
 const moment = require('moment');
 const qs = require('qs');
 const crypto = require('crypto');
-// const vnpayConfig = require('../config/vnpay');
+const vnpayConfig = require('../config/vnpay');
 const momoConfig = require('../config/momo');
 const bankConfig = require('../config/bank');
 const axios = require('axios');
 
+// =========================
+// 🔧 SORT OBJECT (VNPAY)
+// =========================
 function sortObject(obj) {
-	let sorted = {};
-	let str = [];
-	let key;
-	for (key in obj){
-		if (obj.hasOwnProperty(key)) {
-		str.push(encodeURIComponent(key));
-		}
-	}
-	str.sort();
-    for (key = 0; key < str.length; key++) {
-        sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
-    }
-    return sorted;
+  let sorted = {};
+  let keys = Object.keys(obj).sort();
+  keys.forEach(key => {
+    sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, '+');
+  });
+  return sorted;
 }
 
+// =========================
+// 🎓 HỌC PHÍ CONTROLLER
+// =========================
 const HocPhiController = {
+
+  // =========================
+  // 📄 TRANG HỌC PHÍ
+  // =========================
   renderPage: (req, res) => {
     const user = req.session.user;
     if (!user) return res.status(401).send('Unauthorized');
     res.render('pages/hocphi', { user });
   },
 
+  // =========================
+  // 📥 LẤY HỌC PHÍ
+  // =========================
   getTuition: async (req, res) => {
     try {
       const { namHoc, hocKy } = req.body;
       const user = req.session.user;
-      if (!user) return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
+      if (!user) return res.status(401).json({ success: false });
 
-      const maHS = user.userId;
-      if (!maHS) return res.status(400).json({ success: false, message: 'Không tìm thấy thông tin học sinh' });
+      let maHS = null;
+      if (user.loaiTaiKhoan === 'Phụ huynh') maHS = user.maHocSinh;
+      else if (user.loaiTaiKhoan === 'Học sinh') maHS = user.entityId;
+
+      if (!maHS)
+        return res.json({ success: false, message: 'Không xác định được học sinh' });
 
       const tuition = await HocPhiModel.getTuition(maHS, namHoc, hocKy);
       res.json({ success: true, tuition });
+
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: 'Lỗi server' });
     }
   },
 
+  // =========================
+  // 💳 THANH TOÁN
+  // =========================
   payTuition: async (req, res) => {
     try {
       const { namHoc, hocKy, phuongThuc, soTien } = req.body;
       const user = req.session.user;
-      if (!user) return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
-      const maHS = user.userId;
+      if (!user) return res.status(401).json({ success: false });
 
-      if (!namHoc || !hocKy) return res.status(400).json({ success: false, message: 'Thiếu thông tin năm học/học kỳ' });
-      if (!phuongThuc) return res.status(400).json({ success: false, message: 'Vui lòng chọn phương thức thanh toán' });
-      
+      let maHS = null;
+      if (user.loaiTaiKhoan === 'Phụ huynh') maHS = user.maHocSinh;
+      else if (user.loaiTaiKhoan === 'Học sinh') maHS = user.entityId;
+
+      if (!maHS)
+        return res.json({ success: false, message: 'Không xác định được học sinh' });
+
+      if (!namHoc || !hocKy || !phuongThuc)
+        return res.json({ success: false, message: 'Thiếu dữ liệu thanh toán' });
+
+      // ---------- VNPAY ----------
       if (phuongThuc === 'VNPAY') {
         process.env.TZ = 'Asia/Ho_Chi_Minh';
-        
-        let date = new Date();
-        let createDate = moment(date).format('YYYYMMDDHHmmss');
-        
-        let ipAddr = req.headers['x-forwarded-for'] ||
-            req.connection.remoteAddress ||
-            req.socket.remoteAddress ||
-            req.connection.socket.remoteAddress;
+        const date = new Date();
+        const createDate = moment(date).format('YYYYMMDDHHmmss');
+        const orderId = moment(date).format('DDHHmmss');
+        const ipAddr =
+          req.headers['x-forwarded-for'] ||
+          req.connection.remoteAddress ||
+          req.socket.remoteAddress;
 
-        let tmnCode = vnpayConfig.vnp_TmnCode;
-        let secretKey = vnpayConfig.vnp_HashSecret;
-        let vnpUrl = vnpayConfig.vnp_Url;
-        let returnUrl = vnpayConfig.vnp_ReturnUrl;
-        let orderId = moment(date).format('DDHHmmss');
-        let amount = soTien;
-        let bankCode = '';
-        
-        let locale = 'vn';
-        let currCode = 'VND';
-        
-        let vnp_Params = {};
-        vnp_Params['vnp_Version'] = '2.1.0';
-        vnp_Params['vnp_Command'] = 'pay';
-        vnp_Params['vnp_TmnCode'] = tmnCode;
-        vnp_Params['vnp_Locale'] = locale;
-        vnp_Params['vnp_CurrCode'] = currCode;
-        vnp_Params['vnp_TxnRef'] = orderId;
-        vnp_Params['vnp_OrderInfo'] = `Thanh toan hoc phi ${namHoc} ${hocKy} - HS: ${maHS}`;
-        vnp_Params['vnp_OrderType'] = 'other';
-        vnp_Params['vnp_Amount'] = amount * 100;
-        vnp_Params['vnp_ReturnUrl'] = returnUrl;
-        vnp_Params['vnp_IpAddr'] = ipAddr;
-        vnp_Params['vnp_CreateDate'] = createDate;
-        if(bankCode !== null && bankCode !== ''){
-            vnp_Params['vnp_BankCode'] = bankCode;
-        }
-
-        vnp_Params = sortObject(vnp_Params);
-
-        let signData = qs.stringify(vnp_Params, { encode: false });
-        let hmac = crypto.createHmac("sha512", secretKey);
-        let signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex"); 
-        vnp_Params['vnp_SecureHash'] = signed;
-        vnpUrl += '?' + qs.stringify(vnp_Params, { encode: false });
-
-        // Lưu thông tin giao dịch tạm thời vào session hoặc DB nếu cần để đối soát sau này
-        // Ở đây ta trả về URL để client redirect
-        return res.json({ success: true, paymentUrl: vnpUrl });
-      }
-
-      if (phuongThuc === 'MOMO') {
-        const partnerCode = momoConfig.partnerCode;
-        const accessKey = momoConfig.accessKey;
-        const secretKey = momoConfig.secretKey;
-        const requestId = partnerCode + new Date().getTime();
-        const orderId = requestId;
-        const orderInfo = `Thanh toan hoc phi ${namHoc} ${hocKy} - HS: ${maHS}`;
-        const redirectUrl = momoConfig.returnUrl;
-        const ipnUrl = momoConfig.notifyUrl;
-        const amount = soTien;
-        const requestType = "captureWallet";
-        const extraData = ""; 
-
-        const rawSignature = "accessKey="+accessKey+"&amount="+amount+"&extraData="+extraData+"&ipnUrl="+ipnUrl+"&orderId="+orderId+"&orderInfo="+orderInfo+"&partnerCode="+partnerCode+"&redirectUrl="+redirectUrl+"&requestId="+requestId+"&requestType="+requestType;
-        
-        const signature = crypto.createHmac('sha256', secretKey)
-            .update(rawSignature)
-            .digest('hex');
-
-        const requestBody = {
-            partnerCode : partnerCode,
-            accessKey : accessKey,
-            requestId : requestId,
-            amount : amount,
-            orderId : orderId,
-            orderInfo : orderInfo,
-            redirectUrl : redirectUrl,
-            ipnUrl : ipnUrl,
-            extraData : extraData,
-            requestType : requestType,
-            signature : signature,
-            lang: 'vi'
+        let vnp_Params = {
+          vnp_Version: '2.1.0',
+          vnp_Command: 'pay',
+          vnp_TmnCode: vnpayConfig.vnp_TmnCode,
+          vnp_Locale: 'vn',
+          vnp_CurrCode: 'VND',
+          vnp_TxnRef: orderId,
+          vnp_OrderInfo: `Thanh toan hoc phi ${namHoc} ${hocKy} - HS: ${maHS}`,
+          vnp_OrderType: 'other',
+          vnp_Amount: soTien * 100,
+          vnp_ReturnUrl: vnpayConfig.vnp_ReturnUrl,
+          vnp_IpAddr: ipAddr,
+          vnp_CreateDate: createDate
         };
 
-        try {
-            const result = await axios.post(momoConfig.endpoint, requestBody);
-            return res.json({ success: true, paymentUrl: result.data.payUrl });
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ success: false, message: 'Lỗi tạo giao dịch MOMO' });
-        }
+        vnp_Params = sortObject(vnp_Params);
+        const signData = qs.stringify(vnp_Params, { encode: false });
+        const hmac = crypto.createHmac('sha512', vnpayConfig.vnp_HashSecret);
+        vnp_Params.vnp_SecureHash = hmac.update(signData).digest('hex');
+
+        const paymentUrl =
+          vnpayConfig.vnp_Url + '?' + qs.stringify(vnp_Params, { encode: false });
+
+        return res.json({ success: true, paymentUrl });
       }
 
+      // ---------- MOMO ----------
+      if (phuongThuc === 'MOMO') {
+        const requestId = momoConfig.partnerCode + Date.now();
+        const orderInfo = `Thanh toan hoc phi ${namHoc} ${hocKy} - HS: ${maHS}`;
+        const rawSignature =
+          `accessKey=${momoConfig.accessKey}&amount=${soTien}&extraData=&ipnUrl=${momoConfig.notifyUrl}` +
+          `&orderId=${requestId}&orderInfo=${orderInfo}` +
+          `&partnerCode=${momoConfig.partnerCode}&redirectUrl=${momoConfig.returnUrl}` +
+          `&requestId=${requestId}&requestType=captureWallet`;
+
+        const signature = crypto
+          .createHmac('sha256', momoConfig.secretKey)
+          .update(rawSignature)
+          .digest('hex');
+
+        const result = await axios.post(momoConfig.endpoint, {
+          partnerCode: momoConfig.partnerCode,
+          accessKey: momoConfig.accessKey,
+          requestId,
+          amount: soTien,
+          orderId: requestId,
+          orderInfo,
+          redirectUrl: momoConfig.returnUrl,
+          ipnUrl: momoConfig.notifyUrl,
+          extraData: '',
+          requestType: 'captureWallet',
+          signature
+        });
+
+        return res.json({ success: true, paymentUrl: result.data.payUrl });
+      }
+
+      // ---------- BANK ----------
       if (phuongThuc === 'BANK') {
-        // Chuyển hướng đến trang hiển thị QR Code
-        const paymentUrl = `/api/hocphi/bank-transfer?maHS=${maHS}&namHoc=${namHoc}&hocKy=${hocKy}&soTien=${soTien}`;
-        return res.json({ success: true, paymentUrl: paymentUrl });
+        return res.json({
+          success: true,
+          paymentUrl: `/api/hocphi/bank-transfer?maHS=${maHS}&namHoc=${namHoc}&hocKy=${hocKy}&soTien=${soTien}`
+        });
       }
 
-      // Xử lý các phương thức khác (nếu có)
+      // ---------- PAY OFFLINE ----------
       await HocPhiModel.payTuition(maHS, namHoc, hocKy, soTien);
-      res.json({ success: true, message: 'Thanh toán thành công!' });
+      res.json({ success: true });
+
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false, message: 'Lỗi thanh toán do lỗi hệ thống' });
+      res.status(500).json({ success: false, message: 'Lỗi thanh toán' });
     }
   },
 
+  // =========================
+  // 🔁 CALLBACK VNPAY
+  // =========================
   vnpayReturn: async (req, res) => {
     try {
-        let vnp_Params = req.query;
-        let secureHash = vnp_Params['vnp_SecureHash'];
+      let vnp_Params = req.query;
+      const secureHash = vnp_Params.vnp_SecureHash;
 
-        delete vnp_Params['vnp_SecureHash'];
-        delete vnp_Params['vnp_SecureHashType'];
+      delete vnp_Params.vnp_SecureHash;
+      delete vnp_Params.vnp_SecureHashType;
 
-        vnp_Params = sortObject(vnp_Params);
+      vnp_Params = sortObject(vnp_Params);
+      const signData = qs.stringify(vnp_Params, { encode: false });
+      const signed = crypto
+        .createHmac('sha512', vnpayConfig.vnp_HashSecret)
+        .update(signData)
+        .digest('hex');
 
-        let tmnCode = vnpayConfig.vnp_TmnCode;
-        let secretKey = vnpayConfig.vnp_HashSecret;
+      if (secureHash !== signed)
+        return res.render('pages/payment_error', { message: 'Chữ ký không hợp lệ' });
 
-        let signData = qs.stringify(vnp_Params, { encode: false });
-        let hmac = crypto.createHmac("sha512", secretKey);
-        let signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex");
+      if (vnp_Params.vnp_ResponseCode !== '00')
+        return res.render('pages/payment_error', { message: 'Thanh toán thất bại' });
 
-        if(secureHash === signed){
-            const responseCode = vnp_Params['vnp_ResponseCode'];
-            if (responseCode === '00') {
-                // Thanh toán thành công
-                // Parse orderInfo để lấy thông tin cập nhật DB
-                // vnp_OrderInfo: `Thanh toan hoc phi ${namHoc} ${hocKy} - HS: ${maHS}`
-                // Tuy nhiên, cách tốt nhất là lưu orderId vào DB lúc tạo payment url với status pending
-                // Ở đây ta sẽ parse chuỗi info (cách đơn giản nhưng không khuyến khích cho production lớn)
-                
-                const orderInfo = decodeURIComponent(vnp_Params['vnp_OrderInfo']);
-                // Regex hoặc split để lấy maHS, namHoc, hocKy
-                // Ví dụ: "Thanh toan hoc phi 2024-2025 HK1 - HS: HS001"
-                // Cần đảm bảo format string ở payTuition khớp với logic parse ở đây.
-                
-                // Để đơn giản và an toàn hơn, ta nên truyền các tham số này qua query param của returnUrl hoặc lưu session
-                // Nhưng VNPAY returnUrl là cố định.
-                
-                // Tạm thời ta sẽ giả định thanh toán thành công và hiển thị thông báo.
-                // Cần implement logic update DB ở đây.
-                // Do HocPhiModel.payTuition cần maHS, namHoc, hocKy.
-                
-                // Cách giải quyết nhanh: Lưu thông tin vào session trước khi redirect
-                // Nhưng session có thể mất.
-                
-                // Parse lại từ vnp_OrderInfo
-                // Format: `Thanh toan hoc phi ${namHoc} ${hocKy} - HS: ${maHS}`
-                const parts = vnp_Params['vnp_OrderInfo'].split(' - HS: ');
-                const maHS = parts[1];
-                const infoParts = parts[0].replace('Thanh toan hoc phi ', '').split(' ');
-                const namHoc = infoParts[0];
-                const hocKy = infoParts[1];
-                const soTien = vnp_Params['vnp_Amount'] / 100;
+      const parts = vnp_Params.vnp_OrderInfo.split(' - HS: ');
+      const maHS = parts[1];
+      const info = parts[0].replace('Thanh toan hoc phi ', '').split(' ');
+      const namHoc = info[0];
+      const hocKy = info[1];
+      const soTien = vnp_Params.vnp_Amount / 100;
 
-                await HocPhiModel.payTuition(maHS, namHoc, hocKy, soTien);
+      await HocPhiModel.payTuition(maHS, namHoc, hocKy, soTien);
+      res.render('pages/payment_success');
 
-                res.render('pages/payment_success', { code: vnp_Params['vnp_TxnRef'] });
-            } else {
-                res.render('pages/payment_error', { message: 'Giao dịch không thành công' });
-            }
-        } else {
-            res.render('pages/payment_error', { message: 'Chữ ký không hợp lệ' });
-        }
     } catch (err) {
-        console.error(err);
-        res.render('pages/payment_error', { message: 'Lỗi hệ thống xử lý kết quả thanh toán' });
+      console.error(err);
+      res.render('pages/payment_error', { message: 'Lỗi xử lý VNPAY' });
     }
   },
 
+  // =========================
+  // 🔁 CALLBACK MOMO
+  // =========================
   momoReturn: async (req, res) => {
     try {
-        const {
-            partnerCode,
-            orderId,
-            requestId,
-            amount,
-            orderInfo,
-            orderType,
-            transId,
-            resultCode,
-            message,
-            payType,
-            responseTime,
-            extraData,
-            signature
-        } = req.query;
+      if (req.query.resultCode !== '0')
+        return res.render('pages/payment_error', { message: 'MOMO thất bại' });
 
-        if (resultCode == '0') {
-             const parts = orderInfo.split(' - HS: ');
-             const maHS = parts[1];
-             const infoParts = parts[0].replace('Thanh toan hoc phi ', '').split(' ');
-             const namHoc = infoParts[0];
-             const hocKy = infoParts[1];
-             
-             await HocPhiModel.payTuition(maHS, namHoc, hocKy, amount);
-             res.render('pages/payment_success', { code: transId });
-        } else {
-             res.render('pages/payment_error', { message: 'Giao dịch MOMO thất bại: ' + message });
-        }
+      const parts = req.query.orderInfo.split(' - HS: ');
+      const maHS = parts[1];
+      const info = parts[0].replace('Thanh toan hoc phi ', '').split(' ');
+      const namHoc = info[0];
+      const hocKy = info[1];
+
+      await HocPhiModel.payTuition(maHS, namHoc, hocKy, req.query.amount);
+      res.render('pages/payment_success');
+
     } catch (err) {
-        console.error(err);
-        res.render('pages/payment_error', { message: 'Lỗi xử lý kết quả MOMO' });
+      console.error(err);
+      res.render('pages/payment_error', { message: 'Lỗi xử lý MOMO' });
     }
   },
 
+  // =========================
+  // 🏦 BANK TRANSFER
+  // =========================
   renderBankTransfer: (req, res) => {
     const { maHS, namHoc, hocKy, soTien } = req.query;
-    
+
     if (!maHS || !namHoc || !hocKy || !soTien) {
-        return res.render('pages/payment_error', { message: 'Thiếu thông tin thanh toán' });
+      return res.render('pages/payment_error', { message: 'Thiếu thông tin thanh toán' });
     }
 
-    const bankId = bankConfig.bankId;
-    const accountNo = bankConfig.accountNo;
-    const template = bankConfig.template;
-    const accountName = encodeURIComponent(bankConfig.accountName);
+    const bankInfo = {
+      bankId: bankConfig.bankId,
+      accountNo: bankConfig.accountNo,
+      accountName: bankConfig.accountName
+    };
+
     const content = encodeURIComponent(`HOCPHI ${namHoc} ${hocKy} ${maHS}`);
-    
-    const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-${template}.png?amount=${soTien}&addInfo=${content}&accountName=${accountName}`;
+    const accountName = encodeURIComponent(bankInfo.accountName);
+
+    const qrUrl = `https://img.vietqr.io/image/${bankInfo.bankId}-${bankInfo.accountNo}-${bankConfig.template}.png?amount=${soTien}&addInfo=${content}&accountName=${accountName}`;
 
     res.render('pages/payment_bank', {
-        qrUrl,
-        amount: soTien,
-        content: `HOCPHI ${namHoc} ${hocKy} ${maHS}`,
-        bankInfo: {
-            bankId,
-            accountNo,
-            accountName: bankConfig.accountName
-        },
-        transactionData: {
-            maHS, namHoc, hocKy, soTien
-        }
+      qrUrl,
+      amount: soTien,
+      content: `HOCPHI ${namHoc} ${hocKy} ${maHS}`,
+      bankInfo,
+      transactionData: { maHS, namHoc, hocKy, soTien }
     });
   },
 
+  // =========================
+  // ✅ XÁC NHẬN BANK TRANSFER
+  // =========================
   confirmBankTransfer: async (req, res) => {
-      try {
-          const { maHS, namHoc, hocKy, soTien } = req.body;
-          // Trong thực tế, bước này cần admin duyệt hoặc webhook từ ngân hàng
-          // Ở đây ta giả lập người dùng xác nhận đã chuyển
-          await HocPhiModel.payTuition(maHS, namHoc, hocKy, soTien);
-          res.json({ success: true });
-      } catch (err) {
-          console.error(err);
-          res.status(500).json({ success: false, message: 'Lỗi xác nhận thanh toán' });
-      }
+    try {
+      const { maHS, namHoc, hocKy, soTien } = req.body;
+      await HocPhiModel.payTuition(maHS, namHoc, hocKy, soTien);
+      res.json({ success: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Lỗi xác nhận thanh toán' });
+    }
   }
 };
 

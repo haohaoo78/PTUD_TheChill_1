@@ -9,7 +9,7 @@ const XemDiemController = {
     
     // Nếu là phụ huynh hoặc học sinh, lấy thông tin học sinh
     let studentInfo = null;
-    if (user.LoaiTaiKhoan === 'Phụ huynh' || user.LoaiTaiKhoan === 'Học sinh') {
+    if (user.loaiTaiKhoan === 'Phụ huynh' || user.loaiTaiKhoan === 'Học sinh') {
         // UserId trong session đã được map thành MaHocSinh ở DangNhapModel (cho cả PH và HS)
         // Tuy nhiên, cần kiểm tra lại logic DangNhapController lưu session như thế nào.
         // DangNhapController lưu: req.session.user = { username, role, isAuthenticated, LoaiTaiKhoan }

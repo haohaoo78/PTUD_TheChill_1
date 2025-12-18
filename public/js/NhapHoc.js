@@ -4,68 +4,56 @@
   const successArea = document.getElementById('success-area');
   const btnConfirm = document.getElementById('btn-confirm');
   const studentName = document.getElementById('student-name');
+  const khoiSelect = document.getElementById('khoiHoc');
+  const selectedKhoi = document.getElementById('selected-khoi');
 
-  if (!btnConfirm) return; // If error page
+  if (!btnConfirm) return;
 
   loadStatus();
 
   async function loadStatus() {
-    try {
-      const res = await fetch('/api/nhaphoc/status', { method: 'POST' });
-      const data = await res.json();
+    const res = await fetch('/api/nhaphoc/status', { method: 'POST' });
+    const data = await res.json();
 
-      if (data.success && data.status) {
-        studentName.textContent = data.status.HoTen;
-        const st = data.status.TrangThaiNhapHoc;
-        
-        if (st === 'Đang học' || st === 'Đã xác nhận' || st === 'DaXacNhan') {
-          statusText.textContent = 'Đã xác nhận';
-          statusText.className = 'status-badge status-confirmed';
-          successArea.style.display = 'block';
-          actionArea.style.display = 'none';
-          
-          // Show selected stream
-          const khoiMap = { 'KHTN': 'Khối Khoa học Tự nhiên', 'KHXH': 'Khối Khoa học Xã hội' };
-          const khoiLabel = khoiMap[data.status.Khoi] || data.status.Khoi || 'Chưa cập nhật';
-          document.getElementById('selected-khoi').textContent = khoiLabel;
-        } else {
-          statusText.textContent = 'Chưa xác nhận';
-          statusText.className = 'status-badge status-pending';
-          actionArea.style.display = 'block';
-          successArea.style.display = 'none';
-        }
-      }
-    } catch (err) {
-      console.error(err);
+    if (!data.success) return;
+
+    const { HoTen, TrangThaiNhapHoc, KhoiHoc } = data.status;
+    studentName.textContent = HoTen;
+
+    if (TrangThaiNhapHoc === 'Đã nhập học') {
+      statusText.textContent = 'Đã xác nhận nhập học';
+      actionArea.style.display = 'none';
+      successArea.style.display = 'block';
+      selectedKhoi.textContent = KhoiHoc;
+    }
+    else if (TrangThaiNhapHoc === 'Đậu') {
+      statusText.textContent = 'Đã trúng tuyển – Chưa xác nhận';
+      actionArea.style.display = 'block';
+      successArea.style.display = 'none';
+    }
+    else {
+      statusText.textContent = TrangThaiNhapHoc;
+      actionArea.style.display = 'none';
+      successArea.style.display = 'none';
     }
   }
 
   btnConfirm.addEventListener('click', async () => {
-    const khoiHoc = document.getElementById('khoiHoc').value;
-    
-    if (!khoiHoc) {
-        alert('Vui lòng chọn khối học');
-        return;
-    }
+    const khoiHoc = khoiSelect.value;
+    if (!khoiHoc) return alert('Vui lòng chọn khối học');
 
-    if (!confirm('Bạn có chắc chắn muốn xác nhận nhập học vào khối ' + khoiHoc + '?')) return;
+    const res = await fetch('/api/nhaphoc/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ khoiHoc })
+    });
 
-    try {
-      const res = await fetch('/api/nhaphoc/confirm', { 
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ khoiHoc })
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        loadStatus();
-      } else {
-        alert(data.message);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Lỗi kết nối');
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message);
+      loadStatus();
+    } else {
+      alert(data.message);
     }
   });
 })();
