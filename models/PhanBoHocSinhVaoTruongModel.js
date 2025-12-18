@@ -168,17 +168,64 @@ const PhanBoHocSinhVaoTruongModel = {
     };
   },
 
+  // Hàm mới để lấy KhoaHoc (ví dụ: 2025-2026)
+  getKhoaHoc: async (nam_thi) => {
+    const query = `SELECT CONCAT(TimeStart, '-', TimeEnd) AS KhoaHoc FROM NamThi WHERE TimeStart = ?`;
+    const [rows] = await db.execute(query, [nam_thi]);
+    return rows[0]?.KhoaHoc || `${nam_thi}-${parseInt(nam_thi) + 1}`;
+  },
+
   saveAllocation: async (results, nam_thi) => {
+    // Xóa kết quả cũ
     const deleteQuery = `DELETE FROM KetQuaTuyenSinh WHERE MaThiSinh IN (SELECT MaThiSinh FROM ThiSinhDuThi WHERE NamThi = ?)`;
     await db.execute(deleteQuery, [nam_thi]);
 
+    // Lấy KhoaHoc
+    const khoaHoc = await PhanBoHocSinhVaoTruongModel.getKhoaHoc(nam_thi);
+
     for (const r of results) {
-      const insertQuery = `
-        INSERT INTO KetQuaTuyenSinh (MaThiSinh, NguyenVongTrungTuyen, MaToHop, TinhTrang, DiemTrungTuyen)
-        VALUES (?, ?, ?, 'Đậu', ?)
+      // Insert vào KetQuaTuyenSinh
+      const insertKQQuery = `
+        INSERT INTO KetQuaTuyenSinh (MaThiSinh, NguyenVongTrungTuyen, KhoaHoc, TinhTrang, DiemTrungTuyen, MaToHop)
+        VALUES (?, ?, ?, 'Đậu', ?, ?)
       `;
-      await db.execute(insertQuery, [r.MaThiSinh, r.NguyenVongTrungTuyen, r.ToHopMon, r.TongDiem]);
+      await db.execute(insertKQQuery, [r.MaThiSinh, r.NguyenVongTrungTuyen, khoaHoc, r.TongDiem, r.ToHopMon]);
+
+      // Cập nhật trạng thái nguyện vọng trúng tuyển
+      const updateNVTrung = `UPDATE NguyenVong SET TrangThai = 'Trúng tuyển' WHERE MaNguyenVong = ?`;
+      await db.execute(updateNVTrung, [r.NguyenVongTrungTuyen]);
+
+      // Insert học sinh vào bảng HocSinh với MaLop = NULL và MaTruong được insert
+      const [thiSinh] = await db.execute(`
+        SELECT HoTen, NgaySinh, GioiTinh 
+        FROM ThiSinhDuThi 
+        WHERE MaThiSinh = ?
+      `, [r.MaThiSinh]);
+
+      if (thiSinh.length === 0) continue; // Skip nếu không tìm thấy thí sinh
+
+      const insertHSQuery = `
+        INSERT INTO HocSinh (MaHocSinh, TenHocSinh, Birthday, KhoaHoc, GioiTinh, TrangThai, MaLop, MaTruong)
+        VALUES (?, ?, ?, ?, ?, 'Đang học', NULL, ?)
+      `;
+      await db.execute(insertHSQuery, [
+        r.MaThiSinh,
+        thiSinh[0].HoTen,
+        thiSinh[0].NgaySinh,
+        khoaHoc,
+        thiSinh[0].GioiTinh,
+        r.MaTruong
+      ]);
     }
+
+    // Cập nhật các nguyện vọng khác thành 'Rớt' cho các thí sinh đã phân bổ
+    const updateNVRot = `
+      UPDATE NguyenVong nv
+      JOIN ThiSinhDuThi ts ON nv.MaThiSinh = ts.MaThiSinh
+      SET nv.TrangThai = 'Rớt'
+      WHERE ts.NamThi = ? AND nv.TrangThai = 'Đang xét'
+    `;
+    await db.execute(updateNVRot, [nam_thi]);
   }
 };
 
