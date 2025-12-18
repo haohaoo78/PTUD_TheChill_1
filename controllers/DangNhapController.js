@@ -76,6 +76,15 @@ class DangNhapController {
         maHocSinh = rows[0]?.MaHocSinh || null;
       }
 
+       if (loaiTaiKhoan === 'Học sinh') {
+        const [rows] = await db.execute(
+          'SELECT MaHocSinh FROM HocSinh WHERE MaHocSinh = ?',
+          [entityId]
+        );
+        maHocSinh = rows[0]?.MaHocSinh || entityId;
+      }
+
+
       // ===== 3. Session user (GIỮ NGUYÊN + THÊM maHocSinh)
       req.session.user = {
         username: entityId,
