@@ -6,7 +6,7 @@ const NhapHocController = {
     const user = req.session.user;
     if (!user) return res.redirect('/');
 
-    if (user.LoaiTaiKhoan !== 'Thí sinh') {
+    if (user.loaiTaiKhoan !== 'Thí sinh') {
       return res.render('pages/nhaphoc', {
         user,
         error: 'Chức năng chỉ dành cho thí sinh'
