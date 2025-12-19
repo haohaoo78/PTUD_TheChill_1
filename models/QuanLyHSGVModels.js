@@ -16,15 +16,28 @@ class QLModel {
     return rows;
   }
 
-  static async getClassesByKhoi(maKhoi) {
-    const [rows] = await db.execute(
-      'SELECT MaLop, TenLop FROM Lop WHERE Khoi = ? ORDER BY TenLop',
-      [maKhoi]
-    );
+  // Chỉ lấy lớp thuộc trường của giáo vụ
+  static async getClassesByKhoi(maKhoi, req) {
+    const maTruong = req?.session?.user?.maTruong;
+
+    let sql = 'SELECT MaLop, TenLop FROM Lop WHERE Khoi = ?';
+    const params = [maKhoi];
+
+    if (maTruong) {
+      sql += ' AND MaTruong = ?';
+      params.push(maTruong);
+    }
+
+    sql += ' ORDER BY TenLop';
+
+    const [rows] = await db.execute(sql, params);
     return rows;
   }
 
-  static async getStudentList(namHoc, maKhoi, maLop) {
+  // Chỉ lấy học sinh thuộc lớp của trường giáo vụ
+  static async getStudentList(namHoc, maKhoi, maLop, req) {
+    const maTruong = req?.session?.user?.maTruong;
+
     let sql = `
       SELECT hs.MaHocSinh, hs.TenHocSinh, hs.Birthday, hs.GioiTinh, hs.TrangThai,
              hs.KhoaHoc, l.MaLop, l.TenLop, k.MaKhoi, k.TenKhoi
@@ -34,9 +47,12 @@ class QLModel {
       WHERE 1=1
     `;
     const params = [];
+
     if (namHoc) { sql += ' AND hs.KhoaHoc = ?'; params.push(namHoc); }
     if (maKhoi) { sql += ' AND k.MaKhoi = ?'; params.push(maKhoi); }
     if (maLop) { sql += ' AND l.MaLop = ?'; params.push(maLop); }
+    if (maTruong) { sql += ' AND l.MaTruong = ?'; params.push(maTruong); }
+
     sql += ' ORDER BY hs.TenHocSinh ASC';
     const [rows] = await db.execute(sql, params);
     return rows;
@@ -81,7 +97,6 @@ class QLModel {
     );
   }
 
-  // ========== UPDATE HỌC SINH - CHỈ CẬP NHẬT FIELD HỢP LỆ ==========
   static async updateStudent(MaHocSinh, data) {
     const fields = [];
     const params = [];
@@ -93,7 +108,7 @@ class QLModel {
     if (data.TrangThai) { fields.push('TrangThai = ?'); params.push(data.TrangThai); }
     if (data.KhoaHoc) { fields.push('KhoaHoc = ?'); params.push(data.KhoaHoc); }
 
-    if (fields.length === 0) return; // không có gì để update
+    if (fields.length === 0) return;
 
     const sql = `UPDATE HocSinh SET ${fields.join(', ')} WHERE MaHocSinh = ?`;
     params.push(MaHocSinh);
@@ -109,7 +124,10 @@ class QLModel {
   }
 
   // ==================== GIÁO VIÊN ====================
-  static async getTeacherList(BoMon, TrangThai) {
+  // Chỉ lấy giáo viên thuộc trường của giáo vụ
+  static async getTeacherList(BoMon, TrangThai, req) {
+    const maTruong = req?.session?.user?.maTruong;
+
     let query = `
       SELECT MaGiaoVien, TenGiaoVien, GioiTinh, NgaySinh, Email, SDT,
              TrinhDoChuyenMon, DiaChi, NgayVaoTruong, TrangThai,
@@ -117,8 +135,11 @@ class QLModel {
       FROM GiaoVien WHERE 1=1
     `;
     const params = [];
+
     if (BoMon) { query += ' AND TenMonHoc LIKE ?'; params.push(`%${BoMon}%`); }
     if (TrangThai) { query += ' AND TrangThai = ?'; params.push(TrangThai); }
+    if (maTruong) { query += ' AND MaTruong = ?'; params.push(maTruong); }
+
     query += ' ORDER BY TenGiaoVien ASC';
     const [rows] = await db.execute(query, params);
     return rows;
@@ -141,18 +162,17 @@ class QLModel {
     );
     return rows[0] || null;
   }
-  // Sinh mã giáo viên mới
+
   static async generateNewMaGV() {
     const [rows] = await db.execute(
       `SELECT MaGiaoVien FROM GiaoVien ORDER BY MaGiaoVien DESC LIMIT 1`
     );
     if (rows.length === 0) return 'GV001';
-    const lastId = rows[0].MaGiaoVien; // ví dụ 'GV012'
+    const lastId = rows[0].MaGiaoVien;
     const num = parseInt(lastId.slice(2)) + 1;
-    return 'GV' + num.toString().padStart(3, '0'); // 'GV013'
+    return 'GV' + num.toString().padStart(3, '0');
   }
 
-  // Thêm giáo viên, tự sinh MaGiaoVien
   static async addTeacher(data) {
     const MaGiaoVien = await this.generateNewMaGV();
 
@@ -176,8 +196,6 @@ class QLModel {
     await db.execute(sql, params);
   }
 
-
-  // ========== UPDATE GIÁO VIÊN - CHỈ CẬP NHẬT FIELD HỢP LỆ ==========
   static async updateTeacher(MaGiaoVien, data) {
     const fields = [];
     const params = [];
@@ -211,13 +229,13 @@ class QLModel {
       [MaGiaoVien]
     );
   }
-  // ==================== TRƯỜNG ====================
-static async getTruongList() {
-  const [rows] = await db.execute(
-    'SELECT MaTruong, TenTruong FROM Truong ORDER BY TenTruong'
-  );
-  return rows;
-}
+
+  static async getTruongList() {
+    const [rows] = await db.execute(
+      'SELECT MaTruong, TenTruong FROM Truong ORDER BY TenTruong'
+    );
+    return rows;
+  }
 }
 
 module.exports = QLModel;

@@ -6,6 +6,8 @@ class QuanLyHSGVController {
     try {
       const khoiList = await QLModel.getKhoiList();
       const namHocList = await QLModel.getNamHocList();
+      const user = req.session.user || null;  // Lấy user từ session
+
       res.render('pages/quanlygiaovien_hocsinh', {
         khoiList,
         namHocList,
@@ -13,6 +15,7 @@ class QuanLyHSGVController {
         selectedClass: '',
         selectedNamHoc: '',
         classes: [],
+        user  // Truyền user vào view để dùng trong EJS/JS
       });
     } catch (err) {
       console.error(err);
@@ -24,10 +27,10 @@ class QuanLyHSGVController {
   async getHocSinh(req, res) {
     try {
       const { namHoc, khoi, lop } = req.query;
-      const data = await QLModel.getStudentList(namHoc, khoi, lop);
+      const data = await QLModel.getStudentList(namHoc, khoi, lop, req); // Truyền req để lọc MaTruong
       res.json({ success: true, data });
     } catch (err) {
-      res.json({ success: false, message: err.message });
+      res.json({ success: false, message: err.message || 'Lỗi tải danh sách học sinh' });
     }
   }
 
@@ -97,10 +100,10 @@ class QuanLyHSGVController {
   async getGiaoVien(req, res) {
     try {
       const { monHoc, trangThai } = req.query;
-      const data = await QLModel.getTeacherList(monHoc, trangThai);
+      const data = await QLModel.getTeacherList(monHoc, trangThai, req); // Truyền req để lọc MaTruong
       res.json({ success: true, data });
     } catch (err) {
-      res.json({ success: false, message: err.message });
+      res.json({ success: false, message: err.message || 'Lỗi tải danh sách giáo viên' });
     }
   }
 
@@ -112,52 +115,59 @@ class QuanLyHSGVController {
       res.json({ success: false, message: err.message });
     }
   }
-async addGiaoVien(req, res) {
-  try {
-    const {
-      TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
-      DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan,
-      ChucVu, ThamNien, MaTruong, TrangThai
-    } = req.body;
 
-    // Kiểm tra bắt buộc (không cần MaGiaoVien nữa)
-    const requiredFields = {
-      TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
-      DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan,
-      ChucVu, ThamNien, MaTruong
-    };
-    for (const [key, value] of Object.entries(requiredFields)) {
-      if (!value || value.toString().trim() === '') {
-        return res.status(400).json({ success: false, message: `Trường ${key} không được để trống` });
+  async addGiaoVien(req, res) {
+    try {
+      const {
+        TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
+        DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan,
+        ChucVu, ThamNien, TrangThai
+      } = req.body;
+
+      // Lấy MaTruong từ session
+      const MaTruong = req.session.user?.maTruong;
+
+      if (!MaTruong) {
+        return res.status(400).json({ success: false, message: 'Không xác định được trường của bạn. Vui lòng đăng nhập lại.' });
       }
+
+      const requiredFields = {
+        TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
+        DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan,
+        ChucVu, ThamNien
+      };
+
+      for (const [key, value] of Object.entries(requiredFields)) {
+        if (!value || value.toString().trim() === '') {
+          return res.status(400).json({ success: false, message: `Trường ${key} không được để trống` });
+        }
+      }
+
+      const ngaySinhFormatted = NgaySinh.split('T')[0];
+
+      await QLModel.addTeacher({
+        TenGiaoVien,
+        NgaySinh: ngaySinhFormatted,
+        GioiTinh,
+        Email,
+        SDT,
+        TrinhDoChuyenMon,
+        DiaChi,
+        NgayVaoTruong,
+        TenMonHoc,
+        TinhTrangHonNhan,
+        ChucVu,
+        ThamNien,
+        MaTruong,
+        TrangThai: TrangThai || 'Đang công tác'
+      });
+
+      res.json({ success: true, message: 'Thêm giáo viên thành công' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: err.message || 'Lỗi thêm giáo viên' });
     }
-
-    const ngaySinhFormatted = NgaySinh.split('T')[0];
-
-    await QLModel.addTeacher({
-      TenGiaoVien,
-      NgaySinh: ngaySinhFormatted,
-      GioiTinh,
-      Email,
-      SDT,
-      TrinhDoChuyenMon,
-      DiaChi,
-      NgayVaoTruong,
-      TenMonHoc,
-      TinhTrangHonNhan,
-      ChucVu,
-      ThamNien,
-      MaTruong,
-      TrangThai: TrangThai || 'Đang công tác'
-    });
-
-    res.json({ success: true, message: 'Thêm giáo viên thành công' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.message });
   }
-}
-
 
   async updateGiaoVien(req, res) {
     try {
@@ -224,7 +234,7 @@ async addGiaoVien(req, res) {
 
   async getClassesByKhoi(req, res) {
     try {
-      const data = await QLModel.getClassesByKhoi(req.query.makhoi);
+      const data = await QLModel.getClassesByKhoi(req.query.makhoi, req); // Truyền req để lọc MaTruong
       res.json({ success: true, data });
     } catch (err) {
       res.json({ success: false, message: err.message });
@@ -239,14 +249,15 @@ async addGiaoVien(req, res) {
       res.json({ success: false, message: err.message });
     }
   }
+
   async getTruong(req, res) {
-  try {
-    const data = await QLModel.getTruongList(); // sử dụng hàm đã thêm ở model
-    res.json({ success: true, data });
-  } catch (err) {
-    res.json({ success: false, message: err.message });
+    try {
+      const data = await QLModel.getTruongList();
+      res.json({ success: true, data });
+    } catch (err) {
+      res.json({ success: false, message: err.message });
+    }
   }
-}
 }
 
 module.exports = new QuanLyHSGVController();

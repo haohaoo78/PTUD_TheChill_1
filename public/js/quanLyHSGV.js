@@ -107,12 +107,19 @@ async function openModalGV(data = null) {
     ? monHocData.data.map(m => `<option value="${m}" ${data?.TenMonHoc === m ? 'selected' : ''}>${m}</option>`).join('')
     : '';
 
-  // Lấy danh sách trường
+  // Lấy danh sách trường (cho trường hợp sửa)
   const truongRes = await fetch('/api/quanlygiaovien_hocsinh/truong');
   const truongData = await truongRes.json();
   const truongOptions = truongData.success
     ? truongData.data.map(t => `<option value="${t.MaTruong}" ${data?.MaTruong === t.MaTruong ? 'selected' : ''}>${t.TenTruong}</option>`).join('')
     : '';
+
+  // Cột "Trường"
+  // - Thêm mới: hiển thị mã trường từ window.currentMaTruong (được set từ EJS), disabled
+  // - Sửa: dropdown chọn bình thường
+  const truongField = isEdit
+    ? `<div><label>Trường:</label><select id="modal-matruong"><option value="">-- Chọn trường --</option>${truongOptions}</select></div>`
+    : `<div><label>Trường:</label><input type="text" value="${window.currentMaTruong || 'Không xác định'}" disabled style="background:#f0f0f0; color:#333; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>`;
 
   modalGVFields.innerHTML = `
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -127,9 +134,9 @@ async function openModalGV(data = null) {
     <div><label>Trạng thái:</label><select id="modal-trangthai"><option ${data?.TrangThai === 'Đang công tác' ? 'selected' : ''}>Đang công tác</option><option ${data?.TrangThai === 'Nghỉ việc' ? 'selected' : ''}>Nghỉ việc</option></select></div>
     <div><label>Tình trạng hôn nhân:</label><select id="modal-honnhan"><option value="">-- Chọn tình trạng --</option><option ${data?.TinhTrangHonNhan === 'Độc Thân' ? 'selected' : ''}>Độc Thân</option><option ${data?.TinhTrangHonNhan === 'Đã Kết Hôn' ? 'selected' : ''}>Đã Kết Hôn</option></select></div>
     <div><label>Chức vụ:</label><input type="text" id="modal-chucvu" value="${data?.ChucVu || ''}"></div>
-    <div><label>Bộ môn chuyên môn:</label><input type="text" id="modal-trinhdochuyenmon" value="${data?.TrinhDoChuyenMon || ''}"></div>
-    <div><label>Kinh nghiệm (tham niên):</label><input type="text" id="modal-thamnien" value="${data?.ThamNien || ''}"></div>
-    <div><label>Trường:</label><select id="modal-matruong"><option value="">-- Chọn trường --</option>${truongOptions}</select></div>
+    <div><label>Trình độ chuyên môn:</label><input type="text" id="modal-trinhdochuyenmon" value="${data?.TrinhDoChuyenMon || ''}"></div>
+    <div><label>Tham niên:</label><input type="text" id="modal-thamnien" value="${data?.ThamNien || ''}"></div>
+    ${truongField}
   </div>
   `;
 }
@@ -138,8 +145,8 @@ modalGVClose.onclick = () => (modalGV.style.display = 'none');
 
 modalGVForm.onsubmit = async e => {
   e.preventDefault();
-  const MaGiaoVien = document.getElementById('modal-id').value || null;
   const isEdit = modalGVForm.dataset.isEdit === 'true';
+  const MaGiaoVien = document.getElementById('modal-id').value || null;
 
   const payload = {
     TenGiaoVien: document.getElementById('modal-ten').value.trim(),
@@ -155,8 +162,12 @@ modalGVForm.onsubmit = async e => {
     ChucVu: document.getElementById('modal-chucvu').value.trim(),
     TrinhDoChuyenMon: document.getElementById('modal-trinhdochuyenmon').value.trim(),
     ThamNien: document.getElementById('modal-thamnien').value.trim(),
-    MaTruong: document.getElementById('modal-matruong').value
   };
+
+  // Chỉ gửi MaTruong khi sửa
+  if (isEdit) {
+    payload.MaTruong = document.getElementById('modal-matruong').value;
+  }
 
   // Kiểm tra bắt buộc
   for (const key in payload) {
@@ -185,7 +196,7 @@ modalGVForm.onsubmit = async e => {
     }
   } catch (err) {
     console.error(err);
-    alert('Lỗi server: ' + err.message);
+    alert('Lỗi server');
   }
 };
 

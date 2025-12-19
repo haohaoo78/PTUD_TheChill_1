@@ -25,5 +25,9 @@ router.get('/khoi', quanly.getKhoi);
 router.get('/lop', quanly.getClassesByKhoi);
 router.get('/monhoc', quanly.getMonHoc);
 router.get('/truong', quanly.getTruong);
+// Trong route
+router.get('/get-current-matruong', (req, res) => {
+  res.json({ success: true, maTruong: req.session.user?.maTruong || '' });
+});
 
 module.exports = router;
