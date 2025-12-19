@@ -1,3 +1,4 @@
+<!-- views/pages/nhaphoc.ejs -->
 <link rel="stylesheet" href="/css/NhapHoc.css">
 
 <div class="nhaphoc-container">
@@ -11,14 +12,15 @@
       <p>Trạng thái nhập học hiện tại: <span id="status-text" class="status-badge">Đang tải...</span></p>
       
       <div id="action-area" style="margin-top: 30px; display: none;">
-        <p>Bạn đã trúng tuyển vào trường. Vui lòng chọn khối học và xác nhận nhập học.</p>
+        <p>Bạn đã trúng tuyển vào trường. Vui lòng chọn tổ hợp môn và xác nhận nhập học.</p>
         
         <div class="form-group" style="margin: 20px 0;">
-            <label for="khoiHoc">Chọn khối học:</label>
+            <label for="khoiHoc">Chọn tổ hợp môn:</label>
             <select id="khoiHoc" style="padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                <option value="">-- Chọn khối --</option>
-                <option value="KHTN">Khối Khoa học Tự nhiên</option>
-                <option value="KHXH">Khối Khoa học Xã hội</option>
+                <option value="">-- Chọn tổ hợp --</option>
+                <% toHopList.forEach(th => { %>
+                  <option value="<%= th.MaToHop %>"><%= th.TenToHop %></option>
+                <% }) %>
             </select>
         </div>
 
@@ -30,7 +32,7 @@
           ✅ Bạn đã xác nhận nhập học thành công!
         </div>
         <div class="info-box" style="margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #eee; border-radius: 5px;">
-            <p><strong>Khối học đã chọn:</strong> <span id="selected-khoi"></span></p>
+            <p><strong>Tổ hợp môn đã chọn:</strong> <span id="selected-khoi"></span></p>
             <p><strong>Thông tin liên hệ nhà trường:</strong></p>
             <ul>
                 <li>Phòng Đào tạo: 028.38352020</li>

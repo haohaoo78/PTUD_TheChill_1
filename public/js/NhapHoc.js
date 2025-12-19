@@ -1,3 +1,4 @@
+// public/js/NhapHoc.js
 (() => {
   const statusText = document.getElementById('status-text');
   const actionArea = document.getElementById('action-area');
@@ -24,7 +25,7 @@
       statusText.textContent = 'Đã xác nhận nhập học';
       actionArea.style.display = 'none';
       successArea.style.display = 'block';
-      selectedKhoi.textContent = KhoiHoc;
+      selectedKhoi.textContent = KhoiHoc || 'Chưa xác định';
     }
     else if (TrangThaiNhapHoc === 'Đậu') {
       statusText.textContent = 'Đã trúng tuyển – Chưa xác nhận';
@@ -39,13 +40,13 @@
   }
 
   btnConfirm.addEventListener('click', async () => {
-    const khoiHoc = khoiSelect.value;
-    if (!khoiHoc) return alert('Vui lòng chọn khối học');
+    const toHop = khoiSelect.value;
+    if (!toHop) return alert('Vui lòng chọn tổ hợp môn');
 
     const res = await fetch('/api/nhaphoc/confirm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ khoiHoc })
+      body: JSON.stringify({ toHop })
     });
 
     const data = await res.json();

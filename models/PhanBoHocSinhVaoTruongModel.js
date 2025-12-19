@@ -31,7 +31,7 @@ const PhanBoHocSinhVaoTruongModel = {
         kq.MaToHop AS ToHopMon, 
         nv.MaTruong,
         tr.TenTruong
-      FROM KetQuaTuyenSinhTuyenSinh kq
+      FROM KetQuaTuyenSinh kq
       JOIN ThiSinhDuThi ts ON kq.MaThiSinh = ts.MaThiSinh
       JOIN NguyenVong nv ON kq.NguyenVongTrungTuyen = nv.MaNguyenVong
       JOIN Truong tr ON nv.MaTruong = tr.MaTruong
