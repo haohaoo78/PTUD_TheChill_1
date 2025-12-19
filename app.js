@@ -78,8 +78,8 @@ app.use('/api/nhaphoc', NhapHocRoutes)
 app.use('/api/giaobaitap', GiaoBaiTapRoutes)
 app.use('/api/thongtinhs', ThongTinHSRoutes)
 app.use('/api/diemdanh', DiemDanhRoutes)
-app.use('/api/nhanxethocsinh', NhanXetHocSinhRoutes)
-app.use('/api/nhanxethocsinh', QuanLyDiemMonHocRoutes)
+app.use('/api/nhanxet', NhanXetHocSinhRoutes)
+app.use('/api/quanlydiem', QuanLyDiemMonHocRoutes)
 
 
 // TRANG CHÍNH

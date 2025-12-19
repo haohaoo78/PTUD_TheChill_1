@@ -85,13 +85,13 @@ class QuanLyDiemMonHocModel {
   static async getSubjectByTeacherClass(maGVBM, maLop, namHoc, hocKy) {
     if (!maGVBM || !maLop || !namHoc || !hocKy) return null;
     const [rows] = await db.execute(
-      `SELECT MaMon
+      `SELECT BoMon
        FROM GVBOMON
        WHERE MaGVBM = ? AND MaLop = ? AND NamHoc = ? AND HocKy = ?
        LIMIT 1`,
       [maGVBM, maLop, namHoc, hocKy]
     );
-    return rows[0]?.MaMon || null;
+    return rows[0]?.BoMon || null;
   }
 
   static async getTeacherSchoolId(maGiaoVien) {
