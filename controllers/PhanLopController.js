@@ -1,11 +1,17 @@
+// controllers/PhanLopController.js
 const PhanLopModel = require('../models/PhanLopModel');
 
 class PhanLopController {
-  // Render trang phân lớp
   async renderPage(req, res) {
     try {
-      const khoiList = await PhanLopModel.getKhoiList();
-      const selectedKhoi = 'K01';
+      const maTruong = req.session.user?.maTruong || null;
+      if (!maTruong) {
+        return res.status(403).send('Không có quyền truy cập');
+      }
+
+      const khoiList = await PhanLopModel.getKhoiList(maTruong);
+      const selectedKhoi = khoiList[0]?.MaKhoi || '';
+
       res.render('pages/phanlophocsinh', { khoiList, selectedKhoi });
     } catch (err) {
       console.error('❌ Error rendering page:', err);
@@ -13,12 +19,20 @@ class PhanLopController {
     }
   }
 
-  // API lấy học sinh theo khối
   async getStudentsByKhoi(req, res) {
     try {
-      const { MaKhoi = 'K01' } = req.body;
-      console.log('📥 Request get students for khoi:', MaKhoi, 'Body:', req.body);
-      const students = await PhanLopModel.getStudentsByKhoi(MaKhoi);
+      const maTruong = req.session.user?.maTruong || null;
+      if (!maTruong) {
+        return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+      }
+
+      const { MaKhoi } = req.body;
+      if (!MaKhoi) {
+        return res.json({ success: true, students: [] });
+      }
+
+      console.log('📥 Request get students for khoi:', MaKhoi, 'Trường:', maTruong);
+      const students = await PhanLopModel.getStudentsByKhoi(MaKhoi, maTruong);
       console.log(`📤 Returning ${students.length} students for khoi ${MaKhoi}`);
       res.json({ success: true, students });
     } catch (err) {
@@ -27,12 +41,20 @@ class PhanLopController {
     }
   }
 
-  // API lấy danh sách lớp theo khối
   async getClassesByKhoi(req, res) {
     try {
-      const { MaKhoi = 'K01' } = req.body;
-      console.log('📥 Request get classes for khoi:', MaKhoi, 'Body:', req.body);
-      const classes = await PhanLopModel.getClassesByKhoi(MaKhoi);
+      const maTruong = req.session.user?.maTruong || null;
+      if (!maTruong) {
+        return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+      }
+
+      const { MaKhoi } = req.body;
+      if (!MaKhoi) {
+        return res.json({ success: true, classes: [] });
+      }
+
+      console.log('📥 Request get classes for khoi:', MaKhoi, 'Trường:', maTruong);
+      const classes = await PhanLopModel.getClassesByKhoi(MaKhoi, maTruong);
       console.log(`📤 Returning ${classes.length} classes for khoi ${MaKhoi}`);
       res.json({ success: true, classes });
     } catch (err) {
@@ -41,24 +63,28 @@ class PhanLopController {
     }
   }
 
-  // Các method khác giữ nguyên (autoAssign, saveAssignment, getStudentsInClass, manualAssign)
   async autoAssign(req, res) {
     try {
+      const maTruong = req.session.user?.maTruong || null;
+      if (!maTruong) {
+        return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+      }
+
       const { MaKhoi, MaxSize } = req.body;
       const max = parseInt(MaxSize) || 35;
-      console.log('⚡ Auto assign request:', { MaKhoi, MaxSize: max });
+      console.log('⚡ Auto assign request:', { MaKhoi, MaxSize: max, maTruong });
 
       if (max < 20 || max > 50) {
         return res.json({ success: false, message: 'Sĩ số tối đa phải từ 20-50 học sinh' });
       }
 
-      const allStudents = await PhanLopModel.getStudentsByKhoi(MaKhoi);
+      const allStudents = await PhanLopModel.getStudentsByKhoi(MaKhoi, maTruong);
       console.log(`📊 Total students in khoi: ${allStudents.length}`);
 
       const studentsToAssign = allStudents.filter(s => !s.MaLop || s.MaLop.trim() === '');
       console.log(`📊 Students to assign: ${studentsToAssign.length}`);
 
-      const classes = await PhanLopModel.getClassesByKhoi(MaKhoi);
+      const classes = await PhanLopModel.getClassesByKhoi(MaKhoi, maTruong);
       console.log(`📊 Classes available: ${classes.length}`);
 
       if (studentsToAssign.length === 0) {
@@ -81,7 +107,6 @@ class PhanLopController {
         if (!groups[key]) groups[key] = [];
         groups[key].push(s);
       });
-      console.log('📊 Student groups by ToHop:', Object.keys(groups).map(k => `${k}: ${groups[k].length}`));
 
       const classMap = {};
       classes.forEach(c => {
@@ -94,26 +119,14 @@ class PhanLopController {
         };
       });
       const classList = Object.values(classMap);
-      console.log('📊 Class capacity:', classList.map(c => `${c.MaLop}: ${c.current}/${c.maxSize}`));
 
       let totalAssigned = 0;
       let notAssigned = [];
       for (const toHop in groups) {
         const hsList = groups[toHop];
-        console.log(`\n🔄 Processing group ${toHop} (${hsList.length} students)...`);
-
         const suitableClasses = classList
-          .filter(c => {
-            if (c.toHop === toHop) return true;
-            if (c.toHop === null) return true;
-            if (toHop === 'KHONG_TO_HOP') return true;
-            return false;
-          })
-          .sort((a, b) => {
-            if (a.toHop === toHop && b.toHop !== toHop) return -1;
-            if (b.toHop === toHop && a.toHop !== toHop) return 1;
-            return (a.current + a.students.length) - (b.current + b.students.length);
-          });
+          .filter(c => c.toHop === toHop || c.toHop === null || toHop === 'KHONG_TO_HOP')
+          .sort((a, b) => (a.current + a.students.length) - (b.current + b.students.length));
 
         hsList.forEach(student => {
           let assigned = false;
@@ -122,11 +135,9 @@ class PhanLopController {
               cls.students.push(student);
               assigned = true;
               totalAssigned++;
-              console.log(` ✅ ${student.MaHocSinh} -> ${cls.MaLop}`);
               break;
             }
           }
-
           if (!assigned) {
             const anyClass = classList
               .filter(c => c.current + c.students.length < c.maxSize)
@@ -135,14 +146,9 @@ class PhanLopController {
               anyClass.students.push(student);
               assigned = true;
               totalAssigned++;
-              console.log(` ⚠️ ${student.MaHocSinh} -> ${anyClass.MaLop} (fallback)`);
             }
           }
-
-          if (!assigned) {
-            console.warn(` ❌ Cannot assign: ${student.MaHocSinh} - ${student.TenHocSinh}`);
-            notAssigned.push(student);
-          }
+          if (!assigned) notAssigned.push(student);
         });
       }
 
@@ -156,7 +162,6 @@ class PhanLopController {
         }
       }
 
-      console.log(`\n✅ Assignment complete: ${totalAssigned}/${studentsToAssign.length} students assigned`);
       res.json({
         success: true,
         distribution,
@@ -174,6 +179,11 @@ class PhanLopController {
   async saveAssignment(req, res) {
     try {
       const { distribution } = req.body;
+      const maTruong = req.session.user?.maTruong || null;
+      if (!maTruong) {
+        return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+      }
+
       const assignments = [];
       for (const maLop in distribution) {
         const students = distribution[maLop].students || [];
@@ -181,11 +191,12 @@ class PhanLopController {
           assignments.push({ MaHocSinh: s.MaHocSinh, MaLop: maLop });
         });
       }
-      console.log(`💾 Saving ${assignments.length} assignments...`);
+
       if (assignments.length === 0) {
         return res.json({ success: false, message: 'Không có học sinh nào để lưu' });
       }
-      await PhanLopModel.saveAssignments(assignments);
+
+      await PhanLopModel.saveAssignments(assignments, maTruong);
       res.json({ success: true, message: `✅ Đã lưu phân lớp thành công cho ${assignments.length} học sinh!` });
     } catch (err) {
       console.error('❌ Error saving assignment:', err);
@@ -196,8 +207,12 @@ class PhanLopController {
   async getStudentsInClass(req, res) {
     try {
       const { MaLop } = req.body;
-      console.log('📥 Request students in class:', MaLop);
-      const students = await PhanLopModel.getStudentsInClass(MaLop);
+      const maTruong = req.session.user?.maTruong || null;
+      if (!maTruong) {
+        return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+      }
+
+      const students = await PhanLopModel.getStudentsInClass(MaLop, maTruong);
       res.json({ success: true, students });
     } catch (err) {
       console.error('❌ Error getting students in class:', err);
@@ -208,15 +223,20 @@ class PhanLopController {
   async manualAssign(req, res) {
     try {
       const { MaHocSinh, MaLop } = req.body;
-      console.log('✏️ Manual assign:', { MaHocSinh, MaLop });
+      const maTruong = req.session.user?.maTruong || null;
+      if (!maTruong) {
+        return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+      }
+
       if (!MaHocSinh) {
         return res.json({ success: false, message: 'Thiếu mã học sinh' });
       }
-      const updated = await PhanLopModel.updateStudentClass(MaHocSinh, MaLop);
+
+      const updated = await PhanLopModel.updateStudentClass(MaHocSinh, MaLop, maTruong);
       if (updated) {
         res.json({ success: true, message: '✅ Cập nhật lớp thành công' });
       } else {
-        res.json({ success: false, message: '❌ Không tìm thấy học sinh' });
+        res.json({ success: false, message: '❌ Không tìm thấy học sinh hoặc lớp không thuộc trường' });
       }
     } catch (err) {
       console.error('❌ Error manual assign:', err);

@@ -1,11 +1,16 @@
+// models/PhanLopModel.js
 const db = require('../config/database');
 
 class PhanLopModel {
-  // Lấy danh sách khối
-  static async getKhoiList() {
+  static async getKhoiList(maTruong) {
     try {
-      const [rows] = await db.execute('SELECT MaKhoi, TenKhoi FROM Khoi ORDER BY MaKhoi');
-      console.log('✅ Khối list:', rows);
+      const [rows] = await db.execute(`
+        SELECT DISTINCT k.MaKhoi, k.TenKhoi
+        FROM Khoi k
+        JOIN Lop l ON l.Khoi = k.MaKhoi
+        WHERE l.MaTruong = ?
+        ORDER BY k.MaKhoi
+      `, [maTruong]);
       return rows;
     } catch (error) {
       console.error('❌ Error in getKhoiList:', error);
@@ -13,13 +18,13 @@ class PhanLopModel {
     }
   }
 
-  // Lấy học sinh thuộc khối (sửa theo QL: JOIN Lop + Khoi, + HS chưa lớp với KhoaHoc filter)
-  static async getStudentsByKhoi(maKhoi) {
+  // Học sinh đã có lớp: lọc theo MaTruong của lớp
+  // Học sinh chưa có lớp: lọc theo MaTruong của học sinh (giả sử có cột MaTruong trong HocSinh hoặc từ trường nhập học)
+  static async getStudentsByKhoi(maKhoi, maTruong) {
     try {
-      console.log('🔍 Getting students for khoi:', maKhoi);
-      
-      // Fallback năm nếu no HocKy
-      let namBatDau = '2025'; // Hardcode fallback cho K01
+      console.log('🔍 Getting students for khoi:', maKhoi, 'Trường:', maTruong);
+
+      let namBatDau = '2025';
       const [namHocRows] = await db.execute(
         'SELECT NamHoc FROM HocKy WHERE TrangThai = "Đang học" ORDER BY NamHoc DESC LIMIT 1'
       );
@@ -29,12 +34,8 @@ class PhanLopModel {
         if (maKhoi === 'K02') namBatDau = (namHienTai - 1).toString();
         else if (maKhoi === 'K03') namBatDau = (namHienTai - 2).toString();
         else namBatDau = namHienTai.toString();
-        console.log('📅 Năm bắt đầu cho khối:', namBatDau);
-      } else {
-        console.warn('⚠️ No HocKy "Đang học", fallback namBatDau=2025');
       }
 
-      // Query: HS có lớp (JOIN Lop + Khoi) + HS chưa lớp (KhoaHoc filter)
       const sql = `
         SELECT hs.MaHocSinh, hs.TenHocSinh, hs.KhoaHoc, hs.GioiTinh,
                hs.ToHop AS MaToHop, COALESCE(th.TenToHop, 'Chưa chọn') AS TenToHop,
@@ -43,18 +44,16 @@ class PhanLopModel {
         LEFT JOIN ToHopMon th ON hs.ToHop = th.MaToHop
         LEFT JOIN Lop l ON hs.MaLop = l.MaLop
         WHERE hs.TrangThai = 'Đang học'
+          AND hs.MaTruong = ?  -- LỌC THEO MÃ TRƯỜNG CỦA HỌC SINH
           AND (
-            (l.Khoi = ? )  -- HS có lớp thuộc khối
-            OR 
-            (hs.MaLop IS NULL OR hs.MaLop = '' ) AND LEFT(hs.KhoaHoc, 4) = ?  -- HS chưa lớp, KhoaHoc khớp năm khối
+            (hs.MaLop IS NOT NULL AND hs.MaLop != '' AND l.Khoi = ?)  -- HS đã có lớp thuộc khối
+            OR
+            (hs.MaLop IS NULL OR hs.MaLop = '') AND LEFT(hs.KhoaHoc, 4) = ?  -- HS chưa lớp, năm học phù hợp
           )
         ORDER BY hs.MaLop, hs.ToHop, hs.TenHocSinh
       `;
-      const [rows] = await db.execute(sql, [maKhoi, namBatDau]);
-      console.log(`✅ Found ${rows.length} students for khoi ${maKhoi} (year: ${namBatDau})`);
-      if (rows.length === 0) {
-        console.warn('⚠️ No students: Check HocSinh.TrangThai="Đang học", Lop.Khoi, or KhoaHoc starts with', namBatDau);
-      }
+      const [rows] = await db.execute(sql, [maTruong, maKhoi, namBatDau]);
+      console.log(`✅ Found ${rows.length} students for khoi ${maKhoi} in school ${maTruong}`);
       return rows;
     } catch (error) {
       console.error('❌ Error in getStudentsByKhoi:', error);
@@ -62,10 +61,8 @@ class PhanLopModel {
     }
   }
 
-  // Lấy danh sách lớp theo khối (giữ nguyên, thêm warn nếu 0)
-  static async getClassesByKhoi(maKhoi) {
+  static async getClassesByKhoi(maKhoi, maTruong) {
     try {
-      console.log('🔍 Getting classes for khoi:', maKhoi);
       const [rows] = await db.execute(`
         SELECT l.MaLop, l.TenLop, l.SiSo, l.MaToHop,
                COALESCE(th.TenToHop, 'Chưa chọn') AS TenToHop,
@@ -73,14 +70,10 @@ class PhanLopModel {
         FROM Lop l
         LEFT JOIN ToHopMon th ON l.MaToHop = th.MaToHop
         LEFT JOIN HocSinh hs ON l.MaLop = hs.MaLop AND hs.TrangThai = 'Đang học'
-        WHERE l.Khoi = ? AND l.TrangThai = 'Đang học'
+        WHERE l.Khoi = ? AND l.MaTruong = ? AND l.TrangThai = 'Đang học'
         GROUP BY l.MaLop, l.TenLop, l.SiSo, l.MaToHop, th.TenToHop
         ORDER BY l.TenLop
-      `, [maKhoi]);
-      console.log(`✅ Found ${rows.length} classes for khoi ${maKhoi}`);
-      if (rows.length === 0) {
-        console.warn('⚠️ No classes: Check Lop.Khoi=? and TrangThai="Đang học"');
-      }
+      `, [maKhoi, maTruong]);
       return rows;
     } catch (error) {
       console.error('❌ Error in getClassesByKhoi:', error);
@@ -88,42 +81,45 @@ class PhanLopModel {
     }
   }
 
-  // Các method khác giữ nguyên (saveAssignments, getStudentsInClass, updateStudentClass, getToHopList)
-  static async saveAssignments(assignments) {
+  static async saveAssignments(assignments, maTruong) {
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      console.log(`💾 Saving ${assignments.length} assignments...`);
+
       for (const { MaHocSinh, MaLop } of assignments) {
+        if (MaLop) {
+          const [lopCheck] = await conn.execute('SELECT 1 FROM Lop WHERE MaLop = ? AND MaTruong = ?', [MaLop, maTruong]);
+          if (lopCheck.length === 0) continue;
+        }
+
         await conn.execute(
-          'UPDATE HocSinh SET MaLop = ? WHERE MaHocSinh = ?',
-          [MaLop || null, MaHocSinh]
+          'UPDATE HocSinh SET MaLop = ? WHERE MaHocSinh = ? AND MaTruong = ?',
+          [MaLop || null, MaHocSinh, maTruong]
         );
-        console.log(` ✅ Updated ${MaHocSinh} -> ${MaLop}`);
       }
       await conn.commit();
-      console.log('✅ All assignments saved successfully');
       return { success: true, message: 'Phân lớp thành công!' };
     } catch (err) {
       await conn.rollback();
-      console.error('❌ Error in saveAssignments:', err);
       throw err;
     } finally {
       conn.release();
     }
   }
 
-  static async getStudentsInClass(maLop) {
+  static async getStudentsInClass(maLop, maTruong) {
     try {
+      const [lopCheck] = await db.execute('SELECT 1 FROM Lop WHERE MaLop = ? AND MaTruong = ?', [maLop, maTruong]);
+      if (lopCheck.length === 0) return [];
+
       const [rows] = await db.execute(`
         SELECT hs.MaHocSinh, hs.TenHocSinh, hs.GioiTinh, hs.TrangThai,
                hs.ToHop AS MaToHop, COALESCE(th.TenToHop, 'Chưa chọn') AS TenToHop
         FROM HocSinh hs
         LEFT JOIN ToHopMon th ON hs.ToHop = th.MaToHop
-        WHERE hs.MaLop = ? AND hs.TrangThai = 'Đang học'
+        WHERE hs.MaLop = ? AND hs.TrangThai = 'Đang học' AND hs.MaTruong = ?
         ORDER BY hs.TenHocSinh
-      `, [maLop]);
-      console.log(`✅ Found ${rows.length} students in class ${maLop}`);
+      `, [maLop, maTruong]);
       return rows;
     } catch (error) {
       console.error('❌ Error in getStudentsInClass:', error);
@@ -131,13 +127,17 @@ class PhanLopModel {
     }
   }
 
-  static async updateStudentClass(maHocSinh, maLop) {
+  static async updateStudentClass(maHocSinh, maLop, maTruong) {
     try {
+      if (maLop) {
+        const [lopCheck] = await db.execute('SELECT 1 FROM Lop WHERE MaLop = ? AND MaTruong = ?', [maLop, maTruong]);
+        if (lopCheck.length === 0) return false;
+      }
+
       const [result] = await db.execute(
-        'UPDATE HocSinh SET MaLop = ? WHERE MaHocSinh = ?',
-        [maLop || null, maHocSinh]
+        'UPDATE HocSinh SET MaLop = ? WHERE MaHocSinh = ? AND MaTruong = ?',
+        [maLop || null, maHocSinh, maTruong]
       );
-      console.log(`✅ Updated student ${maHocSinh} to class ${maLop}`);
       return result.affectedRows > 0;
     } catch (error) {
       console.error('❌ Error in updateStudentClass:', error);

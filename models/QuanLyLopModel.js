@@ -33,45 +33,63 @@ class QuanLyLopModel {
   }
 
 
-  static async createClasses(MaKhoi, number, maTruong) {
-    const conn = await db.getConnection();
-    try {
-      await conn.beginTransaction();
+static async createClasses(MaKhoi, number, maTruong) {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
 
-      const [maxRes] = await conn.execute(`
-        SELECT MAX(CAST(SUBSTRING(MaLop, 4) AS UNSIGNED)) AS MaxSeq
-        FROM Lop
-        WHERE Khoi = ? AND MaTruong = ?
-      `, [MaKhoi, maTruong]);
-      const maxSeq = maxRes[0]?.MaxSeq || 0;
+    let created = 0;
+    let seq = 1;
 
-      for (let i = 1; i <= number; i++) {
-        const seq = maxSeq + i;
-        const maLop = `${MaKhoi}${seq.toString().padStart(2, '0')}`;
+    // Lấy danh sách seq đã dùng
+    const [rows] = await conn.execute(`
+      SELECT MaLop 
+      FROM Lop 
+      WHERE Khoi = ? AND MaTruong = ?
+    `, [MaKhoi, maTruong]);
 
-        const [existing] = await conn.execute('SELECT MaLop FROM Lop WHERE MaLop = ? AND MaTruong = ?', [maLop, maTruong]);
-        if (existing.length > 0) {
-          continue;
-        }
+    const usedSeq = new Set();
+    for (const r of rows) {
+      const n = parseInt(r.MaLop.replace(MaKhoi, ''), 10);
+      if (!isNaN(n)) usedSeq.add(n);
+    }
 
-        const tenLop = `Lớp ${seq.toString().padStart(2, '0')} Khối ${MaKhoi.replace('K', '')}`;
-        const trangThaiMacDinh = "Đang học";
+    while (created < number) {
+      while (usedSeq.has(seq)) seq++; // nhảy qua seq đã dùng
 
+      const maLop = `${MaKhoi}${seq.toString().padStart(2, '0')}`;
+      const tenLop = `Lớp ${seq.toString().padStart(2, '0')} Khối ${MaKhoi.replace('K', '')}`;
+      const trangThai = 'Đang học';
+
+      try {
         await conn.execute(`
           INSERT INTO Lop (MaLop, TenLop, MaToHop, TrangThai, Khoi, SiSo, MaTruong)
           VALUES (?, ?, NULL, ?, ?, 0, ?)
-        `, [maLop, tenLop, trangThaiMacDinh, MaKhoi, maTruong]);
-      }
+        `, [maLop, tenLop, trangThai, MaKhoi, maTruong]);
 
-      await conn.commit();
-      return { success: true };
-    } catch (err) {
-      await conn.rollback();
-      throw err;
-    } finally {
-      conn.release();
+        usedSeq.add(seq);
+        created++;
+        seq++;
+      } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+          seq++; // nếu trùng thì nhảy seq khác
+        } else {
+          throw err;
+        }
+      }
     }
+
+    await conn.commit();
+    return { success: true };
+
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
   }
+}
+
 
   static async getTeachers(maTruong) {
     // Chỉ lấy giáo viên thuộc trường
