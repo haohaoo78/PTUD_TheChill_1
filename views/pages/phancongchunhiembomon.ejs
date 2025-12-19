@@ -1,121 +1,691 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Phân công giáo viên</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11" />
-<style>
-  body{font-family:Arial,sans-serif;background:#f4f7fb;margin:0;color:#1a2a44}
-  header{background:#0a1d37;padding:20px 0;text-align:center;color:#fff;font-size:26px;font-weight:bold}
-  .controls label{font-weight:bold;margin-right:5px}
-  select{padding:6px 10px;border-radius:6px;background:white;border:1px solid #b8c2d1;margin-right:15px;font-size:14px}
-  .mode-tabs{margin-top:10px}
-  .mode{padding:8px 18px;border:none;background:#1b2d4f;color:#fff;border-radius:6px;margin-right:8px;cursor:pointer}
-  .mode.active,.mode:hover{background:#274374}
-  .panel{background:#fff;padding:20px;margin-top:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.1)}
-  .hide{display:none}
-  .selectors{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin-bottom:15px}
-  table.grid{width:100%;border-collapse:collapse;margin-top:15px}
-  table.grid th{background:#0a1d37;color:#fff;padding:10px}
-  table.grid td{padding:10px;border-bottom:1px solid #d9e2f1;background:#fff}
-  button{background:#0a1d37;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer}
-  button:hover{background:#1b3a61}
-  .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);align-items:center;justify-content:center}
-  .modal-content{background:#fff;padding:20px;border-radius:10px;width:50%;max-width:500px;box-shadow:0 5px 15px rgba(0,0,0,0.3)}
-  .close{float:right;font-size:24px;cursor:pointer}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phân công giáo viên</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f7fb; margin: 0; color: #1a2a44; }
+    header { background: #0a1d37; padding: 20px 0; text-align: center; color: #fff; font-size: 26px; font-weight: bold; }
+    .controls label { font-weight: bold; margin-right: 5px; }
+    select { padding: 6px 10px; border-radius: 6px; background: white; border: 1px solid #b8c2d1; margin-right: 15px; font-size: 14px; }
+    .mode-tabs { margin-top: 10px; }
+    .mode { padding: 8px 18px; border: none; background: #1b2d4f; color: #fff; border-radius: 6px; margin-right: 8px; cursor: pointer; }
+    .mode.active, .mode:hover { background: #274374; }
+    .panel { background: #fff; padding: 20px; margin-top: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+    .hide { display: none; }
+    .selectors { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; }
+    table.grid { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    table.grid th { background: #0a1d37; color: #fff; padding: 10px; }
+    table.grid td { padding: 10px; border-bottom: 1px solid #d9e2f1; background: #fff; }
+    button { background: #0a1d37; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #1b3a61; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
+    .close { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; color: #aaa; }
+    .close:hover { color: #000; }
+  </style>
 </head>
 <body>
-<header>Phân công giáo viên</header>
-<main>
-  <section>
-    <div class="controls">
-      <label>Năm học:</label>
-      <select id="namhoc-select">
-        <% namHocList.forEach(n => { %>
-          <option value="<%= n %>" <%= n===selectedNamHoc ? 'selected' : '' %>><%= n %></option>
-        <% }) %>
-      </select>
+  <header>Phân công giáo viên</header>
+  <main>
+    <section>
+      <div class="controls">
+        <label>Năm học:</label>
+        <select id="namhoc-select">
+          <% namHocList.forEach(n => { %>
+            <option value="<%= n %>" <%= n === selectedNamHoc ? 'selected' : '' %>><%= n %></option>
+          <% }) %>
+        </select>
 
-      <label>Học kỳ:</label>
-      <select id="kyhoc-select">
-        <% kyHocList.forEach(k => { %>
-          <option value="<%= k %>" <%= k===selectedKyHoc ? 'selected' : '' %>><%= k %></option>
-        <% }) %>
-      </select>
+        <label>Học kỳ:</label>
+        <select id="kyhoc-select">
+          <% kyHocList.forEach(k => { %>
+            <option value="<%= k %>" <%= k === selectedKyHoc ? 'selected' : '' %>><%= k %></option>
+          <% }) %>
+        </select>
 
-      <div class="mode-tabs">
-        <button id="tab-chunhiem" class="mode active">Chủ nhiệm</button>
-        <button id="tab-bomon" class="mode">Bộ môn</button>
+        <div class="mode-tabs">
+          <button id="tab-chunhiem" class="mode active">Chủ nhiệm</button>
+          <button id="tab-bomon" class="mode">Bộ môn</button>
+        </div>
       </div>
+
+      <!-- Tab Chủ nhiệm -->
+      <div id="chunhiem-panel" class="panel">
+        <h3>Phân công giáo viên chủ nhiệm</h3>
+        <table id="classes-table" class="grid">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Mã lớp</th>
+              <th>Tên lớp</th>
+              <th>Giáo viên chủ nhiệm</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab Bộ môn -->
+      <div id="bomon-panel" class="panel hide">
+        <h3>Phân công giáo viên bộ môn</h3>
+        <div class="selectors">
+          <label>Khối:</label>
+          <select id="khoi-select">
+            <option value="">-- Chọn khối --</option>
+            <% khoiList.forEach(k => { %>
+              <option value="<%= k.MaKhoi %>"><%= k.TenKhoi %></option>
+            <% }) %>
+          </select>
+
+          <label>Môn:</label>
+          <select id="mon-select">
+            <option value="">-- Chọn môn --</option>
+          </select>
+
+          <label>Giáo viên:</label>
+          <select id="gv-select">
+            <option value="">-- Chọn giáo viên --</option>
+          </select>
+        </div>
+
+        <table id="classes-bomon-table" class="grid">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Mã lớp</th>
+              <th>Tên lớp</th>
+              <th>Chọn</th>
+              <th>Số tiết môn</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5">Chọn khối và môn để tải lớp</td></tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top: 15px;">
+          <button id="assign-bomon">Phân công bộ môn</button>
+        </div>
+
+        <h3 style="margin-top: 32px;">Danh sách phân công giáo viên bộ môn</h3>
+        <div class="selectors" style="margin-bottom: 15px;">
+          <label>Môn:</label>
+          <select id="filter-mon-select">
+            <option value="">-- Tất cả môn --</option>
+          </select>
+
+          <label>Giáo viên:</label>
+          <select id="filter-gv-select">
+            <option value="">-- Tất cả giáo viên --</option>
+          </select>
+
+          <button id="filter-btn">Lọc</button>
+        </div>
+
+        <table id="assignment-table" class="grid">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Khối</th>
+              <th>Môn</th>
+              <th>Giáo viên</th>
+              <th>Mã lớp</th>
+              <th>Tên lớp</th>
+              <th>Năm học</th>
+              <th>Học kỳ</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="9">Đang tải danh sách phân công...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal chung -->
+  <div id="assign-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="modal-body">Đang tải...</div>
     </div>
-
-    <!-- Tab Chủ nhiệm -->
-    <div id="chunhiem-panel" class="panel">
-      <h3>Phân công giáo viên chủ nhiệm</h3>
-      <table id="classes-table" class="grid">
-        <thead>
-          <tr><th>STT</th><th>Mã lớp</th><th>Tên lớp</th><th>Giáo viên chủ nhiệm</th><th>Thao tác</th></tr>
-        </thead>
-        <tbody><tr><td colspan="5">Đang tải...</td></tr></tbody>
-      </table>
-    </div>
-
-    <!-- Tab Bộ môn -->
-    <div id="bomon-panel" class="panel hide">
-      <h3>Phân công giáo viên bộ môn</h3>
-      <div class="selectors">
-        <label>Khối:</label>
-        <select id="khoi-select"></select>
-        <label>Môn:</label>
-        <select id="mon-select"></select>
-        <label>Giáo viên:</label>
-        <select id="gv-select"></select>
-      </div>
-
-      <table id="classes-bomon-table" class="grid">
-        <thead>
-          <tr><th>STT</th><th>Mã lớp</th><th>Tên lớp</th><th>Chọn</th><th>Số tiết môn</th></tr>
-        </thead>
-        <tbody><tr><td colspan="5">Chọn khối và môn để tải lớp</td></tr></tbody>
-      </table>
-
-      <div style="margin-top:15px;">
-        <button id="assign-bomon">Phân công bộ môn</button>
-      </div>
-
-      <h3 style="margin-top:32px;">Danh sách phân công giáo viên bộ môn</h3>
-      <div class="selectors" style="margin-bottom:15px;">
-        <label>Môn:</label>
-        <select id="filter-mon-select"><option value="">-- Tất cả môn --</option></select>
-        <label>Giáo viên:</label>
-        <select id="filter-gv-select"><option value="">-- Tất cả giáo viên --</option></select>
-        <button id="filter-btn">Lọc</button>
-      </div>
-
-      <table id="assignment-table" class="grid">
-        <thead>
-          <tr><th>STT</th><th>Khối</th><th>Môn</th><th>Giáo viên</th><th>Mã lớp</th><th>Tên lớp</th><th>Năm học</th><th>Học kỳ</th><th>Thao tác</th></tr>
-        </thead>
-        <tbody><tr><td colspan="8">Đang tải danh sách phân công...</td></tr></tbody>
-      </table>
-    </div>
-  </section>
-</main>
-
-<!-- Modal -->
-<div id="assign-modal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h3>Phân công giáo viên</h3>
-    <div id="modal-body">Đang tải...</div>
   </div>
-</div>
 
-<script src="/js/PhanCongChuNhiemBoMon.js"></script>
-<script>
-  if (typeof initPhanCong === 'function') initPhanCong();
-</script>
+  <!-- JS chính -->
+  <script>
+    (function () {
+      function initPhanCong() {
+        if (window.initPhanCongDone) return;
+        window.initPhanCongDone = true;
+
+        // ===== DOM refs =====
+        const tabChunhiem = document.getElementById('tab-chunhiem');
+        const tabBomon = document.getElementById('tab-bomon');
+        const chunhiemPanel = document.getElementById('chunhiem-panel');
+        const bomonPanel = document.getElementById('bomon-panel');
+
+        const namHocSelect = document.getElementById('namhoc-select');
+        const kyHocSelect = document.getElementById('kyhoc-select');
+        const classesTableTbody = document.querySelector('#classes-table tbody');
+
+        const khoiSelect = document.getElementById('khoi-select');
+        const monSelect = document.getElementById('mon-select');
+        const gvSelect = document.getElementById('gv-select');
+        const classesBomonTbody = document.querySelector('#classes-bomon-table tbody');
+        const assignBomonBtn = document.getElementById('assign-bomon');
+
+        const filterMonSelect = document.getElementById('filter-mon-select');
+        const filterGvSelect = document.getElementById('filter-gv-select');
+        const filterBtn = document.getElementById('filter-btn');
+        const assignmentTableTbody = document.querySelector('#assignment-table tbody');
+
+        const modal = document.getElementById('assign-modal');
+        const modalClose = modal?.querySelector('.close');
+        const modalBody = document.getElementById('modal-body');
+
+        // internal state
+        let allAssignments = [];
+
+        // ===== helpers =====
+        const safeVal = (el) => (el ? el.value.trim() : '');
+        const escapeHtml = (str = '') => String(str).replace(/[&<>"'`=\/]/g, s => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;', '`': '&#x60;', '=': '&#x3D;'
+        })[s] || s);
+
+        const showModal = (html) => {
+          if (modalBody) modalBody.innerHTML = html;
+          if (modal) modal.style.display = 'block';
+        };
+        const hideModal = () => { if (modal) modal.style.display = 'none'; };
+
+        modalClose && modalClose.addEventListener('click', hideModal);
+        window.addEventListener('click', e => { if (e.target === modal) hideModal(); });
+
+        // ===== Tab switching =====
+        tabChunhiem?.addEventListener('click', () => {
+          tabChunhiem.classList.add('active');
+          tabBomon?.classList.remove('active');
+          chunhiemPanel?.classList.remove('hide');
+          bomonPanel?.classList.add('hide');
+          loadClasses();
+        });
+
+        tabBomon?.addEventListener('click', () => {
+          tabBomon.classList.add('active');
+          tabChunhiem?.classList.remove('active');
+          bomonPanel?.classList.remove('hide');
+          chunhiemPanel?.classList.add('hide');
+          getKhoiList();
+          loadAssignmentList();
+        });
+
+        // ===== Chủ nhiệm: load classes =====
+        async function loadClasses() {
+          if (!classesTableTbody || !namHocSelect) return;
+          const NamHoc = safeVal(namHocSelect);
+          classesTableTbody.innerHTML = '<tr><td colspan="5">Đang tải...</td></tr>';
+          try {
+            const res = await fetch('/api/phancongchunhiembomon/classes', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ NamHoc })
+            });
+            const { success, classes = [] } = await res.json();
+            if (!success || classes.length === 0) {
+              classesTableTbody.innerHTML = '<tr><td colspan="5">Không có lớp nào</td></tr>';
+              return;
+            }
+            classesTableTbody.innerHTML = classes.map((c, i) => `
+              <tr data-id="${escapeHtml(c.MaLop)}">
+                <td>${i + 1}</td>
+                <td>${escapeHtml(c.MaLop)}</td>
+                <td>${escapeHtml(c.TenLop)}</td>
+                <td>${escapeHtml(c.TenGVCN || 'Chưa phân công')}</td>
+                <td>
+                  <button class="assign-chunhiem">Phân công</button>
+                  <button class="delete-chunhiem" style="background:#d9534f;margin-left:5px;">Xóa</button>
+                </td>
+              </tr>
+            `).join('');
+
+            classesTableTbody.querySelectorAll('.assign-chunhiem').forEach(btn => {
+              btn.onclick = (e) => {
+                const tr = e.target.closest('tr');
+                if (tr) openChunhiemModal(tr.dataset.id);
+              };
+            });
+
+            classesTableTbody.querySelectorAll('.delete-chunhiem').forEach(btn => {
+              btn.onclick = (e) => {
+                const tr = e.target.closest('tr');
+                if (tr) deleteChunhiem(tr.dataset.id);
+              };
+            });
+          } catch (err) {
+            console.error('Lỗi loadClasses:', err);
+            classesTableTbody.innerHTML = '<tr><td colspan="5">Lỗi tải dữ liệu</td></tr>';
+          }
+        }
+
+        // ===== Modal phân công chủ nhiệm =====
+        async function openChunhiemModal(MaLop) {
+          const NamHoc = safeVal(namHocSelect);
+          showModal('<p>Đang tải giáo viên khả dụng...</p>');
+          try {
+            const [availRes, curRes] = await Promise.all([
+              fetch('/api/phancongchunhiembomon/teachers-available', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ NamHoc, MaLop })
+              }),
+              fetch('/api/phancongchunhiembomon/current-gvcn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ MaLop, NamHoc })
+              })
+            ]);
+
+            const availData = await availRes.json();
+            const curData = await curRes.json();
+
+            const teachers = availData.teachers || [];
+            const current = curData.current;
+
+            if (teachers.length === 0) {
+              showModal('<p style="color:red;">Không còn giáo viên nào khả dụng!</p>');
+              return;
+            }
+
+            const options = teachers.map(t => `<option value="${escapeHtml(t.MaGiaoVien)}">${escapeHtml(t.TenGiaoVien)}</option>`).join('');
+            const currentHtml = current ? `<p><strong>Hiện tại:</strong> ${escapeHtml(current.TenGiaoVien)}</p>` : '';
+
+            showModal(`
+              <h3>Phân công chủ nhiệm lớp ${escapeHtml(MaLop)}</h3>
+              ${currentHtml}
+              <select id="gv-select-modal" style="width:100%; padding:8px; margin:10px 0;">${options}</select>
+              <div style="text-align:right; margin-top:15px;">
+                <button id="save-chunhiem" style="padding:8px 16px; background:#0a1d37; color:white; border:none; border-radius:5px;">Xác nhận</button>
+              </div>
+            `);
+
+            document.getElementById('save-chunhiem')?.addEventListener('click', async () => {
+              const MaGVCN = document.getElementById('gv-select-modal')?.value;
+              if (!MaGVCN) {
+                alert('Lỗi: Vui lòng chọn giáo viên');
+                return;
+              }
+
+              hideModal();
+              try {
+                const res = await fetch('/api/phancongchunhiembomon/assign-chunhiem', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ MaLop, NamHoc, MaGVCN, KyHoc: safeVal(kyHocSelect) })
+                });
+                const result = await res.json();
+                alert(result.message);
+                if (result.success) await loadClasses();
+              } catch (err) {
+                console.error(err);
+                alert('Lỗi: Không thể lưu phân công chủ nhiệm');
+              }
+            });
+          } catch (err) {
+            console.error(err);
+            showModal('<p style="color:red;">Lỗi tải dữ liệu giáo viên</p>');
+          }
+        }
+
+        async function deleteChunhiem(MaLop) {
+          if (!confirm('Xóa giáo viên chủ nhiệm của lớp này?')) return;
+          try {
+            const res = await fetch('/api/phancongchunhiembomon/delete-chunhiem', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ MaLop, NamHoc: safeVal(namHocSelect) })
+            });
+            const result = await res.json();
+            alert(result.message);
+            if (result.success) await loadClasses();
+          } catch (err) {
+            console.error(err);
+            alert('Lỗi: Không thể xóa');
+          }
+        }
+
+        // ===== Bộ môn =====
+        async function getKhoiList() {
+          try {
+            const res = await fetch('/api/phancongchunhiembomon/khoi-list', { method: 'POST' });
+            const { khoiList = [] } = await res.json();
+            khoiSelect.innerHTML = khoiList.map(k => `<option value="${escapeHtml(k.MaKhoi)}">${escapeHtml(k.TenKhoi)}</option>`).join('');
+            if (khoiList.length) updateSubjects(khoiList[0].MaKhoi);
+          } catch (err) {
+            console.error('Lỗi getKhoiList:', err);
+          }
+        }
+
+        async function updateSubjects(MaKhoi) {
+          try {
+            const res = await fetch('/api/phancongchunhiembomon/subjects', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ MaKhoi })
+            });
+            const { subjects = [] } = await res.json();
+            monSelect.innerHTML = subjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            if (subjects.length) updateTeachersBySubject(subjects[0]);
+          } catch (err) {
+            console.error('Lỗi updateSubjects:', err);
+          }
+        }
+
+        async function updateTeachersBySubject(TenMonHoc) {
+          if (!TenMonHoc) {
+            gvSelect.innerHTML = '<option value="">-- Chọn môn trước --</option>';
+            return;
+          }
+          try {
+            const res = await fetch('/api/phancongchunhiembomon/teachers-by-subject', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ TenMonHoc, NamHoc: safeVal(namHocSelect), KyHoc: safeVal(kyHocSelect) })
+            });
+            const { teachers = [] } = await res.json();
+            if (teachers.length === 0) {
+              gvSelect.innerHTML = '<option value="">-- Không có giáo viên khả dụng --</option>';
+              classesBomonTbody.innerHTML = '<tr><td colspan="5">Không có giáo viên phù hợp</td></tr>';
+              return;
+            }
+            gvSelect.innerHTML = teachers.map(t => `
+              <option value="${escapeHtml(t.MaGiaoVien)}">
+                ${escapeHtml(t.TenGiaoVien)} (còn ${t.remaining} tiết)
+              </option>
+            `).join('');
+            if (khoiSelect.value) await loadClassesByKhoi(khoiSelect.value);
+          } catch (err) {
+            console.error('Lỗi updateTeachersBySubject:', err);
+            gvSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
+          }
+        }
+
+        async function loadClassesByKhoi(MaKhoi) {
+          classesBomonTbody.innerHTML = '<tr><td colspan="5">Đang tải lớp...</td></tr>';
+          try {
+            const res = await fetch('/api/phancongchunhiembomon/classes-by-khoi', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ MaKhoi })
+            });
+            const { classes = [] } = await res.json();
+            classesBomonTbody.innerHTML = classes.map((c, i) => `
+              <tr data-id="${escapeHtml(c.MaLop)}">
+                <td>${i + 1}</td>
+                <td>${escapeHtml(c.MaLop)}</td>
+                <td>${escapeHtml(c.TenLop)}</td>
+                <td><input type="checkbox" class="bomon-check"></td>
+                <td class="subject-count" data-id="${escapeHtml(c.MaLop)}">-</td>
+              </tr>
+            `).join('');
+            updateClassSubjectCounts();
+          } catch (err) {
+            console.error('Lỗi loadClassesByKhoi:', err);
+            classesBomonTbody.innerHTML = '<tr><td colspan="5">Lỗi tải lớp</td></tr>';
+          }
+        }
+
+        async function updateClassSubjectCounts() {
+          const classIds = Array.from(classesBomonTbody.querySelectorAll('tr')).map(tr => tr.dataset.id).filter(Boolean);
+          if (classIds.length === 0) return;
+          try {
+            const res = await fetch('/api/phancongchunhiembomon/subject-counts', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ClassList: classIds,
+                NamHoc: safeVal(namHocSelect),
+                KyHoc: safeVal(kyHocSelect),
+                TenMonHoc: safeVal(monSelect)
+              })
+            });
+            const { counts = [] } = await res.json();
+            counts.forEach(c => {
+              const el = classesBomonTbody.querySelector(`.subject-count[data-id="${c.MaLop}"]`);
+              if (el) el.textContent = c.count || 0;
+            });
+          } catch (err) {
+            console.error('Lỗi updateClassSubjectCounts:', err);
+          }
+        }
+
+        // ===== PHÂN CÔNG BỘ MÔN - PHIÊN BẢN HOÀN CHỈNH ĐÃ SỬA =====
+        assignBomonBtn?.addEventListener('click', async () => {
+          const MaGiaoVien = safeVal(gvSelect);
+          const TenMonHoc = safeVal(monSelect);
+          const NamHoc = safeVal(namHocSelect);
+          const KyHoc = safeVal(kyHocSelect);
+          const MaKhoi = safeVal(khoiSelect);
+
+          const selectedClasses = Array.from(classesBomonTbody?.querySelectorAll('.bomon-check:checked') || [])
+            .map(cb => cb.closest('tr')?.dataset.id)
+            .filter(Boolean);
+
+          // Kiểm tra đầu vào - luôn hiện thông báo
+          if (!MaGiaoVien) return alert('Cảnh báo: Vui lòng chọn giáo viên');
+          if (!TenMonHoc) return alert('Cảnh báo: Vui lòng chọn môn học');
+          if (selectedClasses.length === 0) return alert('Cảnh báo: Vui lòng chọn ít nhất một lớp');
+
+          const selectedGvOption = gvSelect.selectedOptions[0];
+          const tenGiaoVien = selectedGvOption ? selectedGvOption.textContent.split(' (')[0].trim() : '';
+
+          // Hiển thị loading (sử dụng alert đơn giản hoặc bỏ, ở đây bỏ để tránh blocking)
+          try {
+            // 1. Kiểm tra định mức
+            const checkRes = await fetch('/api/phancongchunhiembomon/check-assign', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ MaGiaoVien, ClassList: selectedClasses, NamHoc, KyHoc, TenMonHoc })
+            });
+            const check = await checkRes.json();
+
+            if (!check.canAssign) {
+              alert(`Không thể phân công: Vượt định mức: ${check.currentLoad} + ${check.addedLoad} > ${check.MAX_LOAD} tiết`);
+              return;
+            }
+
+            // 2. Thực hiện phân công
+            const res = await fetch('/api/phancongchunhiembomon/assign-bomon', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ MaGiaoVien, ClassList: selectedClasses, NamHoc, KyHoc, TenMonHoc })
+            });
+            const result = await res.json();
+
+            // Luôn hiện kết quả
+            alert(result.success ? 'Thành công: ' + (result.message || 'Phân công hoàn tất') : 'Lỗi: ' + (result.message || 'Có lỗi xảy ra'));
+
+            if (result.success) {
+              // Reset checkbox
+              document.querySelectorAll('.bomon-check').forEach(cb => cb.checked = false);
+
+              // Reload toàn bộ dữ liệu
+              await Promise.all([
+                updateTeachersBySubject(TenMonHoc),
+                loadClassesByKhoi(MaKhoi),
+                loadAssignmentList()
+              ]);
+
+              // Tự động lọc danh sách phân công theo môn + giáo viên vừa thêm
+              if (filterMonSelect) {
+                filterMonSelect.value = TenMonHoc;
+                filterMonSelect.dispatchEvent(new Event('change'));
+              }
+
+              setTimeout(() => {
+                if (filterGvSelect && tenGiaoVien) {
+                  let opt = Array.from(filterGvSelect.options).find(o => o.textContent.trim() === tenGiaoVien.trim());
+                  if (!opt) {
+                    opt = new Option(tenGiaoVien, tenGiaoVien);
+                    filterGvSelect.appendChild(opt);
+                  }
+                  filterGvSelect.value = opt.value;
+                  filterBtn?.click();
+                }
+              }, 300);
+            }
+          } catch (err) {
+            console.error('Lỗi nghiêm trọng khi phân công bộ môn:', err);
+            alert('Lỗi kết nối: Không thể thực hiện phân công. Vui lòng kiểm tra mạng hoặc console.');
+          }
+        });
+
+        // ===== Danh sách phân công =====
+        async function loadAssignmentList() {
+          try {
+            const res = await fetch('/api/phancongchunhiembomon/list-assignments', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ NamHoc: safeVal(namHocSelect), KyHoc: safeVal(kyHocSelect) })
+            });
+            const { success, assignments = [] } = await res.json();
+            allAssignments = assignments;
+
+            if (!success || assignments.length === 0) {
+              assignmentTableTbody.innerHTML = '<tr><td colspan="9">Chưa có phân công bộ môn</td></tr>';
+              filterMonSelect && (filterMonSelect.innerHTML = '<option value="">-- Tất cả môn --</option>');
+              filterGvSelect && (filterGvSelect.innerHTML = '<option value="">-- Tất cả giáo viên --</option>');
+              return;
+            }
+
+            const monSet = new Set();
+            const gvByMon = {};
+            assignments.forEach(a => {
+              monSet.add(a.TenMonHoc);
+              if (!gvByMon[a.TenMonHoc]) gvByMon[a.TenMonHoc] = new Set();
+              gvByMon[a.TenMonHoc].add(a.TenGiaoVien);
+            });
+
+            filterMonSelect.innerHTML = '<option value="">-- Tất cả môn --</option>' +
+              Array.from(monSet).sort().map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+
+            filterMonSelect.onchange = () => {
+              const mon = filterMonSelect.value;
+              if (!mon) {
+                filterGvSelect.innerHTML = '<option value="">-- Tất cả giáo viên --</option>';
+                return;
+              }
+              const list = Array.from(gvByMon[mon] || []).sort();
+              filterGvSelect.innerHTML = '<option value="">-- Tất cả giáo viên --</option>' +
+                list.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+            };
+
+            displayAssignments(assignments);
+          } catch (err) {
+            console.error('Lỗi loadAssignmentList:', err);
+            assignmentTableTbody.innerHTML = '<tr><td colspan="9">Lỗi tải danh sách</td></tr>';
+          }
+        }
+
+        function displayAssignments(data) {
+          if (!data.length) {
+            assignmentTableTbody.innerHTML = '<tr><td colspan="9">Không có dữ liệu phù hợp</td></tr>';
+            return;
+          }
+          assignmentTableTbody.innerHTML = data.map((a, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${escapeHtml(a.Khoi || '')}</td>
+              <td>${escapeHtml(a.TenMonHoc || '')}</td>
+              <td>${escapeHtml(a.TenGiaoVien || '')}</td>
+              <td>${escapeHtml(a.MaLop || '')}</td>
+              <td>${escapeHtml(a.TenLop || '')}</td>
+              <td>${escapeHtml(a.NamHoc || '')}</td>
+              <td>${escapeHtml(a.HocKy || '')}</td>
+              <td><button class="delete-bomon-assign" style="background:#d9534f; color:white; border:none; padding:6px 10px; border-radius:4px; font-size:12px;">Xóa</button></td>
+            </tr>
+          `).join('');
+
+          assignmentTableTbody.querySelectorAll('.delete-bomon-assign').forEach(btn => {
+            btn.onclick = async (e) => {
+              const tr = e.target.closest('tr');
+              const maLop = tr.cells[4].textContent.trim();
+              const tenGV = tr.cells[3].textContent.trim();
+              const tenMon = tr.cells[2].textContent.trim();
+
+              if (!confirm(`Xóa phân công môn "${tenMon}" cho GV "${tenGV}" ở lớp "${maLop}"?`)) return;
+
+              try {
+                const res = await fetch('/api/phancongchunhiembomon/delete-bomon-assign', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    MaLop: maLop,
+                    MaGiaoVien: tenGV,
+                    TenMonHoc: tenMon,
+                    NamHoc: safeVal(namHocSelect),
+                    KyHoc: safeVal(kyHocSelect)
+                  })
+                });
+                const result = await res.json();
+                alert(result.message);
+                if (result.success) {
+                  await loadAssignmentList();
+                  await updateTeachersBySubject(safeVal(monSelect));
+                  if (khoiSelect.value) await loadClassesByKhoi(khoiSelect.value);
+                }
+              } catch (err) {
+                console.error(err);
+                alert('Lỗi: Không thể xóa phân công');
+              }
+            };
+          });
+        }
+
+        filterBtn?.addEventListener('click', () => {
+          const mon = safeVal(filterMonSelect);
+          const gv = safeVal(filterGvSelect);
+          const filtered = allAssignments.filter(a => 
+            (!mon || a.TenMonHoc === mon) && (!gv || a.TenGiaoVien === gv)
+          );
+          displayAssignments(filtered);
+        });
+
+        // ===== Events =====
+        khoiSelect?.addEventListener('change', () => updateSubjects(khoiSelect.value));
+        monSelect?.addEventListener('change', () => updateTeachersBySubject(monSelect.value));
+        gvSelect?.addEventListener('change', () => khoiSelect.value && loadClassesByKhoi(khoiSelect.value));
+
+        namHocSelect?.addEventListener('change', () => {
+          loadClasses();
+          loadAssignmentList();
+        });
+        kyHocSelect?.addEventListener('change', loadAssignmentList);
+
+        // Startup
+        if (tabChunhiem?.classList.contains('active')) {
+          loadClasses();
+        } else {
+          getKhoiList();
+          loadAssignmentList();
+        }
+      }
+
+      // Chạy khi DOM ready
+      if (typeof window !== 'undefined') {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initPhanCong);
+        } else {
+          initPhanCong();
+        }
+      }
+    })();
+  </script>
 </body>
 </html>
