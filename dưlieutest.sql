@@ -54,6 +54,7 @@ INSERT INTO Lop (MaLop, TenLop, MaToHop, TrangThai, Khoi, SiSo, MaTruong) VALUES
 -- GiaoVien
 INSERT INTO GiaoVien (MaGiaoVien, TenGiaoVien, GioiTinh, NgaySinh, Email, SDT, TrinhDoChuyenMon, DiaChi, NgayVaoTruong, TrangThai, TenMonHoc, TinhTrangHonNhan, ChucVu, ThamNien, MaTruong)
 VALUES
+('GV004','Le Van Fe','Nam','1978-02-05','gv123@gmail.com','0911223345','Cử nhân Văn','HCM','2012-07-01','Đang công tác','Văn','Độc Thân','Giáo viên','13 năm','T02'),
 ('GV001','Nguyen Van D','Nam','1980-03-10','gv1@gmail.com','0912345678','Cử nhân Toán','HCM','2010-09-01','Đang công tác','Toán','Độc Thân','Giáo viên','15 năm','T01'),
 ('GV002','Tran Thi E','Nữ','1982-11-20','gv2@gmail.com','0987654321','Cử nhân Lý','HCM','2011-08-15','Đang công tác','Lý','Đã Kết Hôn','Giáo viên','14 năm','T01'),
 ('GV003','Le Van F','Nam','1978-02-05','gv3@gmail.com','0911223344','Cử nhân Văn','HCM','2012-07-01','Đang công tác','Văn','Độc Thân','Giáo viên','13 năm','T02'),
@@ -146,11 +147,14 @@ INSERT INTO GVBoMon (MaGVBM, MaLop, NamHoc, HocKy, BoMon) VALUES
 -- GVChuNhiem
 INSERT INTO GVChuNhiem (MaGVCN, MaLop, NamHoc) VALUES
 ('GV001','L01','2025-2026'),
-('GV003','L03','2025-2026');
+('GV003','L03','2025-2026'),
+('GV004','L02','2025-2026'); 
 
 
 -- TaiKhoan
 INSERT INTO TaiKhoan (TenTaiKhoan, MatKhau, LoaiTaiKhoan) VALUES
+('GV004', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Giáo viên'),
+('GVU02', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Giáo vụ'),
 ('TS002', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Thí sinh'),
 ('TS001', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Thí sinh'),
 
@@ -161,6 +165,7 @@ INSERT INTO TaiKhoan (TenTaiKhoan, MatKhau, LoaiTaiKhoan) VALUES
 ('GV003', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Giáo viên'),
 ('GVU01', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Giáo vụ'),
 ('HT001', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Hiệu trưởng'),
+('HT002', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Hiệu trưởng'),
 ('NV001', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Cán bộ SGD'),
 ('QT001', '$2b$10$9eywuUw58WqQM6hOK.hnD.Vs8QvuTHO2hso.azTn4y4U8weUZTauG', 'Quản trị hệ thống');
 
@@ -197,10 +202,10 @@ INSERT INTO YeuCauSuaDiem
 VALUES
 ('YC001','DangXuLy',9,9.5,'Điểm 15 phút 1 sai','minhchung1.jpg','HS001','Diem15_1','Toán','2025-2026','1','GV001','HT001'),
 ('YC002','DangXuLy',8,8.5,'Điểm 15 phút 2 sai','minhchung2.jpg','HS002','Diem15_2','Toán','2025-2026','1','GV002','HT001'),
-('YC003','DangXuLy',9,9.2,'Điểm 15 phút 1 sai','minhchung3.jpg','HS003','Diem15_1','Văn','2025-2026','1','GV003','HT001'),
+('YC003','DangXuLy',9,9.2,'Điểm 15 phút 1 sai','minhchung3.jpg','HS003','Diem15_1','Văn','2025-2026','1','GV003','HT002'),
 ('YC004','DangXuLy',9,9.5,'Điểm 15 phút 1 sai','minhchung1.jpg','HS001','Diem15_2','Toán','2025-2026','1','GV001','HT001'),
 ('YC005','DangXuLy',8,8.5,'Điểm 15 phút 2 sai','minhchung2.jpg','HS002','Diem15_2','Toán','2025-2026','1','GV002','HT001'),
-('YC006','DangXuLy',9,9.2,'Điểm 15 phút 1 sai','minhchung3.jpg','HS003','Diem15_2','Văn','2025-2026','1','GV003','HT001');
+('YC006','DangXuLy',9,9.2,'Điểm 15 phút 1 sai','minhchung3.jpg','HS003','Diem15_2','Văn','2025-2026','1','GV003','HT002');
 
 -- PhongThi
 INSERT INTO PhongThi (MaPhongThi, MaTruong, NgayThi, DiaDiemThi, MaGVCoiThi) VALUES
