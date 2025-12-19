@@ -524,6 +524,14 @@ ALTER TABLE ThiSinhDuThi MODIFY COLUMN TongDiem DECIMAL(5,2);
 
 
 
+ALTER TABLE KetQuaTuyenSinh 
+MODIFY COLUMN TinhTrang VARCHAR(50) DEFAULT 'Chờ xét';
+
+ALTER TABLE KetQuaTuyenSinh 
+ADD CONSTRAINT ck_ketqua_tinhtrang 
+CHECK (TinhTrang IN ('Chờ xét', 'Đậu', 'Rớt', 'Đã nhập học'));
+
+
 --   
 -- -- 1. Thêm cột Khoi vào GVBoMon
 -- ALTER TABLE GVBoMon
@@ -535,5 +543,6 @@ ALTER TABLE ThiSinhDuThi MODIFY COLUMN TongDiem DECIMAL(5,2);
 -- FOREIGN KEY (Khoi) REFERENCES Khoi(MaKhoi)
 -- ON DELETE SET NULL
 -- ON UPDATE CASCADE;
+
 
 
