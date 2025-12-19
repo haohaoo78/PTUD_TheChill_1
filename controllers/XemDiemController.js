@@ -46,10 +46,10 @@ const XemDiemController = {
       }
 
       const scores = await XemDiemModel.getScores(maHS, namHoc, hocKy);
-      const summary = await XemDiemModel.getHanhKiemHocLuc(maHS, namHoc, hocKy);
+      const hocBa = await XemDiemModel.getHocBa(maHS, namHoc, hocKy);
       const student = await XemDiemModel.getStudentInfo(maHS);
 
-      res.json({ success: true, scores, summary, student });
+      res.json({ success: true, scores, hocBa, student });
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: 'Lỗi server' });

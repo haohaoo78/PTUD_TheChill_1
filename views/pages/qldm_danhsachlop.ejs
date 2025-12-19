@@ -1,0 +1,37 @@
+<link rel="stylesheet" href="/css/QuanLyDiemMonHoc.css">
+
+<div class="qldm-container">
+  <h2>Quản lý điểm môn học</h2>
+
+  <section class="class-section">
+    <div class="section-header">
+      <h3>Danh sách lớp</h3>
+    </div>
+
+    <div class="class-grid" id="qldm-class-grid">
+      <% if ((classList || []).length === 0) { %>
+        <div class="empty-note">Chưa có lớp nào được gán.</div>
+      <% } else { %>
+        <% (classList || []).forEach(c => { %>
+          <div class="class-card" data-malop="<%= c.MaLop %>" data-tenlop="<%= c.TenLop || c.MaLop %>">
+            <div class="class-name"><%= c.TenLop || c.MaLop %></div>
+            <div class="class-meta">Mã lớp: <%= c.MaLop %></div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <div class="qldm-actions">
+      <button id="qldm-btn-add" class="btn-primary" disabled>Thêm</button>
+      <button id="qldm-btn-edit" class="btn-secondary" disabled>Sửa</button>
+    </div>
+  </section>
+</div>
+
+<script>
+  window.qldmData = {
+    classList: <%- JSON.stringify(classList || []) %>,
+    namHoc: "<%= typeof namHoc !== 'undefined' ? namHoc : '' %>"
+  };
+</script>
+<script src="/js/QuanLyDiemMonHoc_ClassList.js"></script>

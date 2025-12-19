@@ -1,0 +1,81 @@
+<link rel="stylesheet" href="/css/QuanLyDiemMonHoc.css">
+
+<% const _maLop = typeof maLop !== 'undefined' ? maLop : ''; %>
+<% const _tenLop = typeof tenLop !== 'undefined' ? tenLop : ''; %>
+
+<div class="qldm-container">
+  <div class="qldm-header">
+    <h2>Sửa điểm</h2>
+    <div class="qldm-breadcrumb">
+      <a href="#" data-qldm-nav="/api/quanlydiem/render/classes">Danh sách lớp</a>
+      <span>/</span>
+      <span><%= _tenLop || _maLop || 'Lớp' %></span>
+      <span>/</span>
+      <span>Sửa điểm</span>
+    </div>
+  </div>
+
+  <section class="qldm-form-section">
+    <form id="qldm-edit-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mã học sinh</label>
+          <select id="qldm-mahs">
+            <option value="">-- Chọn học sinh --</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Loại điểm cần sửa</label>
+          <select id="qldm-loaidiem">
+            <option value="">-- Chọn loại điểm --</option>
+            <option value="ThuongXuyen1">Thường xuyên 1</option>
+            <option value="ThuongXuyen2">Thường xuyên 2</option>
+            <option value="ThuongXuyen3">Thường xuyên 3</option>
+            <option value="Diem15_1">15 phút 1</option>
+            <option value="Diem15_2">15 phút 2</option>
+            <option value="GK">Giữa kỳ</option>
+            <option value="CK">Cuối kỳ</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Điểm cũ</label>
+          <input type="text" id="qldm-diemcu" value="" readonly>
+        </div>
+        <div class="form-group">
+          <label>Điểm mới</label>
+          <input type="number" id="qldm-diemmoi" step="0.1" min="0" max="10" placeholder="Nhập điểm mới">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Lý do sửa điểm</label>
+        <textarea id="qldm-lydo" rows="4" placeholder="Nhập lý do..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Minh chứng</label>
+        <input type="file" id="qldm-minhchung">
+        <div class="help-text">Chấp nhận: file/hình/video/văn bản.</div>
+      </div>
+
+      <div class="qldm-actions">
+        <button type="submit" class="btn-primary">Gửi yêu cầu sửa điểm</button>
+        <button type="button" id="qldm-cancel" class="btn-secondary">Hủy</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<script>
+  window.qldmEditData = {
+    maLop: "<%= _maLop %>",
+    tenLop: "<%= _tenLop %>"
+  };
+</script>
+<script src="/js/QuanLyDiemMonHoc_RequestEdit.js"></script>

@@ -34,6 +34,7 @@ const GiaoBaiTapRoutes = require('./routes/GiaoBaiTapRoutes');
 
 const DiemDanhRoutes = require('./routes/DiemDanhRoutes');
 const NhanXetHocSinhRoutes = require('./routes/NhanXetHocSinhRoutes');
+const QuanLyDiemMonHocRoutes = require('./routes/QuanLyDiemMonHocRoutes');
 
 const app = express();
 
@@ -70,17 +71,16 @@ app.use('/api/taotk', taotaikhoanRoutes);
 app.use('/api/quanlytruong', QuanLyTruongRoutes);
 app.use('/api/quanlymonhoc', quanlymonhocRoutes);
 app.use('/api/phanbohocsinhvaotruong', PhanBoHocSinhVaoTruongRoutes)
-
 app.use('/api/xemdiem', XemDiemRoutes)
 app.use('/api/xinphep', XinPhepRoutes)
 app.use('/api/hocphi', HocPhiRoutes)
 app.use('/api/nhaphoc', NhapHocRoutes)
-
 app.use('/api/giaobaitap', GiaoBaiTapRoutes)
 app.use('/api/thongtinhs', ThongTinHSRoutes)
-
 app.use('/api/diemdanh', DiemDanhRoutes)
 app.use('/api/nhanxethocsinh', NhanXetHocSinhRoutes)
+app.use('/api/nhanxethocsinh', QuanLyDiemMonHocRoutes)
+
 
 // TRANG CHÍNH
 app.get('/', (req, res) => {

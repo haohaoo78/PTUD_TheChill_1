@@ -9,19 +9,20 @@
       <select id="namHoc">
         <option value="2023-2024">2023-2024</option>
         <option value="2024-2025">2024-2025</option>
-        <option value="2025-2026">2025-2026</option>
+        <option value="2025-2026" selected>2025-2026</option>
       </select>
     </div>
     <div class="form-group">
       <label for="hocKy">Học kỳ:</label>
       <select id="hocKy">
-        <option value="1">Học kỳ 1</option>
+        <option value="1" selected>Học kỳ 1</option>
         <option value="2">Học kỳ 2</option>
       </select>
     </div>
     <button id="btn-xem" class="btn-primary">Xem Kết Quả</button>
   </div>
 
+  <!-- Thông tin học sinh -->
   <div id="student-info" class="info-box" style="display: none;">
     <h3>Thông tin học sinh</h3>
     <p><strong>Họ tên:</strong> <span id="info-name"></span></p>
@@ -29,26 +30,66 @@
     <p><strong>Lớp:</strong> <span id="info-class"></span></p>
   </div>
 
+  <!-- Bảng điểm chi tiết -->
   <div id="result-section" style="display: none;">
+    <h3 style="text-align: center; color: #2c3e50;">Bảng Điểm Chi Tiết</h3>
     <table class="score-table">
       <thead>
         <tr>
-          <th>Môn Học</th>
-          <th>Điểm Miệng</th>
-          <th>15 Phút</th>
-          <th>1 Tiết</th>
-          <th>Thi HK</th>
-          <th>ĐTB Môn</th>
+          <th rowspan="2">Môn Học</th>
+          <th colspan="3">Điểm Thường Xuyên</th>
+          <th colspan="2">Điểm 15 Phút</th>
+          <th rowspan="2">Giữa Kỳ</th>
+          <th rowspan="2">Cuối Kỳ</th>
+          <th rowspan="2">TB Môn</th>
+        </tr>
+        <tr>
+          <th>TX1</th>
+          <th>TX2</th>
+          <th>TX3</th>
+          <th>15P-1</th>
+          <th>15P-2</th>
         </tr>
       </thead>
       <tbody id="score-body">
-        <!-- Data will be populated here -->
+        <!-- Dữ liệu sẽ được fill bằng JS -->
       </tbody>
     </table>
 
-    <div class="summary-box">
-      <p><strong>Hạnh kiểm:</strong> <span id="hanh-kiem">--</span></p>
-      <p><strong>Học lực:</strong> <span id="hoc-luc">--</span></p>
+    <!-- Phần tổng kết học kỳ (Học bạ) -->
+    <div id="hocba-section" class="card mt-4" style="display: none;">
+      <div class="card-header bg-warning text-dark text-center">
+        <h4>Tổng Kết Học Kỳ</h4>
+      </div>
+      <div class="card-body">
+        <div class="row text-center mb-4">
+          <div class="col-md-3">
+            <strong>Hạnh kiểm:</strong><br>
+            <span id="hanh-kiem" class="text-primary font-weight-bold">--</span>
+          </div>
+          <div class="col-md-3">
+            <strong>Học lực:</strong><br>
+            <span id="hoc-luc" class="text-success font-weight-bold">--</span>
+          </div>
+          <div class="col-md-3">
+            <strong>Điểm tổng kết:</strong><br>
+            <span id="diem-tong-ket" class="text-danger font-weight-bold">--</span>
+          </div>
+          <div class="col-md-3">
+            <strong>Rèn luyện:</strong><br>
+            <span id="ren-luyen" class="text-info font-weight-bold">--</span>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="mt-4">
+          <h5 class="text-center text-primary">Nhận xét của Giáo viên chủ nhiệm</h5>
+          <div class="border p-4 bg-light rounded" style="min-height: 120px; font-style: italic;">
+            <p id="nhan-xet">Chưa có nhận xét</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

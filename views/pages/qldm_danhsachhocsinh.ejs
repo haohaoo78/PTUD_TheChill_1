@@ -1,0 +1,99 @@
+<link rel="stylesheet" href="/css/QuanLyDiemMonHoc.css">
+
+<% const _students = typeof students !== 'undefined' ? students : []; %>
+<% const _selectedClass = typeof selectedClass !== 'undefined' ? selectedClass : ''; %>
+<% const _selectedClassName = typeof selectedClassName !== 'undefined' ? selectedClassName : ''; %>
+<% const _selectedNamHoc = typeof selectedNamHoc !== 'undefined' ? selectedNamHoc : ''; %>
+<% const _selectedHocKy = typeof selectedHocKy !== 'undefined' ? selectedHocKy : ''; %>
+<% const _mode = typeof mode !== 'undefined' ? mode : 'add'; %>
+
+<div class="qldm-container">
+  <div class="qldm-header">
+    <h2>Danh sách học sinh</h2>
+    <div class="qldm-breadcrumb">
+      <a href="#" data-qldm-nav="/api/quanlydiem/render/classes">Danh sách lớp</a>
+      <span>/</span>
+      <span><%= _selectedClassName || _selectedClass || 'Chưa chọn lớp' %></span>
+    </div>
+  </div>
+
+  <section class="score-section">
+    <div class="section-header">
+      <h3>Lớp: <%= _selectedClassName || _selectedClass %></h3>
+      <div class="selected-class">
+        Năm học: <%= _selectedNamHoc || '—' %> · Học kỳ: <%= _selectedHocKy || '—' %>
+      </div>
+    </div>
+
+    <div class="score-table-wrapper">
+      <table class="score-table" id="qldm-score-table">
+        <thead>
+          <tr>
+            <th class="hidden-col" rowspan="2">Mã HS</th>
+            <th rowspan="2">STT</th>
+            <th rowspan="2">Họ tên</th>
+            <th rowspan="2">Ngày sinh</th>
+            <th rowspan="2">Giới tính</th>
+            <th rowspan="2">Lớp</th>
+            <th rowspan="2">Năm học</th>
+            <th rowspan="2">Kỳ</th>
+            <th colspan="3">Thường xuyên</th>
+            <th colspan="2">15p</th>
+            <th rowspan="2">GK</th>
+            <th rowspan="2">CK</th>
+            <th rowspan="2">Trung bình</th>
+          </tr>
+          <tr>
+            <th>1</th>
+            <th>2</th>
+            <th>3</th>
+            <th>1</th>
+            <th>2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% _students.forEach((hs, idx) => { %>
+            <tr>
+              <td class="hidden-col"><%= hs.MaHocSinh %></td>
+              <td><%= idx + 1 %></td>
+              <td><%= hs.TenHocSinh || '' %></td>
+              <td><%= hs.Birthday ? hs.Birthday.toString().slice(0,10) : '' %></td>
+              <td><%= hs.GioiTinh || '' %></td>
+              <td><%= _selectedClassName || _selectedClass %></td>
+              <td><%= _selectedNamHoc %></td>
+              <td><%= _selectedHocKy %></td>
+              <% const _lockIfValue = (v) => (_mode === 'add' && v !== null && v !== undefined && v !== '') ? 'disabled' : ''; %>
+              <td><input class="qldm-score" data-field="ThuongXuyen1" type="number" step="0.1" min="0" max="10" value="<%= hs.ThuongXuyen1 ?? '' %>" <%= _lockIfValue(hs.ThuongXuyen1 ?? '') %>></td>
+              <td><input class="qldm-score" data-field="ThuongXuyen2" type="number" step="0.1" min="0" max="10" value="<%= hs.ThuongXuyen2 ?? '' %>" <%= _lockIfValue(hs.ThuongXuyen2 ?? '') %>></td>
+              <td><input class="qldm-score" data-field="ThuongXuyen3" type="number" step="0.1" min="0" max="10" value="<%= hs.ThuongXuyen3 ?? '' %>" <%= _lockIfValue(hs.ThuongXuyen3 ?? '') %>></td>
+              <td><input class="qldm-score" data-field="Diem15_1" type="number" step="0.1" min="0" max="10" value="<%= hs.Diem15_1 ?? '' %>" <%= _lockIfValue(hs.Diem15_1 ?? '') %>></td>
+              <td><input class="qldm-score" data-field="Diem15_2" type="number" step="0.1" min="0" max="10" value="<%= hs.Diem15_2 ?? '' %>" <%= _lockIfValue(hs.Diem15_2 ?? '') %>></td>
+              <td><input class="qldm-score" data-field="GK" type="number" step="0.1" min="0" max="10" value="<%= hs.GK ?? '' %>" <%= _lockIfValue(hs.GK ?? '') %>></td>
+              <td><input class="qldm-score" data-field="CK" type="number" step="0.1" min="0" max="10" value="<%= hs.CK ?? '' %>" <%= _lockIfValue(hs.CK ?? '') %>></td>
+              <td><input class="qldm-tbm" type="text" readonly value="<%= hs.TrungBinhMon ?? '' %>"></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <div id="qldm-empty-note" class="empty-note <%= _students.length ? 'hidden' : '' %>">Chưa có dữ liệu.</div>
+    </div>
+
+    <div class="qldm-actions">
+      <button id="qldm-btn-save-scores" class="btn-primary" <%= _selectedClass ? '' : 'disabled' %>>
+        Xác nhận thêm điểm
+      </button>
+    </div>
+  </section>
+</div>
+
+<script>
+  window.qldmData = {
+    selectedClass: "<%= _selectedClass %>",
+    selectedClassName: "<%= _selectedClassName %>",
+    selectedNamHoc: "<%= _selectedNamHoc %>",
+    selectedHocKy: "<%= _selectedHocKy %>",
+    mode: "<%= _mode %>",
+    students: <%- JSON.stringify(_students || []) %>
+  };
+</script>
+<script src="/js/QuanLyDiemMonHoc_StudentList.js"></script>
