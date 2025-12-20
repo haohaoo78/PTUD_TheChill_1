@@ -1,4 +1,3 @@
-// js/ThoiKhoaBieu.js
 // ========================
 // BIẾN DOM CHÍNH
 // ========================
@@ -179,6 +178,7 @@ function createRow(tt, p) {
         ${validSubjects.map(s => `<option value="${s.TenMonHoc}" ${cell.subject === s.TenMonHoc ? 'selected' : ''}>${s.TenMonHoc}</option>`).join('')}
       </select>
       <div class="teacher" id="teacher-${d}-${p}">${cell.teacher || ''}</div>
+      <div class="conflict-warning" id="conflict-${d}-${p}" style="display:none;"></div>
     </td>`;
   }
   return row + '</tr>';
@@ -194,7 +194,14 @@ function attachSubjectChangeEvents() {
       const Thu = this.dataset.thu;
       const Tiet = this.dataset.tiet;
       const div = document.getElementById(`teacher-${Thu}-${Tiet}`);
+      const conflictDiv = document.getElementById(`conflict-${Thu}-${Tiet}`);
       const f = FilterForm;
+
+      // Ẩn cảnh báo cũ
+      if (conflictDiv) {
+        conflictDiv.style.display = 'none';
+        conflictDiv.innerText = '';
+      }
 
       // ===== Nếu xóa môn khỏi cell =====
       if (!TenMonHoc) {
@@ -218,8 +225,50 @@ function attachSubjectChangeEvents() {
         div.innerText = '';
         div.classList.remove('missing');
         this.classList.remove('warning');
-        await updateSubjectIndicators(); // 🔹 Gọi cập nhật tổng số tiết
+        this.classList.remove('conflict-block');
+        await updateSubjectIndicators();
         return;
+      }
+
+      // ===== Kiểm tra trùng tiết =====
+      try {
+        const conflictRes = await fetch('/api/thoikhoabieu/checkSubjectConflict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            MaLop: f.MaLop.value,
+            NamHoc: f.NamHoc.value,
+            KyHoc: f.KyHoc.value,
+            LoaiTKB: f.LoaiTKB.value,
+            Thu: Thu === "8" ? "CN" : Thu,
+            TietHoc: Tiet,
+            TenMonHoc
+          })
+        });
+
+        const conflictData = await conflictRes.json();
+
+        if (conflictData.conflict) {
+          if (conflictData.blockSelection) {
+            // Trùng với TKB chuẩn -> Không cho chọn
+            showMessage(conflictData.message, 'error');
+            this.value = ''; // Reset lại về trống
+            div.innerText = '';
+            return;
+          } else {
+            // Trùng với TKB tuần -> Hiển thị cảnh báo nhưng vẫn cho chọn
+            if (conflictDiv) {
+              conflictDiv.innerText = conflictData.message;
+              conflictDiv.style.display = 'block';
+              conflictDiv.style.color = '#ff9800';
+              conflictDiv.style.fontSize = '11px';
+              conflictDiv.style.marginTop = '3px';
+            }
+            showMessage(conflictData.message, 'warn');
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi khi kiểm tra trùng tiết:', err);
       }
 
       // ===== Lấy giáo viên cho môn =====
@@ -238,7 +287,7 @@ function attachSubjectChangeEvents() {
       }
 
       // ===== Cập nhật lại toàn bộ chỉ số tiết =====
-      await updateSubjectIndicators(); // 🔹 Gọi cập nhật tổng số tiết
+      await updateSubjectIndicators();
     });
   });
 }
@@ -302,6 +351,9 @@ async function updateSubjectIndicators() {
   }
 }
 
+// ========================
+// LƯU TKB
+// ========================
 document.getElementById('save-timetable').addEventListener('click', async () => {
   const f = FilterForm;
   const timetableData = [];
@@ -360,7 +412,6 @@ document.getElementById('save-timetable').addEventListener('click', async () => 
     showMessage('Lỗi khi lưu TKB.', 'error');
   }
 });
-
 
 // ========================
 // RESET TKB

@@ -1,4 +1,3 @@
-// models/ThoiKhoaBieu.js
 const db = require('../config/database');
 
 class ThoiKhoaBieu {
@@ -49,7 +48,7 @@ class ThoiKhoaBieu {
   static async getSubjectsWithTeacherByClass(MaLop, NamHoc, KyHoc) {
     if (!MaLop || !NamHoc || !KyHoc) return [];
     const [rows] = await db.execute(`
-      SELECT DISTINCT m.TenMonHoc, g.TenGiaoVien
+      SELECT DISTINCT m.TenMonHoc, g.TenGiaoVien, g.MaGiaoVien
       FROM GVBoMon gbm
       JOIN GiaoVien g ON gbm.MaGVBM = g.MaGiaoVien
       JOIN MonHoc m ON m.TenMonHoc = g.TenMonHoc
@@ -201,6 +200,47 @@ class ThoiKhoaBieu {
   static async getSchoolOfClass(MaLop) {
     const [rows] = await db.execute('SELECT MaTruong FROM Lop WHERE MaLop = ?', [MaLop]);
     return rows[0]?.MaTruong || null;
+  }
+
+  // ===== KIỂM TRA TRÙNG TIẾT =====
+  
+  // Kiểm tra giáo viên có trùng tiết với TKB chuẩn của lớp khác không
+  static async checkTeacherConflictChuan(MaGiaoVien, NamHoc, KyHoc, Thu, TietHoc, MaLopHienTai) {
+    const [rows] = await db.execute(`
+      SELECT t.MaLop, l.TenLop, t.LoaiTKB
+      FROM ThoiKhoaBieu t
+      JOIN Lop l ON t.MaLop = l.MaLop
+      WHERE t.MaGiaoVien = ?
+        AND t.NamHoc = ?
+        AND t.KyHoc = ?
+        AND t.Thu = ?
+        AND t.TietHoc = ?
+        AND t.LoaiTKB = 'Chuan'
+        AND t.MaLop != ?
+      LIMIT 1
+    `, [MaGiaoVien, NamHoc, KyHoc, Thu, TietHoc, MaLopHienTai]);
+    
+    return rows[0] || null;
+  }
+
+  // Kiểm tra giáo viên có trùng tiết với TKB tuần của lớp khác không
+  static async checkTeacherConflictTuan(MaGiaoVien, NamHoc, KyHoc, Thu, TietHoc, MaLopHienTai, LoaiTKBHienTai) {
+    const [rows] = await db.execute(`
+      SELECT t.MaLop, l.TenLop, t.LoaiTKB
+      FROM ThoiKhoaBieu t
+      JOIN Lop l ON t.MaLop = l.MaLop
+      WHERE t.MaGiaoVien = ?
+        AND t.NamHoc = ?
+        AND t.KyHoc = ?
+        AND t.Thu = ?
+        AND t.TietHoc = ?
+        AND t.LoaiTKB != 'Chuan'
+        AND (t.MaLop != ? OR t.LoaiTKB != ?)
+      ORDER BY t.LoaiTKB
+      LIMIT 1
+    `, [MaGiaoVien, NamHoc, KyHoc, Thu, TietHoc, MaLopHienTai, LoaiTKBHienTai]);
+    
+    return rows[0] || null;
   }
 }
 

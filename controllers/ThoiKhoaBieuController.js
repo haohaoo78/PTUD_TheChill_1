@@ -1,4 +1,3 @@
-// controllers/ThoiKhoaBieuController.js
 const ThoiKhoaBieu = require('../models/ThoiKhoaBieuModel');
 
 class ThoiKhoaBieuController {
@@ -108,6 +107,59 @@ class ThoiKhoaBieuController {
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Lỗi khi lấy giáo viên khả dụng' });
+    }
+  }
+
+  // API mới: Kiểm tra môn học có bị trùng tiết không
+  async checkSubjectConflict(req, res) {
+    try {
+      const { MaLop, NamHoc, KyHoc, LoaiTKB, Thu, TietHoc, TenMonHoc } = req.body;
+      
+      if (!TenMonHoc || !NamHoc || !KyHoc || !Thu || !TietHoc) {
+        return res.status(400).json({ error: 'Thiếu tham số' });
+      }
+
+      // Lấy giáo viên dạy môn này cho lớp
+      const teacher = await ThoiKhoaBieu.getTeacher(MaLop, TenMonHoc);
+      if (!teacher || !teacher.MaGiaoVien) {
+        return res.json({ conflict: false, message: '' });
+      }
+
+      const MaGiaoVien = teacher.MaGiaoVien;
+
+      // Kiểm tra trùng với TKB chuẩn
+      const conflictChuan = await ThoiKhoaBieu.checkTeacherConflictChuan(
+        MaGiaoVien, NamHoc, KyHoc, Thu, TietHoc, MaLop
+      );
+
+      if (conflictChuan) {
+        return res.json({
+          conflict: true,
+          type: 'Chuan',
+          message: `Giáo viên ${teacher.TenGiaoVien} đang dạy lớp ${conflictChuan.TenLop} vào tiết này (TKB chuẩn)`,
+          blockSelection: true
+        });
+      }
+
+      // Kiểm tra trùng với TKB tuần
+      const conflictTuan = await ThoiKhoaBieu.checkTeacherConflictTuan(
+        MaGiaoVien, NamHoc, KyHoc, Thu, TietHoc, MaLop, LoaiTKB
+      );
+
+      if (conflictTuan) {
+        return res.json({
+          conflict: true,
+          type: 'Tuan',
+          message: `Cảnh báo: Giáo viên ${teacher.TenGiaoVien} đang dạy lớp ${conflictTuan.TenLop} vào tiết này (${conflictTuan.LoaiTKB})`,
+          blockSelection: false,
+          conflictDetails: conflictTuan
+        });
+      }
+
+      res.json({ conflict: false, message: '' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Lỗi khi kiểm tra trùng tiết' });
     }
   }
 

@@ -1,4 +1,3 @@
-<!-- views/pages/thoikhoabieu.ejs -->
 <link rel="stylesheet" href="/css/ThoiKhoaBieu.css">
 <section class="content">
   <h2>Quản lý Thời Khóa Biểu</h2>
@@ -57,7 +56,15 @@
     </form>
   </div>
 
-  <div class="note">Vui lòng chọn đầy đủ khối, lớp, năm học và học kỳ để hiển thị thời khóa biểu.</div>
+  <div class="note">
+    <strong>Lưu ý:</strong> 
+    <ul style="margin: 5px 0; padding-left: 20px;">
+      <li>Vui lòng chọn đầy đủ khối, lớp, năm học và học kỳ để hiển thị thời khóa biểu</li>
+      <li>Hệ thống sẽ tự động kiểm tra trùng tiết giáo viên khi chọn môn học</li>
+      <li><span style="color: #dc3545;">Không cho phép chọn</span> nếu giáo viên trùng tiết với <strong>TKB chuẩn</strong> của lớp khác</li>
+      <li><span style="color: #ff9800;">Hiển thị cảnh báo</span> nếu giáo viên trùng tiết với <strong>TKB tuần</strong> của lớp khác (vẫn cho phép chọn)</li>
+    </ul>
+  </div>
   <div id="status" class="info"></div>
 
   <div id="timetable-container">
@@ -81,5 +88,74 @@
     </div>
   </div>
 </section>
+
+<style>
+  .note {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 14px;
+  }
+  
+  .note strong {
+    color: #856404;
+  }
+  
+  .note ul {
+    color: #856404;
+  }
+  
+  .conflict-warning {
+    background: #fff3cd;
+    border: 1px solid #ff9800;
+    border-radius: 3px;
+    padding: 4px 6px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #ff9800;
+  }
+  
+  .subject-select.conflict-block {
+    border: 2px solid #dc3545 !important;
+    background: #ffe6e6;
+  }
+  
+  .subject-select.warning {
+    border: 2px solid #ffc107 !important;
+    background: #fff9e6;
+  }
+  
+  #toast-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    display: none;
+  }
+  
+  #toast-message.success {
+    background: #28a745;
+  }
+  
+  #toast-message.error {
+    background: #dc3545;
+  }
+  
+  #toast-message.warn {
+    background: #ff9800;
+  }
+  
+  #toast-message.info {
+    background: #17a2b8;
+  }
+</style>
 
 <script src="/js/ThoiKhoaBieu.js"></script>
