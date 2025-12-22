@@ -34,6 +34,7 @@ const GiaoBaiTapRoutes = require('./routes/GiaoBaiTapRoutes');
 const DiemDanhRoutes = require('./routes/DiemDanhRoutes');
 const NhanXetHocSinhRoutes = require('./routes/NhanXetHocSinhRoutes');
 const QuanLyDiemMonHocRoutes = require('./routes/QuanLyDiemMonHocRoutes');
+const XemThongKeKetQuaRoutes = require('./routes/XemThongKeKetQuaRoutes');
 
 const app = express();
 
@@ -52,7 +53,7 @@ app.use(session({
   saveUninitialized: false,
 }));
 
-// === API ROUTES ===
+// API ROUTES
 app.use('/', DangNhapRoutes);
 app.use('/', DangKyRoutes);
 app.use('/api/thoikhoabieu', ThoiKhoaBieuRoutes);
@@ -79,8 +80,11 @@ app.use('/api/thongtinhs', ThongTinHSRoutes);
 app.use('/api/diemdanh', DiemDanhRoutes);
 app.use('/api/nhanxet', NhanXetHocSinhRoutes);
 app.use('/api/quanlydiem', QuanLyDiemMonHocRoutes);
+app.use('/api/xemthongkeketqua', XemThongKeKetQuaRoutes);
 
-// === ROUTE HỖ TRỢ URL TRỰC TIẾP (QUAN TRỌNG - ĐẶT TRƯỚC TRANG CHỦ) ===
+
+
+// === ROUTE CHO URL TRỰC TIẾP (PHẢI ĐẶT TRƯỚC TRANG CHỦ) ===
 app.get('/:page', (req, res) => {
   const user = req.session.user;
   if (!user) {
@@ -90,13 +94,12 @@ app.get('/:page', (req, res) => {
   const page = req.params.page;
 
   const validPages = [
-    'home',
-    'phancongchunhiembomon', 'duyetyeucausuadiem', 'xemthongkeketqua',
+    'home', 'phancongchunhiembomon', 'duyetyeucausuadiem', 'xemthongkeketqua',
     'quanlylop', 'quanlygiaovien_hocsinh', 'phanlophocsinh', 'thoikhoabieu',
     'diemdanh', 'giaobaitap', 'quanlydiem', 'nhanxet', 'xetdiemrenluyen',
     'xemdiem', 'xinphep', 'hocphi', 'thongtinhs', 'xembaitap', 'xemtkb',
     'dangkytuyensinh', 'nhaphoc', 'taotk', 'quanlytruong', 'quanlymonhoc',
-    'nhapchitieutuyensinh', 'nhapdiemthituyensinh', 'phanbohocsinhvaotruong'
+    'nhapchitieutuyensinh', 'nhapdiemthituyensinh', 'phanbohocsinhvaotruong', 'xemthongkeketqua'
   ];
 
   if (!validPages.includes(page)) {
