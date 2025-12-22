@@ -1,148 +1,155 @@
-<h1>Xem thống kê kết quả</h1>
+<!-- views/pages/xemthongkeketqua.ejs - Chỉ nội dung chính, không header/sidebar/footer -->
 
-<% if (error) { %>
-    <div class="alert alert-danger"><%= error %></div>
-<% } %>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Xem thống kê kết quả</h1>
 
-<form id="thongkeForm" action="/api/xemthongkeketqua/render" method="POST">
-    <% if (user.role === 'Hiệu trưởng' || user.role === 'Giáo viên') { %>
-        <div class="form-group">
-            <label for="maLop">Lớp:</label>
-            <select name="maLop" id="maLop">
-                <option value="">-- Chọn lớp --</option>
-                <% classes.forEach(cls => { %>
-                    <option value="<%= cls.MaLop %>" <%= maLop === cls.MaLop ? 'selected' : '' %>>
-                        <%= cls.TenLop %>
-                    </option>
-                <% }) %>
-            </select>
-        </div>
+    <% if (error) { %>
+        <div class="alert alert-danger text-center"><%= error %></div>
     <% } %>
 
-    <% if (user.role === 'Hiệu trưởng' || user.role === 'Giáo vụ') { %>
-        <div class="form-group">
-            <label for="tenMonHoc">Môn học:</label>
-            <select name="tenMonHoc" id="tenMonHoc">
-                <option value="">-- Chọn môn (tùy chọn) --</option>
-                <% subjects.forEach(sub => { %>
-                    <option value="<%= sub.TenMonHoc %>" <%= tenMonHoc === sub.TenMonHoc ? 'selected' : '' %>>
-                        <%= sub.TenMonHoc %>
-                    </option>
-                <% }) %>
-            </select>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center">
+            <h5>Năm học: <strong><%= currentNamHoc %></strong></h5>
+            <% if (user.role === 'Giáo viên' && gvcnClass) { %>
+                <h5>Lớp chủ nhiệm: <strong><%= gvcnClass %></strong></h5>
+            <% } else if (user.role === 'Hiệu trưởng') { %>
+                <h5>Toàn trường (hoặc chọn lớp bên dưới)</h5>
+            <% } %>
         </div>
-    <% } %>
-
-    <div class="form-group">
-        <label for="namHoc">Năm học:</label>
-        <select name="namHoc" id="namHoc" required>
-            <option value="">-- Chọn năm --</option>
-            <% semesters.forEach(sem => { %>
-                <option value="<%= sem.NamHoc %>" <%= namHoc === sem.NamHoc ? 'selected' : '' %>>
-                    <%= sem.NamHoc %>
-                </option>
-            <% }) %>
-        </select>
     </div>
 
-    <div class="form-group">
-        <label for="kyHoc">Học kỳ:</label>
-        <select name="kyHoc" id="kyHoc" required>
-            <option value="">-- Chọn kỳ --</option>
-            <option value="1" <%= kyHoc === '1' ? 'selected' : '' %>>1</option>
-            <option value="2" <%= kyHoc === '2' ? 'selected' : '' %>>2</option>
-        </select>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form id="thongkeForm" action="/api/xemthongkeketqua/render" method="POST">
+                <% if (user.role === 'Hiệu trưởng') { %>
+                    <div class="form-group mb-3">
+                        <label for="maLop" class="form-label">Lớp (tùy chọn):</label>
+                        <select name="maLop" id="maLop" class="form-select">
+                            <option value="">-- Toàn trường --</option>
+                            <% classes.forEach(cls => { %>
+                                <option value="<%= cls.MaLop %>" <%= maLop === cls.MaLop ? 'selected' : '' %>>
+                                    <%= cls.TenLop %>
+                                </option>
+                            <% }) %>
+                        </select>
+                    </div>
+                <% } %>
+
+                <div class="form-group mb-3">
+                    <label for="kyHoc" class="form-label">Học kỳ:</label>
+                    <select name="kyHoc" id="kyHoc" class="form-select" required>
+                        <option value="1" <%= kyHoc === '1' ? 'selected' : '' %>>Học kỳ 1</option>
+                        <option value="2" <%= kyHoc === '2' ? 'selected' : '' %>>Học kỳ 2</option>
+                    </select>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary me-2">Xem thống kê</button>
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">Hủy</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <button type="submit" id="submitBtn">Xem thống kê</button>
-    <button type="button" id="cancelBtn">Hủy</button>
-</form>
-
-<div id="loader" style="display: none; margin-top: 20px; text-align: center;">Đang tải...</div>
-
-<% if (stats && stats.length > 0) { %>
-    <h2 style="margin-top: 40px;">Kết quả thống kê</h2>
-    
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Môn học</th>
-                <th>Điểm TB</th>
-                <th>Tỷ lệ đạt (%)</th>
-                <th>Tỷ lệ không đạt (%)</th>
-                <th>Tổng HS</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% stats.forEach(stat => { %>
-                <tr>
-                    <td><%= stat.TenMonHoc %></td>
-                    <td><%= stat.DiemTB ? Number(stat.DiemTB).toFixed(2) : '0.00' %></td>
-                    <td><%= stat.TyLeDat ? Number(stat.TyLeDat).toFixed(2) : '0.00' %></td>
-                    <td><%= stat.TyLeKhongDat ? Number(stat.TyLeKhongDat).toFixed(2) : '0.00' %></td>
-                    <td><%= stat.TongHS %></td>
-                </tr>
-            <% }) %>
-        </tbody>
-    </table>
-
-    <div style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 40px; justify-content: center;">
-        <canvas id="pieChart" width="400" height="400"></canvas>
-        <canvas id="barChart" width="600" height="400"></canvas>
+    <div id="loader" class="text-center my-4" style="display: none;">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p class="mt-2">Đang tải dữ liệu...</p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const statsData = JSON.parse('<%- JSON.stringify(stats || []) %>');
+    <% if (stats && stats.length > 0) { %>
+        <div class="mt-5">
+            <h2 class="text-center mb-4">Thống kê điểm các môn học</h2>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover text-center">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Môn học</th>
+                            <th>Điểm TB</th>
+                            <th>Tỷ lệ đạt (%)</th>
+                            <th>Tỷ lệ không đạt (%)</th>
+                            <th>Tổng HS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% stats.forEach(stat => { %>
+                            <tr>
+                                <td><strong><%= stat.TenMonHoc %></strong></td>
+                                <td><%= stat.DiemTB != null ? Number(stat.DiemTB).toFixed(2) : '0.00' %></td>
+                                <td class="text-success"><%= stat.TyLeDat != null ? Number(stat.TyLeDat).toFixed(2) : '0.00' %></td>
+                                <td class="text-danger"><%= stat.TyLeKhongDat != null ? Number(stat.TyLeKhongDat).toFixed(2) : '0.00' %></td>
+                                <td><%= stat.TongHS %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
 
-        if (Array.isArray(statsData) && statsData.length > 0) {
-            const labels = statsData.map(s => s.TenMonHoc || 'Không tên');
-            const tyLeDat = statsData.map(s => s.TyLeDat ? parseFloat(s.TyLeDat) : 0);
-            const diemTB = statsData.map(s => s.DiemTB ? parseFloat(s.DiemTB) : 0);
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <canvas id="pieChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
 
-            const avgDat = tyLeDat.reduce((a, b) => a + b, 0) / tyLeDat.length || 0;
-            const totalDat = avgDat.toFixed(2);
-            const totalKhongDat = (100 - avgDat).toFixed(2);
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const statsData = JSON.parse('<%- JSON.stringify(stats || []) %>');
 
-            new Chart(document.getElementById('pieChart'), {
-                type: 'pie',
-                data: {
-                    labels: ['Đạt', 'Không đạt'],
-                    datasets: [{
-                        data: [totalDat, totalKhongDat],
-                        backgroundColor: ['#36A2EB', '#FF6384'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: 'Tỷ lệ đạt / không đạt tổng thể' },
-                        legend: { position: 'bottom' }
+                const labels = statsData.map(s => s.TenMonHoc || 'Không tên');
+                const tyLeDat = statsData.map(s => s.TyLeDat != null ? parseFloat(s.TyLeDat) : 0);
+                const diemTB = statsData.map(s => s.DiemTB != null ? parseFloat(s.DiemTB) : 0);
+
+                const avgDat = tyLeDat.reduce((a, b) => a + b, 0) / tyLeDat.length || 0;
+                const totalDat = avgDat.toFixed(2);
+                const totalKhongDat = (100 - avgDat).toFixed(2);
+
+                new Chart(document.getElementById('pieChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Đạt', 'Không đạt'],
+                        datasets: [{
+                            data: [totalDat, totalKhongDat],
+                            backgroundColor: ['#36A2EB', '#FF6384'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: 'Tỷ lệ đạt / không đạt tổng thể', font: { size: 16 } },
+                            legend: { position: 'bottom' }
+                        }
                     }
-                }
-            });
+                });
 
-            new Chart(document.getElementById('barChart'), {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Điểm trung bình',
-                        data: diemTB,
-                        backgroundColor: '#36A2EB'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: true, max: 10 } },
-                    plugins: { title: { display: true, text: 'Điểm trung bình theo môn học' } }
-                }
-            });
-        }
-    </script>
-<% } else if (stats !== undefined) { %>
-    <p style="margin-top: 40px; color: red; text-align: center;">Không có dữ liệu thống kê phù hợp với điều kiện đã chọn.</p>
-<% } %>
+                new Chart(document.getElementById('barChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Điểm trung bình',
+                            data: diemTB,
+                            backgroundColor: '#36A2EB',
+                            borderColor: '#2c82c9',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true, max: 10 } },
+                        plugins: { title: { display: true, text: 'Điểm trung bình theo môn học', font: { size: 16 } } }
+                    }
+                });
+            </script>
+        </div>
+    <% } else if (stats !== undefined) { %>
+        <div class="text-center mt-5">
+            <p class="text-danger fs-4">Không có dữ liệu thống kê phù hợp với điều kiện đã chọn.</p>
+        </div>
+    <% } %>
+</div>
 
 <link rel="stylesheet" href="/css/xemthongkeketqua.css">
