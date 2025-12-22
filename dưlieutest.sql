@@ -51,14 +51,32 @@ INSERT INTO Lop (MaLop, TenLop, MaToHop, TrangThai, Khoi, SiSo, MaTruong) VALUES
 ('L08','12A1','TH01','Đang học','K03',35,'T01'),
 ('L09','12B1','TH02','Đang học','K03',32,'T02');
 
--- GiaoVien
-INSERT INTO GiaoVien (MaGiaoVien, TenGiaoVien, GioiTinh, NgaySinh, Email, SDT, TrinhDoChuyenMon, DiaChi, NgayVaoTruong, TrangThai, TenMonHoc, TinhTrangHonNhan, ChucVu, ThamNien, MaTruong)
+
+-- GiaoVien (đã chỉnh TrinhDoChuyenMon chi tiết hơn)
+INSERT INTO GiaoVien
+(MaGiaoVien, TenGiaoVien, GioiTinh, NgaySinh, Email, SDT, TrinhDoChuyenMon, DiaChi,
+ NgayVaoTruong, TrangThai, TenMonHoc, TinhTrangHonNhan, ChucVu, ThamNien, MaTruong)
 VALUES
-('GV004','Le Van Fe','Nam','1978-02-05','gv123@gmail.com','0911223345','Cử nhân Văn','HCM','2012-07-01','Đang công tác','Văn','Độc Thân','Giáo viên','13 năm','T02'),
-('GV001','Nguyen Van D','Nam','1980-03-10','gv1@gmail.com','0912345678','Cử nhân Toán','HCM','2010-09-01','Đang công tác','Toán','Độc Thân','Giáo viên','15 năm','T01'),
-('GV002','Tran Thi E','Nữ','1982-11-20','gv2@gmail.com','0987654321','Cử nhân Lý','HCM','2011-08-15','Đang công tác','Lý','Đã Kết Hôn','Giáo viên','14 năm','T01'),
-('GV003','Le Van F','Nam','1978-02-05','gv3@gmail.com','0911223344','Cử nhân Văn','HCM','2012-07-01','Đang công tác','Văn','Độc Thân','Giáo viên','13 năm','T02'),
-('GV000', 'GV Ảo', 'Nam', '2000-01-01', 'gv.ao@example.com', '0000000000', 'Cử nhân', 'HCM', '2025-09-01', 'Đang công tác', 'EMPTY_WEEK', 'Độc thân', 'Giáo viên', '0', 'T01');
+('GV004','Le Van Fe','Nam','1978-02-05','gv123@gmail.com','0911223345',
+ 'Cử nhân Sư phạm Văn – ĐH Sài Gòn',
+ 'HCM','2012-07-01','Đang công tác','Văn','Độc Thân','Giáo viên','13 năm','T02'),
+
+('GV001','Nguyen Van D','Nam','1980-03-10','gv1@gmail.com','0912345678',
+ 'Cử nhân Sư phạm Toán – ĐH Sư phạm TP.HCM',
+ 'HCM','2010-09-01','Đang công tác','Toán','Độc Thân','Giáo viên','15 năm','T01'),
+
+('GV002','Tran Thi E','Nữ','1982-11-20','gv2@gmail.com','0987654321',
+ 'Cử nhân Sư phạm Lý – ĐH Khoa học Tự nhiên',
+ 'HCM','2011-08-15','Đang công tác','Lý','Đã Kết Hôn','Giáo viên','14 năm','T01'),
+
+('GV003','Le Van F','Nam','1978-02-05','gv3@gmail.com','0911223344',
+ 'Cử nhân Sư phạm Văn – ĐH Sài Gòn',
+ 'HCM','2012-07-01','Đang công tác','Văn','Độc Thân','Giáo viên','13 năm','T02'),
+
+('GV000','GV Ảo','Nam','2000-01-01','gv.ao@example.com','0000000000',
+ 'Cử nhân Sư phạm Tổng hợp – Dữ liệu hệ thống',
+ 'HCM','2025-09-01','Đang công tác','EMPTY_WEEK','Độc thân','Giáo viên','0 năm','T01');
+
 
 -- HieuTruong
 INSERT INTO HieuTruong (MaHieuTruong, TenHieuTruong, NgaySinh, GioiTinh, Email, SDT, NgayNhanChuc, DiaChi, GhiChu, ThoiGianCongTac, MaTruong)
@@ -418,5 +436,4 @@ VALUES
 update thoikhoabieu
 set Ngay = "2025-12-22"
 where MaLop = "L01";
-
 
