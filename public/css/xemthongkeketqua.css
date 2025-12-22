@@ -1,0 +1,200 @@
+/* /css/xemthongkeketqua.css */
+
+/* Reset và cơ bản */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Form styles */
+#thongkeForm {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.form-group select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Buttons */
+#submitBtn, #cancelBtn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+}
+
+#submitBtn {
+    background: #007bff;
+    color: #fff;
+    margin-right: 10px;
+}
+
+#submitBtn:hover {
+    background: #0056b3;
+}
+
+#cancelBtn {
+    background: #dc3545;
+    color: #fff;
+}
+
+#cancelBtn:hover {
+    background: #c82333;
+}
+
+/* Loader */
+#loader {
+    display: none;
+    text-align: center;
+    font-size: 18px;
+    color: #007bff;
+    margin: 20px auto;
+}
+
+/* Alert */
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+}
+
+/* Table styles */
+.table {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th, .table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.table th {
+    background: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+.table tr:hover {
+    background: #f1f1f1;
+}
+
+/* Charts container */
+div[style*="display: flex; flex-wrap: wrap; gap: 40px; justify-content: center;"] {
+    max-width: 1200px;
+    margin: 40px auto;
+}
+
+/* Canvas styles */
+canvas {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* No data message */
+p[style*="color: red; text-align: center;"] {
+    font-size: 18px;
+    margin: 40px auto;
+    max-width: 600px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #thongkeForm {
+        padding: 15px;
+    }
+
+    .form-group select {
+        font-size: 14px;
+    }
+
+    #submitBtn, #cancelBtn {
+        width: 100%;
+        margin: 10px 0 0;
+    }
+
+    #submitBtn {
+        margin-right: 0;
+    }
+
+    .table {
+        font-size: 14px;
+    }
+
+    .table th, .table td {
+        padding: 10px;
+    }
+
+    canvas {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    div[style*="display: flex;"] {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* H1 và H2 */
+h1, h2 {
+    text-align: center;
+    color: #333;
+    margin: 20px 0;
+}
+
+h1 {
+    font-size: 28px;
+}
+
+h2 {
+    font-size: 24px;
+}
