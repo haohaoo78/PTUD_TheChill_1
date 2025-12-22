@@ -129,6 +129,115 @@ class QuanLyTruongModel {
     const [rows] = await db.execute(q, p);
     return rows[0].count > 0;
   }
+    // ==================== QUẢN LÝ HIỆU TRƯỞNG ====================
+
+  // Lấy thông tin hiệu trưởng của một trường (nếu có)
+  static async getHieuTruongByMaTruong(MaTruong) {
+    try {
+      const [rows] = await db.execute(
+        `SELECT * FROM HieuTruong WHERE MaTruong = ?`,
+        [MaTruong]
+      );
+      return rows[0] || null;
+    } catch (err) {
+      console.error('Lỗi getHieuTruongByMaTruong:', err);
+      throw err;
+    }
+  }
+
+  // Thêm hiệu trưởng mới cho trường
+  static async createHieuTruong(hieuTruongData) {
+    const {
+      MaHieuTruong,
+      TenHieuTruong,
+      NgaySinh,
+      GioiTinh,
+      Email,
+      SDT,
+      NgayNhanChuc,
+      DiaChi,
+      GhiChu,
+      ThoiGianCongTac = 0,
+      MaTruong
+    } = hieuTruongData;
+
+    try {
+      // Kiểm tra xem trường đã có hiệu trưởng chưa
+      const existing = await this.getHieuTruongByMaTruong(MaTruong);
+      if (existing) {
+        throw new Error('Trường này đã có hiệu trưởng');
+      }
+
+      const [result] = await db.execute(
+        `INSERT INTO HieuTruong 
+         (MaHieuTruong, TenHieuTruong, NgaySinh, GioiTinh, Email, SDT, 
+          NgayNhanChuc, DiaChi, GhiChu, ThoiGianCongTac, MaTruong)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [MaHieuTruong, TenHieuTruong, NgaySinh, GioiTinh, Email, SDT,
+         NgayNhanChuc, DiaChi, GhiChu, ThoiGianCongTac, MaTruong]
+      );
+      return result;
+    } catch (err) {
+      console.error('Lỗi createHieuTruong:', err);
+      throw err;
+    }
+  }
+
+  // Cập nhật thông tin hiệu trưởng
+  static async updateHieuTruong(MaTruong, hieuTruongData) {
+    const {
+      TenHieuTruong,
+      NgaySinh,
+      GioiTinh,
+      Email,
+      SDT,
+      NgayNhanChuc,
+      DiaChi,
+      GhiChu,
+      ThoiGianCongTac
+    } = hieuTruongData;
+
+    try {
+      const [result] = await db.execute(
+        `UPDATE HieuTruong 
+         SET TenHieuTruong = ?, NgaySinh = ?, GioiTinh = ?, Email = ?, SDT = ?,
+             NgayNhanChuc = ?, DiaChi = ?, GhiChu = ?, ThoiGianCongTac = ?
+         WHERE MaTruong = ?`,
+        [TenHieuTruong, NgaySinh, GioiTinh, Email, SDT,
+         NgayNhanChuc, DiaChi, GhiChu, ThoiGianCongTac || 0, MaTruong]
+      );
+      return result;
+    } catch (err) {
+      console.error('Lỗi updateHieuTruong:', err);
+      throw err;
+    }
+  }
+
+  // Xóa hiệu trưởng của trường (nếu cần)
+  static async deleteHieuTruong(MaTruong) {
+    try {
+      const [result] = await db.execute(
+        `DELETE FROM HieuTruong WHERE MaTruong = ?`,
+        [MaTruong]
+      );
+      return result;
+    } catch (err) {
+      console.error('Lỗi deleteHieuTruong:', err);
+      throw err;
+    }
+  }
+
+  // Kiểm tra email hiệu trưởng đã tồn tại chưa (tránh trùng)
+  static async isEmailHieuTruongExists(Email, excludeMaTruong = null) {
+    let query = `SELECT COUNT(*) as count FROM HieuTruong WHERE Email = ?`;
+    let params = [Email];
+    if (excludeMaTruong) {
+      query += ` AND MaTruong != ?`;
+      params.push(excludeMaTruong);
+    }
+    const [rows] = await db.execute(query, params);
+    return rows[0].count > 0;
+  }
 }
 
 module.exports = QuanLyTruongModel;

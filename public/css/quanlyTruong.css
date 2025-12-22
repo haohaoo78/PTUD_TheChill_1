@@ -10,7 +10,258 @@
     width: 100%;
     box-sizing: border-box;
 }
+#modal-hieutruong .modal-content {
+  max-width: 800px;
+  width: 90%;
+}
 
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  flex: 1;
+}
+
+.form-group.full-width {
+  flex: none;
+  width: 100%;
+}
+
+#modal-hieutruong label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+#modal-hieutruong input,
+#modal-hieutruong select,
+#modal-hieutruong textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.required {
+  color: red;
+}
+
+.btn-save {
+  background: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#btn-cancel-ht {
+  background: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+/* ====================== MODAL HIỆU TRƯỞNG - STYLE GIỐNG ẢNH ====================== */
+#modal-hieutruong {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+}
+
+#modal-hieutruong .modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+  padding: 20px;
+}
+
+#modal-hieutruong .modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+}
+
+#modal-hieutruong .modal-close:hover {
+  color: #000;
+}
+
+#modal-hieutruong h3 {
+  text-align: center;
+  color: #007bff; /* Màu xanh dương giống tiêu đề trong ảnh */
+  font-size: 24px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* Layout 2 cột */
+#modal-hieutruong .form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+#modal-hieutruong .form-group {
+  flex: 1;
+}
+
+#modal-hieutruong .form-group.full-width {
+  flex: none;
+  width: 100%;
+}
+
+/* Label */
+#modal-hieutruong label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #555;
+  font-size: 14px;
+}
+
+#modal-hieutruong .required {
+  color: red;
+}
+
+/* Input, Select, Textarea */
+#modal-hieutruong input,
+#modal-hieutruong select,
+#modal-hieutruong textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  box-sizing: border-box;
+  background-color: #f8f9fa;
+}
+
+#modal-hieutruong input:focus,
+#modal-hieutruong select:focus,
+#modal-hieutruong textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  background-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
+/* Nút hành động */
+#modal-hieutruong .modal-actions {
+  text-align: center;
+  margin-top: 30px;
+}
+
+#modal-hieutruong .modal-actions button {
+  padding: 10px 24px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+#modal-hieutruong .modal-actions .btn-save { /* Nút Lưu */
+  background-color: #007bff;
+  color: white;
+}
+
+#modal-hieutruong .modal-actions .btn-save:hover {
+  background-color: #0056b3;
+}
+
+#modal-hieutruong .modal-actions #btn-cancel-ht { /* Nút Hủy */
+  background-color: #6c757d;
+  color: white;
+}
+
+#modal-hieutruong .modal-actions #btn-cancel-ht:hover {
+  background-color: #545b62;
+}
+
+/* ====================== CẢI THIỆN MODAL TRƯỜNG (nếu muốn giống luôn) ====================== */
+#modal-truong .modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 25px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+#modal-truong h3 {
+  color: #007bff;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+#modal-truong label {
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 6px;
+  display: block;
+}
+
+#modal-truong input,
+#modal-truong select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  font-size: 15px;
+}
+
+#modal-truong input:focus,
+#modal-truong select:focus {
+  border-color: #007bff;
+  background-color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
+#modal-truong .modal-actions {
+  text-align: center;
+  margin-top: 25px;
+}
+
+#modal-truong .modal-actions button {
+  padding: 10px 24px;
+  margin: 0 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#modal-truong #btn-save {
+  background-color: #007bff;
+  color: white;
+}
+
+#modal-truong #btn-cancel {
+  background-color: #6c757d;
+  color: white;
+}
 h2 {
     text-align: left;
     color: #1e40af; /* Màu xanh đậm cho tiêu đề */

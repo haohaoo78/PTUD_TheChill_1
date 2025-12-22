@@ -94,6 +94,72 @@
       </form>
     </div>
   </div>
+<!-- MODAL HIỆU TRƯỞNG ĐẦY ĐỦ -->
+<div id="modal-hieutruong" class="modal">
+  <div class="modal-content modal-lg"> <!-- modal-lg để rộng hơn -->
+    <span id="close-ht" class="modal-close">×</span>
+    <h3 id="ht-modal-title">Thông tin Hiệu Trưởng</h3>
+
+    <form id="form-hieutruong">
+      <input type="hidden" id="HT_MaTruong">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tên Hiệu Trưởng <span class="required">*</span></label>
+          <input type="text" id="TenHieuTruong" required>
+        </div>
+
+        <div class="form-group">
+          <label>Giới Tính <span class="required">*</span></label>
+          <select id="GioiTinhHT" required>
+            <option value="">-- Chọn --</option>
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ngày Sinh</label>
+          <input type="date" id="NgaySinhHT">
+        </div>
+
+        <div class="form-group">
+          <label>Ngày Nhận Chức <span class="required">*</span></label>
+          <input type="date" id="NgayNhanChucHT" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="EmailHT">
+        </div>
+
+        <div class="form-group">
+          <label>Số Điện Thoại</label>
+          <input type="text" id="SDTHT">
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Địa Chỉ</label>
+        <input type="text" id="DiaChiHT">
+      </div>
+
+      <div class="form-group full-width">
+        <label>Ghi Chú</label>
+        <textarea id="GhiChuHT" rows="3" placeholder="Ví dụ: Tốt nghiệp ĐH Sư phạm, Thạc sĩ Quản lý giáo dục..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-save">Lưu</button>
+        <button type="button" id="btn-cancel-ht">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
 
   <script src="/js/quanlyTruong.js"></script>
 </body>

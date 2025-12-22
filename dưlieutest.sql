@@ -415,7 +415,8 @@ VALUES
 ('GVU02','Tran Thi I','Nữ','1987-06-20','gvu2@gmail.com','0912000002','456 Đường B, HCM','2016-08-15','Đang công tác','T02'),
 ('GVU03','Le Van J','Nam','1990-01-15','gvu3@gmail.com','0912000003','789 Đường C, HCM','2017-07-10','Đang công tác','T01');
 
-
-
+update thoikhoabieu
+set Ngay = "2025-12-22"
+where MaLop = "L01";
 
 
