@@ -34,7 +34,7 @@ const GiaoBaiTapRoutes = require('./routes/GiaoBaiTapRoutes');
 const DiemDanhRoutes = require('./routes/DiemDanhRoutes');
 const NhanXetHocSinhRoutes = require('./routes/NhanXetHocSinhRoutes');
 const QuanLyDiemMonHocRoutes = require('./routes/QuanLyDiemMonHocRoutes');
-const XemThongKeKetQuaRoutes = require('./routes/XemThongKeKetQuaRoutes');
+
 const app = express();
 
 // VIEW ENGINE
@@ -52,7 +52,7 @@ app.use(session({
   saveUninitialized: false,
 }));
 
-// ROUTES
+// === API ROUTES ===
 app.use('/', DangNhapRoutes);
 app.use('/', DangKyRoutes);
 app.use('/api/thoikhoabieu', ThoiKhoaBieuRoutes);
@@ -69,27 +69,57 @@ app.use('/api/dangkytuyensinh', DangKyTuyenSinhRoutes);
 app.use('/api/taotk', taotaikhoanRoutes);
 app.use('/api/quanlytruong', QuanLyTruongRoutes);
 app.use('/api/quanlymonhoc', quanlymonhocRoutes);
-app.use('/api/phanbohocsinhvaotruong', PhanBoHocSinhVaoTruongRoutes)
-app.use('/api/xemdiem', XemDiemRoutes)
-app.use('/api/xinphep', XinPhepRoutes)
-app.use('/api/hocphi', HocPhiRoutes)
-app.use('/api/nhaphoc', NhapHocRoutes)
-app.use('/api/giaobaitap', GiaoBaiTapRoutes)
-app.use('/api/thongtinhs', ThongTinHSRoutes)
-app.use('/api/diemdanh', DiemDanhRoutes)
-app.use('/api/nhanxet', NhanXetHocSinhRoutes)
-app.use('/api/quanlydiem', QuanLyDiemMonHocRoutes)
-app.use('/api/xemthongkeketqua', XemThongKeKetQuaRoutes)
-// TRANG CHÍNH
+app.use('/api/phanbohocsinhvaotruong', PhanBoHocSinhVaoTruongRoutes);
+app.use('/api/xemdiem', XemDiemRoutes);
+app.use('/api/xinphep', XinPhepRoutes);
+app.use('/api/hocphi', HocPhiRoutes);
+app.use('/api/nhaphoc', NhapHocRoutes);
+app.use('/api/giaobaitap', GiaoBaiTapRoutes);
+app.use('/api/thongtinhs', ThongTinHSRoutes);
+app.use('/api/diemdanh', DiemDanhRoutes);
+app.use('/api/nhanxet', NhanXetHocSinhRoutes);
+app.use('/api/quanlydiem', QuanLyDiemMonHocRoutes);
+
+// === ROUTE HỖ TRỢ URL TRỰC TIẾP (QUAN TRỌNG - ĐẶT TRƯỚC TRANG CHỦ) ===
+app.get('/:page', (req, res) => {
+  const user = req.session.user;
+  if (!user) {
+    return res.redirect('/');
+  }
+
+  const page = req.params.page;
+
+  const validPages = [
+    'home',
+    'phancongchunhiembomon', 'duyetyeucausuadiem', 'xemthongkeketqua',
+    'quanlylop', 'quanlygiaovien_hocsinh', 'phanlophocsinh', 'thoikhoabieu',
+    'diemdanh', 'giaobaitap', 'quanlydiem', 'nhanxet', 'xetdiemrenluyen',
+    'xemdiem', 'xinphep', 'hocphi', 'thongtinhs', 'xembaitap', 'xemtkb',
+    'dangkytuyensinh', 'nhaphoc', 'taotk', 'quanlytruong', 'quanlymonhoc',
+    'nhapchitieutuyensinh', 'nhapdiemthituyensinh', 'phanbohocsinhvaotruong'
+  ];
+
+  if (!validPages.includes(page)) {
+    return res.render('index', { page: 'home', user });
+  }
+
+  res.render('index', { page, user });
+});
+
+// === TRANG CHỦ ===
 app.get('/', (req, res) => {
   const user = req.session.user;
-  if (!user) return res.render('index', { page: 'dangnhap', user: null });
+  if (!user) {
+    return res.render('index', { page: 'dangnhap', user: null });
+  }
   res.render('index', { page: 'home', user });
 });
 
-// 404
-app.use((req, res) => res.status(404).json({ success: false, message: 'Không tìm thấy trang.' }));
+// === 404 ===
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Không tìm thấy trang.' });
+});
 
-// START SERVER
+// === START SERVER ===
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server chạy tại http://localhost:${PORT}`));
