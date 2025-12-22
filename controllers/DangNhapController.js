@@ -75,13 +75,14 @@ class DangNhapController {
         );
         maHocSinh = rows[0]?.MaHocSinh || null;
       }
-
-       if (loaiTaiKhoan === 'Học sinh') {
+      let maLop = null;
+      if (loaiTaiKhoan === 'Học sinh') {
         const [rows] = await db.execute(
-          'SELECT MaHocSinh FROM HocSinh WHERE MaHocSinh = ?',
+          'SELECT MaHocSinh, MaLop FROM HocSinh WHERE MaHocSinh = ?',
           [entityId]
         );
         maHocSinh = rows[0]?.MaHocSinh || entityId;
+        maLop = rows[0]?.MaLop || null;   // 🔑 DÒNG QUYẾT ĐỊNH
       }
       // ===== 2.5. Kiểm tra vai trò GIÁO VIÊN
       let isGVBoMon = false;
@@ -110,6 +111,7 @@ class DangNhapController {
         loaiTaiKhoan,         // CÓ DẤU (GIỮ NGUYÊN)
         entityId,             // SĐT phụ huynh
         maHocSinh,            // ✅ MÃ CON
+        MaLop: maLop,        // 🔥 THÊM DÒNG NÀY
         isAuthenticated: true,
         maTruong,
          // ✅ THÊM 2 CỜ PHÂN QUYỀN GV
