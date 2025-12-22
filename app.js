@@ -34,7 +34,7 @@ const GiaoBaiTapRoutes = require('./routes/GiaoBaiTapRoutes');
 const DiemDanhRoutes = require('./routes/DiemDanhRoutes');
 const NhanXetHocSinhRoutes = require('./routes/NhanXetHocSinhRoutes');
 const QuanLyDiemMonHocRoutes = require('./routes/QuanLyDiemMonHocRoutes');
-const xemthongkeketqua = require('./routes/xemthongkeketqua');
+const XemThongKeKetQuaRoutes = require('./routes/XemThongKeKetQuaRoutes');
 const app = express();
 
 // VIEW ENGINE
@@ -79,8 +79,7 @@ app.use('/api/thongtinhs', ThongTinHSRoutes)
 app.use('/api/diemdanh', DiemDanhRoutes)
 app.use('/api/nhanxet', NhanXetHocSinhRoutes)
 app.use('/api/quanlydiem', QuanLyDiemMonHocRoutes)
-
-app.use('/api/xemthongkeketqua', xemthongkeketqua)
+app.use('/api/xemthongkeketqua', XemThongKeKetQuaRoutes)
 // TRANG CHÍNH
 app.get('/', (req, res) => {
   const user = req.session.user;
