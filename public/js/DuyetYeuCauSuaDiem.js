@@ -87,7 +87,7 @@ async function fetchRequestDetails(id) {
       <p><strong>Giáo viên:</strong> ${yc.TenGiaoVien || '—'}</p>
       <p><strong>Học sinh:</strong> ${yc.TenHocSinh || '—'} (${yc.MaHocSinh || '—'})</p>
       <p><strong>Lớp:</strong> ${yc.TenLop || '—'}</p>
-      <p><strong>Môn:</strong> ${yc.TenMonHoc || '—'}</p>
+      <p><strong>Môn:</strong> ${yc.Mon || '—'}</p>
       <p><strong>Năm học:</strong> ${yc.NamHoc || '—'}</p>
       <p><strong>Học kỳ:</strong> ${yc.HocKi || '—'}</p>
       <p><strong>Điểm cũ:</strong> ${yc.DiemCu ?? '—'}</p>

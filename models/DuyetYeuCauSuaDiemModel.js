@@ -155,6 +155,15 @@ class DuyetYeuCauSuaDiemModel {
         AND l.MaTruong = ?
     `, [maYeuCau, maTruong]);
 
+    if (rows[0]) {
+      // Xử lý minh chứng: nếu có, chuyển thành array
+      if (rows[0].MinhChung) {
+        rows[0].MinhChung = rows[0].MinhChung.split(',').map(s => s.trim()).filter(s => s);
+      } else {
+        rows[0].MinhChung = [];
+      }
+    }
+
     return rows[0] || null;
   }
 }
