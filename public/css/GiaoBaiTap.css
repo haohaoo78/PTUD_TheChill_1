@@ -114,6 +114,12 @@
   font-size: 14px;
 }
 
+.readonly-input[readonly] {
+  background: #eef1f6;
+  font-weight: 600;
+  color: #333;
+}
+
 .btn-primary {
   align-self: flex-start;
   padding: 10px 16px;
@@ -184,6 +190,13 @@
   right: 10px;
   cursor: pointer;
   font-size: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .hidden {

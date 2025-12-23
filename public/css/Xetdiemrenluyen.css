@@ -367,9 +367,38 @@ tbody tr:hover {
   border: 1px solid #0b3d91;
 }
 
+.modal-content textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #0b3d91;
+  resize: vertical;
+}
+
 .modal-content button {
   margin-top: 15px;
   width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.modal-actions .btn {
+  width: 50%;
+  margin-top: 0;
+}
+
+.modal-actions .btn.secondary {
+  background-color: #4a4f57;
+  color: #fff;
+}
+
+.modal-actions .btn.secondary:hover {
+  background-color: #3a3f46;
 }
 
 /* Close button */

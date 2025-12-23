@@ -1,12 +1,17 @@
 // JS cho chức năng nhận xét học sinh: load danh sách lớp, chọn lớp -> load học sinh
 (function () {
-  const data = window.nxData || { classList: [], students: [], selectedClass: '' };
-  const classGrid = document.getElementById('nx-class-grid');
-  const studentTableBody = document.querySelector('#nx-student-table tbody');
-  const selectedLabel = document.getElementById('nx-selected-class-label');
-  const commentSection = document.querySelector('.comment-section');
-  const bulkInput = document.getElementById('nx-bulk-comment');
-  const bulkBtn = document.getElementById('nx-bulk-btn');
+  function initNhanXetHocSinh() {
+    const root = document.querySelector('.nx-container');
+    if (!root || root.dataset.nxInit === '1') return;
+    root.dataset.nxInit = '1';
+
+    const data = window.nxData || { classList: [], students: [], selectedClass: '' };
+    const classGrid = document.getElementById('nx-class-grid');
+    const studentTableBody = document.querySelector('#nx-student-table tbody');
+    const selectedLabel = document.getElementById('nx-selected-class-label');
+    const commentSection = document.querySelector('.comment-section');
+    const bulkInput = document.getElementById('nx-bulk-comment');
+    const bulkBtn = document.getElementById('nx-bulk-btn');
 
   async function loadClasses() {
     try {
@@ -167,10 +172,14 @@
     });
   }
 
-  // Khởi động
-  setSelectedClass(data.selectedClass || '');
-  renderStudents(data.students || []);
-  loadClasses();
-  bindClassClick();
-  bindBulkComment();
+    // Khởi động
+    setSelectedClass(data.selectedClass || '');
+    renderStudents(data.students || []);
+    loadClasses();
+    bindClassClick();
+    bindBulkComment();
+  }
+
+  window.initNhanXetHocSinh = initNhanXetHocSinh;
+  initNhanXetHocSinh();
 })();

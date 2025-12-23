@@ -30,32 +30,52 @@ class QuanLyHSGVController {
   // HỌC SINH
   async getHocSinh(req, res) {
     try {
-      const { namHoc, maLop } = req.query;
+      const { maLop } = req.query;
       // Lấy mã GVCN từ session đăng nhập
       const maGiaoVien = req.session?.user?.username || null;
       if (!maGiaoVien) {
         return res.status(401).json({ success: false, message: 'Chưa đăng nhập hoặc không có mã giáo viên chủ nhiệm' });
       }
 
-      // Ưu tiên năm học đang diễn ra, nếu client không truyền
-      let effectiveNamHoc = namHoc;
-      if (!effectiveNamHoc) {
-        effectiveNamHoc = await QLModel.getCurrentNamHoc();
-      }
-      if (!effectiveNamHoc) {
-        return res.status(400).json({ success: false, message: 'Không xác định được năm học hiện tại' });
+      const currentHocKy = await QLModel.getCurrentNamHocKyHoc();
+      if (!currentHocKy?.NamHoc || !currentHocKy?.KyHoc) {
+        return res.status(400).json({ success: false, message: 'Không xác định được năm học/học kỳ hiện tại' });
       }
 
       // Lấy các lớp mà giáo viên này chủ nhiệm trong năm học
-      const classes = await QLModel.getClasses(maGiaoVien, effectiveNamHoc, maLop);
+      const classes = await QLModel.getClasses(maGiaoVien, currentHocKy.NamHoc, maLop);
       if (!classes || classes.length === 0) {
-        return res.json({ success: true, data: [], namHoc: effectiveNamHoc, message: 'Giáo viên chưa chủ nhiệm lớp nào trong năm học này' });
+        return res.json({
+          success: true,
+          data: [],
+          namHoc: currentHocKy.NamHoc,
+          hocKy: currentHocKy.KyHoc,
+          message: 'Giáo viên chưa chủ nhiệm lớp nào trong năm học này'
+        });
       }
 
       // Chỉ chấp nhận MaLop thuộc danh sách lớp của giáo viên; nếu không, chọn lớp đầu tiên
       const lopId = classes.find(c => c.MaLop === maLop)?.MaLop || classes[0].MaLop;
-      const data = await QLModel.getStudentList(lopId, effectiveNamHoc);
-      res.json({ success: true, data, namHoc: effectiveNamHoc, maLop: lopId });
+      let data = [];
+      const hocKyNum = Number(currentHocKy.KyHoc);
+      if (hocKyNum === 2) {
+        const hk1List = await QLModel.getStudentList(lopId, currentHocKy.NamHoc, 1);
+        const hk2List = await QLModel.getStudentList(lopId, currentHocKy.NamHoc, 2);
+        const hk2Map = new Map(hk2List.map(hs => [hs.MaHocSinh, hs]));
+        data = hk1List.flatMap(hk1 => {
+        const hk2 = hk2Map.get(hk1.MaHocSinh) || { ...hk1, HocKy: 2, HanhKiem: '', RenLuyen: '' };
+        return [hk1, hk2];
+      });
+      } else {
+        data = await QLModel.getStudentList(lopId, currentHocKy.NamHoc, 1);
+      }
+      res.json({
+        success: true,
+        data,
+        namHoc: currentHocKy.NamHoc,
+        hocKy: currentHocKy.KyHoc,
+        maLop: lopId
+      });
     } catch (err) {
       res.json({ success: false, message: err.message });
     }
@@ -171,11 +191,11 @@ class QuanLyHSGVController {
 
   async updateHocBa(req, res) {
     try {
-      const { maHS, namHoc, hocKy, HanhKiem, RenLuyen, NhanXet } = req.body;
+      const { maHS, namHoc, hocKy, HanhKiem, RenLuyen } = req.body;
       if (!maHS || !namHoc || !hocKy) {
         return res.json({ success: false, message: 'Thiếu thông tin bắt buộc (maHS, namHoc, hocKy)' });
       }
-      await QLModel.updateHocBa(maHS, namHoc, hocKy, { HanhKiem, RenLuyen, NhanXet });
+      await QLModel.updateHocBa(maHS, namHoc, hocKy, { HanhKiem, RenLuyen });
       res.json({ success: true, message: 'Cập nhật thành công' });
     } catch (err) {
       res.json({ success: false, message: err.message });

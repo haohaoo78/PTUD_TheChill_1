@@ -193,9 +193,9 @@ class QuanLyDiemMonHocModel {
         AND d.TenMonHoc = ?
         AND d.NamHoc = ?
         AND d.HocKi = ?
-       WHERE hs.MaLop = ? AND hs.KhoaHoc = ? AND hs.TrangThai = 'Đang học'
+       WHERE hs.MaLop = ? AND hs.TrangThai = 'Đang học'
        ORDER BY hs.TenHocSinh`,
-      [tenMonHoc, namHoc, hocKi, maLop, namHoc]
+      [tenMonHoc, namHoc, hocKi, maLop]
     );
     return rows;
   }

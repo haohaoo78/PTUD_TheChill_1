@@ -1,10 +1,15 @@
 // UI danh sách lớp + chọn lớp + bật nút thêm/sửa
 (function () {
-  const data = window.qldmData || { classList: [] };
-  const grid = document.getElementById('qldm-class-grid');
-  const btnAdd = document.getElementById('qldm-btn-add');
-  const btnEdit = document.getElementById('qldm-btn-edit');
-  const main = document.getElementById('main-content');
+  function initQldmClassList() {
+    const root = document.querySelector('.qldm-container');
+    if (!root || root.dataset.qldmInit === '1') return;
+    root.dataset.qldmInit = '1';
+
+    const data = window.qldmData || { classList: [] };
+    const grid = document.getElementById('qldm-class-grid');
+    const btnAdd = document.getElementById('qldm-btn-add');
+    const btnEdit = document.getElementById('qldm-btn-edit');
+    const main = document.getElementById('main-content');
 
   let selected = null; // { MaLop, TenLop }
 
@@ -103,10 +108,14 @@
     });
   }
 
-  setButtonsEnabled(false);
-  bindSelection();
-  bindButtons();
+    setButtonsEnabled(false);
+    bindSelection();
+    bindButtons();
 
-  // Ưu tiên dữ liệu từ API để đảm bảo mới nhất
-  loadClasses();
+    // Ưu tiên dữ liệu từ API để đảm bảo mới nhất
+    loadClasses();
+  }
+
+  window.initQldmClassList = initQldmClassList;
+  initQldmClassList();
 })();

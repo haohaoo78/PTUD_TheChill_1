@@ -1,14 +1,24 @@
 // Basic client-side interactions for giao bài tập page
 (function () {
-  const data = window.gbtData || { classList: [], assignments: [], selectedClass: '' };
-  const classGrid = document.getElementById('class-grid');
-  const assignList = document.getElementById('assign-list');
-  const selectedLabel = document.getElementById('selected-class-label');
-  const form = document.getElementById('assign-form');
-  const modal = document.getElementById('assign-modal');
-  const modalClose = document.getElementById('assign-modal-close');
-  const modalForm = document.getElementById('assign-modal-form');
-  const assignSection = document.querySelector('.assign-section');
+  function initGiaoBaiTap() {
+    const root = document.querySelector('.gbt-container');
+    if (!root || root.dataset.gbtInit === '1') return;
+    root.dataset.gbtInit = '1';
+
+    const data = window.gbtData || { classList: [], assignments: [], selectedClass: '' };
+    const classGrid = document.getElementById('class-grid');
+    const assignList = document.getElementById('assign-list');
+    const selectedLabel = document.getElementById('selected-class-label');
+    const form = document.getElementById('assign-form');
+    const modal = document.getElementById('assign-modal');
+    const modalClose = document.getElementById('assign-modal-close');
+    const modalForm = document.getElementById('assign-modal-form');
+    const confirmModal = document.getElementById('assign-confirm-modal');
+    const confirmClose = document.getElementById('assign-confirm-close');
+    const confirmCancel = document.getElementById('assign-confirm-cancel');
+    const confirmOk = document.getElementById('assign-confirm-ok');
+    const assignSection = document.querySelector('.assign-section');
+    let pendingAddPayload = null;
 
   async function loadClasses() {
     try {
@@ -133,19 +143,7 @@
 
   modalClose?.addEventListener('click', () => (modal.style.display = 'none'));
 
-  modalForm?.addEventListener('submit', async e => {
-    e.preventDefault();
-    const payload = {
-      MaBaiTap: document.getElementById('modal-assign-id')?.value || '',
-      NoiDung: document.getElementById('modal-assign-content')?.value || '',
-      NgayHetHan: document.getElementById('modal-assign-duedate')?.value || '',
-      MaLop: document.getElementById('modal-assign-class')?.value || data.selectedClass || ''
-    };
-    if (!payload.NoiDung || !payload.NgayHetHan || !payload.MaLop) {
-      alert('Vui lòng nhập đủ nội dung, hạn nộp và mã lớp.');
-      return;
-    }
-    const isEdit = !!payload.MaBaiTap;
+  async function saveAssignment(payload, isEdit) {
     const url = isEdit ? `/api/giaobaitap/assignments/${payload.MaBaiTap}` : '/api/giaobaitap/assignments';
     const method = isEdit ? 'PUT' : 'POST';
     const body = {
@@ -164,12 +162,49 @@
         alert(result.message || 'Lưu thất bại');
         return;
       }
-      modal.style.display = 'none';
+      if (confirmModal) confirmModal.style.display = 'none';
+      if (modal) modal.style.display = 'none';
+      pendingAddPayload = null;
       await loadAssignments(payload.MaLop);
     } catch (err) {
       console.error(err);
       alert('Lỗi server');
     }
+  }
+
+  modalForm?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const payload = {
+      MaBaiTap: document.getElementById('modal-assign-id')?.value || '',
+      NoiDung: document.getElementById('modal-assign-content')?.value || '',
+      NgayHetHan: document.getElementById('modal-assign-duedate')?.value || '',
+      MaLop: document.getElementById('modal-assign-class')?.value || data.selectedClass || ''
+    };
+    if (!payload.NoiDung || !payload.NgayHetHan || !payload.MaLop) {
+      alert('Vui lòng nhập đủ nội dung, hạn nộp và mã lớp.');
+      return;
+    }
+    const isEdit = !!payload.MaBaiTap;
+    if (isEdit) {
+      await saveAssignment(payload, true);
+      return;
+    }
+    pendingAddPayload = payload;
+    if (confirmModal) confirmModal.style.display = 'flex';
+  });
+
+  confirmClose?.addEventListener('click', () => {
+    if (confirmModal) confirmModal.style.display = 'none';
+  });
+  confirmCancel?.addEventListener('click', () => {
+    if (confirmModal) confirmModal.style.display = 'none';
+  });
+  confirmOk?.addEventListener('click', async () => {
+    if (!pendingAddPayload) {
+      if (confirmModal) confirmModal.style.display = 'none';
+      return;
+    }
+    await saveAssignment(pendingAddPayload, false);
   });
 
   function initClassClick() {
@@ -199,10 +234,14 @@
     });
   }
 
-  // Initial render with server data
-  renderAssignments(data.assignments || []);
-  setSelectedClass(data.selectedClass || '', false);
-  initClassClick();
-  initForm();
-  loadClasses();
+    // Initial render with server data
+    renderAssignments(data.assignments || []);
+    setSelectedClass(data.selectedClass || '', false);
+    initClassClick();
+    initForm();
+    loadClasses();
+  }
+
+  window.initGiaoBaiTap = initGiaoBaiTap;
+  initGiaoBaiTap();
 })();

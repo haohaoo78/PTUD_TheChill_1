@@ -78,7 +78,7 @@
             </div>
             <div class="form-group">
               <label for="assign-class">Mã lớp</label>
-              <input type="text" id="assign-class" placeholder="Nhập mã lớp">
+              <input type="text" id="assign-class" class="readonly-input" placeholder="Nhập mã lớp" readonly>
             </div>
           </div>
           <button type="submit" class="btn-primary">Thêm bài tập</button>
@@ -106,10 +106,22 @@
       </div>
       <div class="form-group">
         <label for="modal-assign-class">Mã lớp</label>
-        <input type="text" id="modal-assign-class" placeholder="Nhập mã lớp">
+        <input type="text" id="modal-assign-class" class="readonly-input" placeholder="Nhập mã lớp" readonly>
       </div>
       <button type="submit" class="btn-primary">Lưu</button>
     </form>
+  </div>
+</div>
+
+<div id="assign-confirm-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="assign-confirm-close" class="modal-close">&times;</span>
+    <h3>Xác nhận thêm bài tập</h3>
+    <p>Bạn có chắc chắn muốn thêm bài tập này không?</p>
+    <div class="modal-actions">
+      <button id="assign-confirm-cancel" type="button" class="btn-secondary">Hủy</button>
+      <button id="assign-confirm-ok" type="button" class="btn-primary">Xác nhận</button>
+    </div>
   </div>
 </div>
 
@@ -119,5 +131,8 @@
     assignments: <%- JSON.stringify(assignments || []) %>,
     selectedClass: "<%= selectedClass || '' %>"
   };
+</script>
+<script>
+  if (window.initGiaoBaiTap) window.initGiaoBaiTap();
 </script>
 <script src="/js/GiaoBaiTap.js"></script>

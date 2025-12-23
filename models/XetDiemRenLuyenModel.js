@@ -24,6 +24,17 @@ class QLModel {
     return list[0]?.NamHoc || null;
   }
 
+  static async getCurrentNamHocKyHoc() {
+    const [rows] = await db.execute(
+      `SELECT NamHoc, KyHoc
+       FROM HocKy
+       WHERE TrangThai = 'Đang học'
+       ORDER BY NamHoc DESC, KyHoc
+       LIMIT 1`
+    );
+    return rows[0] || null;
+  }
+
   // GIÁO VIÊN CHỦ NHIỆM
   static async getTeacherList(namHoc) {
     let sql = `
@@ -60,27 +71,24 @@ class QLModel {
   }
 
   // HỌC SINH
-  static async getStudentList(maLop, namHoc) {
-    if (!maLop || !namHoc) return [];
+  static async getStudentList(maLop, namHoc, hocKy) {
+    if (!maLop || !namHoc || !hocKy) return [];
     let sql = `
       SELECT hs.MaHocSinh, hs.TenHocSinh, hs.Birthday, hs.GioiTinh, hs.TrangThai,
              l.MaLop, l.TenLop,
+             ? AS HocKy,
              hb.HanhKiem,
-             hb.RenLuyen,
-             hb.NhanXet
+             hb.RenLuyen
       FROM HocSinh hs
       JOIN Lop l ON hs.MaLop = l.MaLop
       LEFT JOIN HocBa hb 
         ON hs.MaHocSinh = hb.MaHocSinh
         AND hb.NamHoc = ?
-        AND hb.HocKy = (
-          SELECT MAX(HocKy)
-          FROM HocBa
-          WHERE MaHocSinh = hs.MaHocSinh AND NamHoc = ?
-        )
+        AND hb.HocKy = ?
       WHERE l.MaLop = ?
+        AND hs.TrangThai = 'Đang học'
     `;
-    const params = [namHoc, namHoc, maLop];
+    const params = [hocKy, namHoc, hocKy, maLop];
     sql += ' ORDER BY hs.TenHocSinh ASC';
     const [rows] = await db.execute(sql, params);
     return rows;
@@ -131,15 +139,13 @@ class QLModel {
   static async updateHocBa(maHS, namHoc, hocKy, data) {
     const hanhKiem = data.HanhKiem || null;
     const renLuyen = data.RenLuyen || null;
-    const nhanXet = data.NhanXet || null;
     await db.execute(
-      `INSERT INTO HocBa (MaHocSinh, NamHoc, HocKy, HanhKiem, RenLuyen, NhanXet)
-       VALUES (?, ?, ?, ?, ?, ?)
+      `INSERT INTO HocBa (MaHocSinh, NamHoc, HocKy, HanhKiem, RenLuyen)
+       VALUES (?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE
          HanhKiem = VALUES(HanhKiem),
-         RenLuyen = VALUES(RenLuyen),
-         NhanXet = VALUES(NhanXet)`,
-      [maHS, namHoc, hocKy, hanhKiem, renLuyen, nhanXet]
+         RenLuyen = VALUES(RenLuyen)`,
+      [maHS, namHoc, hocKy, hanhKiem, renLuyen]
     );
   }
 

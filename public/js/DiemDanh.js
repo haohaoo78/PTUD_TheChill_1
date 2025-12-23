@@ -1,47 +1,52 @@
 // JS cho điểm danh: tải lớp dạy hôm nay, chọn lớp -> tải học sinh
 (function () {
-  const data = window.ddData || { classList: [], students: [], selectedClass: '' };
-  const classGrid = document.getElementById('dd-class-grid');
-  const studentTableBody = document.querySelector('#dd-student-table tbody');
-  const selectedLabel = document.getElementById('dd-selected-class-label');
-  const studentSection = document.querySelector('.student-section');
-  const emptyNote = document.getElementById('dd-empty-note');
-  const confirmBtn = document.getElementById('dd-confirm');
-  const cancelBtn = document.getElementById('dd-cancel');
+  function initDiemDanh() {
+    const root = document.querySelector('.dd-container');
+    if (!root || root.dataset.ddInit === '1') return;
+    root.dataset.ddInit = '1';
 
-  async function loadClassesToday() {
-    try {
-      const res = await fetch('/api/diemdanh/classes-today');
-      const result = await res.json();
-      if (!result.success) {
-        classGrid.innerHTML = '<div class="empty-note">Không tải được danh sách lớp.</div>';
-        return;
-      }
-      data.ngay = result.ngay || new Date().toISOString().slice(0, 10);
-      data.classList = result.classList || [];
-      if (!data.classList.length) {
-        classGrid.innerHTML = '<div class="empty-note">Không có lịch dạy trong ngày.</div>';
-        return;
-      }
-      classGrid.innerHTML = data.classList
-        .map(
-          c => `
-          <div class="class-card" data-malop="${c.MaLop}" data-tiet="${c.TietHoc}" data-mon="${c.TenMonHoc || ''}">
-            <div class="class-name">${c.TenLop || c.MaLop}</div>
-            <div class="class-meta">
-              <span>Mã lớp: ${c.MaLop}</span>
-              <span>Tiết: ${c.TietHoc || ''}</span>
-              <span>Môn: ${c.TenMonHoc || ''}</span>
+    const data = window.ddData || { classList: [], students: [], selectedClass: '' };
+    const classGrid = document.getElementById('dd-class-grid');
+    const studentTableBody = document.querySelector('#dd-student-table tbody');
+    const selectedLabel = document.getElementById('dd-selected-class-label');
+    const studentSection = document.querySelector('.student-section');
+    const emptyNote = document.getElementById('dd-empty-note');
+    const confirmBtn = document.getElementById('dd-confirm');
+    const cancelBtn = document.getElementById('dd-cancel');
+
+    async function loadClassesToday() {
+      try {
+        const res = await fetch('/api/diemdanh/classes-today');
+        const result = await res.json();
+        if (!result.success) {
+          classGrid.innerHTML = '<div class="empty-note">Không tải được danh sách lớp.</div>';
+          return;
+        }
+        data.ngay = result.ngay || new Date().toISOString().slice(0, 10);
+        data.classList = result.classList || [];
+        if (!data.classList.length) {
+          classGrid.innerHTML = '<div class="empty-note">Không có lịch dạy trong ngày.</div>';
+          return;
+        }
+        classGrid.innerHTML = data.classList
+          .map(
+            c => `
+            <div class="class-card" data-malop="${c.MaLop}" data-tiet="${c.TietHoc}" data-mon="${c.TenMonHoc || ''}">
+              <div class="class-name">${c.TenLop || c.MaLop}</div>
+              <div class="class-meta">
+                <span>Mã lớp: ${c.MaLop}</span>
+                <span>Tiết: ${c.TietHoc || ''}</span>
+                <span>Môn: ${c.TenMonHoc || ''}</span>
+              </div>
             </div>
-          </div>
-        `
-        )
-        .join('');
-    } catch (err) {
-      console.error(err);
-      classGrid.innerHTML = '<div class="empty-note">Lỗi tải danh sách lớp.</div>';
+          `
+          )
+          .join('');
+      } catch (err) {
+        console.error(err);
+        classGrid.innerHTML = '<div class="empty-note">Lỗi tải danh sách lớp.</div>';
+      }
     }
-  }
 
   async function loadStudents(maLop) {
     try {
@@ -134,6 +139,14 @@
       const selects = studentTableBody ? studentTableBody.querySelectorAll('.dd-select') : [];
       if (!selects || selects.length === 0) {
         alert('Không có học sinh để điểm danh');
+        return;
+      }
+      let hasEmptyStatus = false;
+      selects.forEach(sel => {
+        if (!sel.value) hasEmptyStatus = true;
+      });
+      if (hasEmptyStatus) {
+        alert('Vui lòng chọn 1 trạng thái.');
         return;
       }
       const records = [];
@@ -230,11 +243,15 @@
     };
   }
 
-  // Khởi động
-  setSelectedClass(data.selectedClass || '', data.selectedClassName || '');
-  renderStudents(data.students || []);
-  loadClassesToday();
-  bindClassClick();
-  bindConfirm();
-  bindCancel();
+    // Khởi động
+    setSelectedClass(data.selectedClass || '', data.selectedClassName || '');
+    renderStudents(data.students || []);
+    loadClassesToday();
+    bindClassClick();
+    bindConfirm();
+    bindCancel();
+  }
+
+  window.initDiemDanh = initDiemDanh;
+  initDiemDanh();
 })();

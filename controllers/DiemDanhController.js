@@ -1,4 +1,4 @@
-const DiemDanhModel = require('../models/DiemDanhModel');
+﻿const DiemDanhModel = require('../models/DiemDanhModel');
 
 class DiemDanhController {
   renderPage(req, res) {
@@ -15,13 +15,19 @@ class DiemDanhController {
       const maGV = req.session?.user?.username;
       if (!maGV) return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
 
-      const namHoc = await DiemDanhModel.getCurrentNamHoc();
-      if (!namHoc) return res.status(400).json({ success: false, message: 'Không tìm thấy năm học đang học' });
+      const hk = await DiemDanhModel.getCurrentNamHocKyHoc();
+      if (!hk?.NamHoc || !hk?.KyHoc) {
+        return res.status(400).json({ success: false, message: 'Không tìm thấy năm học/học kỳ đang học' });
+      }
+
+      // Lưu vào session để dùng các bước sau
+      req.session.ddNamHoc = hk.NamHoc;
+      req.session.ddKyHoc = hk.KyHoc;
 
       const todayISO = new Date().toISOString().slice(0, 10);
-      const classList = await DiemDanhModel.getClassesToday(maGV, namHoc, todayISO);
+      const classList = await DiemDanhModel.getClassesToday(maGV, hk.NamHoc, todayISO, hk.KyHoc);
 
-      res.json({ success: true, namHoc, ngay: todayISO, classList });
+      res.json({ success: true, namHoc: hk.NamHoc, hocKy: hk.KyHoc, ngay: todayISO, classList });
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: 'Lỗi server khi lấy lớp dạy hôm nay' });
@@ -36,7 +42,7 @@ class DiemDanhController {
       const { maLop, ngay, tietHoc, tenMonHoc } = req.query;
       if (!maLop) return res.status(400).json({ success: false, message: 'Thiếu mã lớp' });
 
-      const namHoc = await DiemDanhModel.getCurrentNamHoc();
+      const namHoc = req.session?.ddNamHoc || (await DiemDanhModel.getCurrentNamHoc());
       if (!namHoc) return res.status(400).json({ success: false, message: 'Không tìm thấy năm học đang học' });
 
       const students = await DiemDanhModel.getStudentsByClass(maLop, namHoc, ngay, tietHoc, tenMonHoc);
