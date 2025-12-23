@@ -2,7 +2,7 @@
 (function () {
   if (window.quanLyHSGVInitialized) return;
   window.quanLyHSGVInitialized = false;
-  console.log('quanly_hocsinh_giaovien.js loaded');
+  console.log('quanLyHSGV.js loaded');
   // ======== CHUYỂN GIỮA HS / GV =========
   const hsSection = document.getElementById('hs-section');
   const gvSection = document.getElementById('gv-section');
@@ -282,10 +282,8 @@
   }
   document.getElementById('filter-khoi-hs')?.addEventListener('change', e => loadLop(e.target.value));
   document.getElementById('btn-xem-hs')?.addEventListener('click', () => {
-    const namHoc = document.getElementById('filter-namhoc-hs').value;
-    const khoi = document.getElementById('filter-khoi-hs').value;
     const lop = document.getElementById('filter-lop-hs').value;
-    loadHS({ namHoc, khoi, lop });
+    loadHS({ lop });
   });
   async function loadMonHoc() {
     const res = await fetch('/api/quanlygiaovien_hocsinh/monhoc');
@@ -302,10 +300,9 @@
   document.getElementById('btn-them-gv')?.addEventListener('click', () => openModalGV());
   document.getElementById('btn-them-hs')?.addEventListener('click', () => openModalHS());
   // ======== KHỞI TẠO =========
-  loadNamHoc();
   loadKhoi();
   loadLop();
-  loadHS();
+  loadHS(); // Chỉ load khi chọn lớp
   loadMonHoc();
   loadGV();
 })();

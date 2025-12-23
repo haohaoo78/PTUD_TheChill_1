@@ -35,7 +35,7 @@ class QLModel {
   }
 
   // Chỉ lấy học sinh thuộc lớp của trường giáo vụ
-  static async getStudentList(namHoc, maKhoi, maLop, req) {
+  static async getStudentList(maLop, req) {
     const maTruong = req?.session?.user?.maTruong;
 
     let sql = `
@@ -48,8 +48,6 @@ class QLModel {
     `;
     const params = [];
 
-    if (namHoc) { sql += ' AND hs.KhoaHoc = ?'; params.push(namHoc); }
-    if (maKhoi) { sql += ' AND k.MaKhoi = ?'; params.push(maKhoi); }
     if (maLop) { sql += ' AND l.MaLop = ?'; params.push(maLop); }
     if (maTruong) { sql += ' AND l.MaTruong = ?'; params.push(maTruong); }
 
@@ -58,15 +56,24 @@ class QLModel {
     return rows;
   }
 
-  static async getStudentById(MaHocSinh) {
-    const [rows] = await db.execute(
-      `SELECT hs.MaHocSinh, hs.TenHocSinh, hs.Birthday, hs.GioiTinh, hs.TrangThai,
-              hs.MaLop, l.TenLop, l.Khoi
-       FROM HocSinh hs
-       JOIN Lop l ON hs.MaLop = l.MaLop
-       WHERE hs.MaHocSinh = ?`,
-      [MaHocSinh]
-    );
+  static async getStudentById(MaHocSinh, req) {
+    const maTruong = req?.session?.user?.maTruong;
+
+    let sql = `
+      SELECT hs.MaHocSinh, hs.TenHocSinh, hs.Birthday, hs.GioiTinh, hs.TrangThai,
+             hs.KhoaHoc, l.MaLop, l.TenLop, l.Khoi as MaKhoi, k.TenKhoi
+      FROM HocSinh hs
+      JOIN Lop l ON hs.MaLop = l.MaLop
+      JOIN Khoi k ON l.Khoi = k.MaKhoi
+      WHERE hs.MaHocSinh = ?
+    `;
+    const params = [MaHocSinh];
+    if (maTruong) {
+      sql += ' AND l.MaTruong = ?';
+      params.push(maTruong);
+    }
+
+    const [rows] = await db.execute(sql, params);
     return rows[0] || null;
   }
 
@@ -147,7 +154,7 @@ class QLModel {
 
   static async getMonHocList() {
     const [rows] = await db.execute(
-      "SELECT TenMonHoc FROM MonHoc WHERE TrangThai='Đang dạy' ORDER BY TenMonHoc"
+      "SELECT TenMonHoc FROM MonHoc WHERE TrangThai='Đang dạy' AND TenMonHoc != 'EMPTY_WEEK' ORDER BY TenMonHoc"
     );
     return rows.map(r => r.TenMonHoc);
   }

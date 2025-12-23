@@ -26,8 +26,8 @@ class QuanLyHSGVController {
   // ================= HỌC SINH =================
   async getHocSinh(req, res) {
     try {
-      const { namHoc, khoi, lop } = req.query;
-      const data = await QLModel.getStudentList(namHoc, khoi, lop, req); // Truyền req để lọc MaTruong
+      const { lop } = req.query;
+      const data = await QLModel.getStudentList(lop, req);
       res.json({ success: true, data });
     } catch (err) {
       res.json({ success: false, message: err.message || 'Lỗi tải danh sách học sinh' });
@@ -36,7 +36,7 @@ class QuanLyHSGVController {
 
   async getHocSinhById(req, res) {
     try {
-      const data = await QLModel.getStudentById(req.params.id);
+      const data = await QLModel.getStudentById(req.params.id, req);
       res.json({ success: true, data });
     } catch (err) {
       res.json({ success: false, message: err.message });
