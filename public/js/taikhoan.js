@@ -1,9 +1,9 @@
 // public/js/taikhoan.js
 (function () {
   if (window.taiKhoanInitialized) return;
-  window.taiKhoanInitialized = true;
+  window.taiKhoanInitialized = false;
 
-  console.log('taikhoan.js initialized');
+  console.log('taikhoan.js loaded');
 
   const debounce = (fn, delay = 400) => {
     let t;
@@ -21,6 +21,7 @@
     document.body.appendChild(toast);
     void toast.offsetWidth;
     toast.classList.add('show');
+    toast.classList.remove('show');
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
   }
 

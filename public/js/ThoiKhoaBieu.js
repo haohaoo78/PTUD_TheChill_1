@@ -1,4 +1,11 @@
-// ========================
+// public/js/thoikhoabieu.js
+(function () {
+  if (window.thoiKhoaBieuInitialized) return;
+  window.thoiKhoaBieuInitialized = false;
+
+  console.log('thoikhoabieu.js loaded');
+
+  // ========================
 // BIẾN DOM CHÍNH
 // ========================
 const FilterForm = document.getElementById('filter-form');
@@ -222,6 +229,7 @@ function attachSubjectChangeEvents() {
         } catch {
           showMessage('Lỗi khi xóa tiết', 'error');
         }
+        showMessage('Đã xóa tiết.', 'success');
         div.innerText = '';
         div.classList.remove('missing');
         this.classList.remove('warning');
@@ -448,3 +456,4 @@ yesBtn.addEventListener('click', async () => {
   else showMessage('Đặt lại tuần thành công.', 'success');
   loadTKB();
 });
+})();
