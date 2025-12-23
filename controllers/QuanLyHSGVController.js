@@ -48,8 +48,12 @@ class QuanLyHSGVController {
       const { MaHS, TenHocSinh, Birthday, GioiTinh, MaLop, TrangThai, KhoaHoc } = req.body;
       const birthdayFormatted = Birthday ? Birthday.split('T')[0] : null;
 
+      if (!MaHS || !TenHocSinh || !Birthday || !GioiTinh || !MaLop || !KhoaHoc) {
+        return res.status(400).json({ success: false, message: 'Các trường bắt buộc không được để trống' });
+      }
+
       await QLModel.addStudent({
-        MaHS,
+        MaHocSinh: MaHS,
         TenHocSinh,
         Birthday: birthdayFormatted,
         GioiTinh,
@@ -61,7 +65,7 @@ class QuanLyHSGVController {
       res.json({ success: true, message: 'Thêm học sinh thành công' });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false, message: 'Lỗi thêm học sinh' });
+      res.status(500).json({ success: false, message: err.message || 'Lỗi thêm học sinh' });
     }
   }
 
@@ -119,7 +123,7 @@ class QuanLyHSGVController {
   async addGiaoVien(req, res) {
     try {
       const {
-        TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
+        MaGiaoVien, TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
         DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan,
         ChucVu, ThamNien, TrangThai
       } = req.body;
@@ -132,7 +136,7 @@ class QuanLyHSGVController {
       }
 
       const requiredFields = {
-        TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
+        MaGiaoVien, TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon,
         DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan,
         ChucVu, ThamNien
       };
@@ -146,6 +150,7 @@ class QuanLyHSGVController {
       const ngaySinhFormatted = NgaySinh.split('T')[0];
 
       await QLModel.addTeacher({
+        MaGiaoVien,
         TenGiaoVien,
         NgaySinh: ngaySinhFormatted,
         GioiTinh,

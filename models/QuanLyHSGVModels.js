@@ -181,10 +181,10 @@ class QLModel {
   }
 
   static async addTeacher(data) {
-    const MaGiaoVien = await this.generateNewMaGV();
+    const MaGiaoVien = data.MaGiaoVien;
 
     const requiredFields = [
-      'TenGiaoVien','NgaySinh','GioiTinh','Email','SDT',
+      'MaGiaoVien','TenGiaoVien','NgaySinh','GioiTinh','Email','SDT',
       'TrinhDoChuyenMon','DiaChi','NgayVaoTruong','TenMonHoc','TinhTrangHonNhan',
       'ChucVu','ThamNien','MaTruong','TrangThai'
     ];
@@ -199,7 +199,7 @@ class QLModel {
       (MaGiaoVien, TenGiaoVien, NgaySinh, GioiTinh, Email, SDT, TrinhDoChuyenMon, DiaChi, NgayVaoTruong, TenMonHoc, TinhTrangHonNhan, ChucVu, ThamNien, MaTruong, TrangThai)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    const params = [MaGiaoVien, ...requiredFields.map(f => data[f])];
+    const params = [MaGiaoVien, ...requiredFields.slice(1).map(f => data[f])];
     await db.execute(sql, params);
   }
 

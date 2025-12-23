@@ -45,6 +45,8 @@
     const classData = await classRes.json();
     const classOptions = classData.success ? classData.data.map(l => `<option value="${l.MaLop}" ${data?.MaLop === l.MaLop ? 'selected' : ''}>${l.TenLop}</option>`).join('') : '';
     modalHSFields.innerHTML = `
+      <label>Mã học sinh:</label>
+      <input type="text" id="modal-hs-mahs" value="${data?.MaHocSinh || ''}" ${isEdit ? 'disabled' : ''}>
       <label>Năm học:</label>
       <select id="modal-hs-namhoc">
         <option value="">-- Chọn năm học --</option>
@@ -94,6 +96,7 @@
     const isEdit = modalHSForm.dataset.isEdit === 'true';
     const id = document.getElementById('modal-hs-id').value;
     const payload = {
+      MaHS: isEdit ? undefined : document.getElementById('modal-hs-mahs').value,
       TenHocSinh: document.getElementById('modal-hs-ten').value || null,
       Birthday: document.getElementById('modal-hs-ngaysinh').value || null,
       GioiTinh: document.getElementById('modal-hs-gioitinh').value || null,
@@ -101,7 +104,7 @@
       TrangThai: document.getElementById('modal-hs-trangthai').value || 'Đang học',
       KhoaHoc: document.getElementById('modal-hs-namhoc').value || null
     };
-    if (!payload.TenHocSinh || !payload.Birthday || !payload.GioiTinh || !payload.MaLop || !payload.KhoaHoc) {
+    if (!payload.TenHocSinh || !payload.Birthday || !payload.GioiTinh || !payload.MaLop || !payload.KhoaHoc || (!isEdit && !payload.MaHS)) {
       alert('Các trường bắt buộc không được để trống');
       return;
     }
@@ -149,6 +152,7 @@
       : `<div><label>Trường:</label><input type="text" value="${window.currentMaTruong || 'Không xác định'}" disabled></div>`;
     modalGVFields.innerHTML = `
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div><label>Mã giáo viên:</label><input type="text" id="modal-magv" value="${data?.MaGiaoVien || ''}" ${isEdit ? 'disabled' : ''}></div>
         <div><label>Họ tên:</label><input type="text" id="modal-ten" value="${data?.TenGiaoVien || ''}"></div>
         <div><label>Ngày sinh:</label><input type="date" id="modal-ngaysinh" value="${data?.NgaySinh?.split('T')[0] || ''}"></div>
         <div><label>Email:</label><input type="email" id="modal-email" value="${data?.Email || ''}"></div>
@@ -172,6 +176,7 @@
     const isEdit = modalGVForm.dataset.isEdit === 'true';
     const MaGiaoVien = document.getElementById('modal-id').value || null;
     const payload = {
+      MaGiaoVien: isEdit ? undefined : document.getElementById('modal-magv').value,
       TenGiaoVien: document.getElementById('modal-ten').value.trim(),
       NgaySinh: document.getElementById('modal-ngaysinh').value.trim(),
       GioiTinh: document.getElementById('modal-gioitinh').value,
@@ -188,8 +193,9 @@
     };
     if (isEdit) payload.MaTruong = document.getElementById('modal-matruong').value;
     for (const key in payload) {
-      if (!payload[key]) { alert(`Trường ${key} không được để trống`); return; }
+      if (!payload[key] && key !== 'MaGiaoVien') { alert(`Trường ${key} không được để trống`); return; }
     }
+    if (!isEdit && !payload.MaGiaoVien) { alert('Mã giáo viên không được để trống'); return; }
     try {
       const method = isEdit ? 'PUT' : 'POST';
       const url = isEdit
@@ -226,13 +232,13 @@
         <td>${hs.GioiTinh}</td>
         <td>${hs.TrangThai}</td>
         <td>
-          <button class="table-btn edit" onclick='openModalHS(${JSON.stringify(hs)})'>Sửa</button>
-          <button class="table-btn delete" onclick='deleteHS("${hs.MaHocSinh}")'>Xóa</button>
+          <button class="table-btn edit edit-hs" data-mahs="${hs.MaHocSinh}">Sửa</button>
+          <button class="table-btn delete delete-hs" data-mahs="${hs.MaHocSinh}">Xóa</button>
         </td>
       </tr>`).join('');
   }
   async function loadGV(filters = {}) {
-    const query = new URLSearchParams(filters).toString();
+    const query = new URLSearchParams({ ...filters, trangThai: 'Đang công tác' }).toString();
     const res = await fetch(`/api/quanlygiaovien_hocsinh/giaovien?${query}`);
     const data = await res.json();
     if (!data.success) return;
@@ -247,8 +253,8 @@
         <td>${gv.GioiTinh}</td>
         <td>${gv.TrangThai}</td>
         <td>
-          <button class="table-btn edit" onclick='openModalGV(${JSON.stringify(gv)})'>Sửa</button>
-          <button class="table-btn delete" onclick='deleteGV("${gv.MaGiaoVien}")'>Xóa</button>
+          <button class="table-btn edit edit-gv" data-magv="${gv.MaGiaoVien}">Sửa</button>
+          <button class="table-btn delete delete-gv" data-magv="${gv.MaGiaoVien}">Xóa</button>
         </td>
       </tr>`).join('');
   }
@@ -298,11 +304,31 @@
     loadGV({ monHoc });
   });
   document.getElementById('btn-them-gv')?.addEventListener('click', () => openModalGV());
-  document.getElementById('btn-them-hs')?.addEventListener('click', () => openModalHS());
   // ======== KHỞI TẠO =========
   loadKhoi();
   loadLop();
   loadHS(); // Chỉ load khi chọn lớp
   loadMonHoc();
   loadGV();
+
+  // Event delegation for edit and delete buttons
+  document.addEventListener('click', async e => {
+    if (e.target.classList.contains('edit-hs')) {
+      const maHS = e.target.dataset.mahs;
+      const res = await fetch(`/api/quanlygiaovien_hocsinh/hocsinh/${maHS}`);
+      const data = await res.json();
+      if (data.success) openModalHS(data.data);
+    } else if (e.target.classList.contains('delete-hs')) {
+      const maHS = e.target.dataset.mahs;
+      window.deleteHS(maHS);
+    } else if (e.target.classList.contains('edit-gv')) {
+      const maGV = e.target.dataset.magv;
+      const res = await fetch(`/api/quanlygiaovien_hocsinh/giaovien/${maGV}`);
+      const data = await res.json();
+      if (data.success) openModalGV(data.data);
+    } else if (e.target.classList.contains('delete-gv')) {
+      const maGV = e.target.dataset.magv;
+      window.deleteGV(maGV);
+    }
+  });
 })();
