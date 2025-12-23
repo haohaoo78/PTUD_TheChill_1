@@ -235,10 +235,10 @@ class ThoiKhoaBieu {
         AND t.Thu = ?
         AND t.TietHoc = ?
         AND t.LoaiTKB != 'Chuan'
-        AND (t.MaLop != ? OR t.LoaiTKB != ?)
+        AND t.MaLop != ?
       ORDER BY t.LoaiTKB
       LIMIT 1
-    `, [MaGiaoVien, NamHoc, KyHoc, Thu, TietHoc, MaLopHienTai, LoaiTKBHienTai]);
+    `, [MaGiaoVien, NamHoc, KyHoc, Thu, TietHoc, MaLopHienTai]);
     
     return rows[0] || null;
   }
