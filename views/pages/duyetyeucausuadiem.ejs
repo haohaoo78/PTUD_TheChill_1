@@ -1,109 +1,328 @@
-<link rel="stylesheet" href="/css/DuyetYeuCauSuaDiem.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<header>
-  <h1><%= title %></h1>
-</header>
+  <style>
+    /* ==========================
+       DUYỆT YÊU CẦU SỬA ĐIỂM - TONE XANH NAVY (ĐỒNG BỘ VỚI PHÂN CÔNG & TKB)
+       ========================== */
+    body { 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      background: #f8fafc; 
+      margin: 0; 
+      color: #003366; 
+    }
 
-<main>
-  <section class="approve-section">
-    <div class="section-header">
-      <p>Xem xét và phê duyệt các yêu cầu sửa điểm từ giáo viên</p>
+    main_1 {
+      padding: 30px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ==========================
+       PAGE HEADER - CĂN GIỮA HOÀN HẢO
+       ========================== */
+    .page-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-size: 30px;
+      color: #003366;
+      margin: 0 0 10px 0;
+      font-weight: 600;
+    }
+
+    .page-description {
+      color: #555;
+      font-style: italic;
+      margin-bottom: 20px;
+      font-size: 15px;
+    }
+
+    /* Nút lọc nằm ngang, căn giữa */
+    .filter-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 0 auto;
+    }
+
+    .filter-btn {
+      padding: 12px 28px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      min-width: 140px;
+    }
+
+    .filter-btn:hover {
+      opacity: 0.9;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .filter-btn.active {
+      background: #003366;
+      color: white;
+      border-color: #003366;
+    }
+
+    /* ==========================
+       BẢNG - CĂN GIỮA
+       ========================== */
+    table.grid {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 0 auto;
+    }
+
+    table.grid th {
+      background: #003366;
+      color: white;
+      padding: 14px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    table.grid td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    table.grid tr:hover {
+      background: #f0f7ff;
+    }
+
+    table.grid tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .text-red { color: #d62828; font-weight: bold; }
+    .text-green { color: #0d8b3d; font-weight: bold; }
+
+    /* Nút hành động */
+    .btn {
+      padding: 7px 14px;
+      margin: 3px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover { 
+      transform: translateY(-1px); 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15); 
+    }
+
+    .view-btn { background: #003366; color: white; }
+    .approve-btn { background: #0d8b3d; color: white; }
+    .reject-btn { background: #d62828; color: white; }
+    .note-btn { background: #ff9800; color: white; }
+
+    .status-done { color: #0d8b3d; font-weight: bold; }
+
+    /* ==========================
+       MODAL - CĂN GIỮA HOÀN HẢO
+       ========================== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 560px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      position: relative;
+      animation: slideUp 0.3s ease;
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      color: #003366;
+      text-align: center;
+      font-size: 22px;
+    }
+
+    .close {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .close:hover { color: #333; }
+
+    .modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .modal-approve { background: #0d8b3d; color: white; padding: 10px 20px; font-size: 15px; }
+    .modal-reject { background: #d62828; color: white; padding: 10px 20px; font-size: 15px; }
+    .modal-close { background: #ccc; color: #333; padding: 10px 20px; font-size: 15px; }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Toast message (nếu dùng) */
+    #toast-message {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      min-width: 320px;
+      padding: 14px 24px;
+      background: #f0f9ff;
+      color: #003366;
+      border-left: 6px solid #0077b6;
+      border-radius: 8px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      opacity: 0;
+      transform: translateX(120%);
+      transition: all 0.4s ease;
+      z-index: 9999;
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    #toast-message.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      main_1{ padding: 20px; }
+      .filter-buttons { flex-direction: column; }
+      .filter-btn { width: 100%; max-width: 300px; }
+      table.grid th, table.grid td { padding: 10px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+
+  <main_1>
+    <section class="approve-section">
+      <div class="page-header">
+        <h2 class="page-title">DUYỆT YÊU CẦU SỬA ĐIỂM</h2>
+        <p class="page-description">Xem xét và phê duyệt các yêu cầu sửa điểm từ giáo viên</p>
+
         <div class="filter-buttons">
-        <button class="filter-btn active" data-status-code="DangXuLy">Đang xử lý</button>
-        <button class="filter-btn" data-status-code="DaDuyet">Đã duyệt</button>
-        <button class="filter-btn" data-status-code="BiTuChoi">Bị từ chối</button>
+          <button class="filter-btn active" data-status-code="DangXuLy">Đang xử lý</button>
+          <button class="filter-btn" data-status-code="DaDuyet">Đã duyệt</button>
+          <button class="filter-btn" data-status-code="BiTuChoi">Bị từ chối</button>
+        </div>
       </div>
-    </div>
 
-    <style>
-      .filter-buttons { margin: 10px 0; }
-      .filter-btn {
-        padding: 8px 15px;
-        margin-right: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        cursor: pointer;
-        background: white;
-      }
-      .filter-btn.active { background: #4CAF50; color: white; border-color: #4CAF50; }
-      .filter-btn:hover { opacity: 0.8; }
-      .text-center { text-align: center; }
-      .text-danger { color: #dc3545; }
-      tbody tr td.text-center { padding: 20px; font-style: italic; }
-      .text-red { color: #dc3545; }
-      .text-green { color: #28a745; }
-      .status-done { color: #4CAF50; font-weight: bold; }
-    </style>
-
-    <table id="requests-table">
-      <thead>
-        <tr>
-          <th>STT</th>
-          <th>Mã yêu cầu</th>
-          <th>Mã học sinh</th>
-          <th>Tên học sinh</th>
-          <th>Môn học</th>
-          <th>Loại điểm</th>
-          <th>Điểm cũ</th>
-          <th>Điểm mới</th>
-          <th>Lý do</th>
-          <th>Giáo viên gửi</th>
-          <th>Trạng thái</th>
-          <th>Thao tác</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if(requests.length){ %>
-          <% requests.forEach((r,i)=>{ %>
-            <tr data-id="<%= r.MaYeuCau %>" data-trangthai="<%= r.TrangThai %>">
-              <td><%= i+1 %></td>
-              <td><%= r.MaYeuCau %></td>
-              <td><%= r.MaHocSinh %></td>
-              <td><%= r.TenHocSinh %></td>
-              <td><%= r.TenMonHoc %></td>
-              <td><%= r.LoaiDiem %></td>
-              <td class="text-red"><%= r.DiemCu %></td>
-              <td class="text-green"><%= r.DiemMoi %></td>
-              <td><%= r.LyDo %></td>
-              <td><%= r.TenGiaoVien %></td>
-              <td data-status="<%= r.TrangThai %>" data-status-display="<%= r.TrangThai === 'DangXuLy' ? 'Đang xử lý' : (r.TrangThai === 'DaDuyet' ? 'Đã duyệt' : (r.TrangThai === 'BiTuChoi' ? 'Bị từ chối' : r.TrangThai)) %>">
-                <% if (r.TrangThai === 'DangXuLy') { %>Đang xử lý<% } %>
-                <% if (r.TrangThai === 'DaDuyet') { %>Đã duyệt<% } %>
-                <% if (r.TrangThai === 'BiTuChoi') { %>Bị từ chối<% } %>
-              </td>
-              <td>
-                <% if(r.TrangThai==='DangXuLy'){ %>
-                  <button class="view-btn">Xem chi tiết</button>
-                  <button class="approve-btn">✅ Duyệt</button>
-                  <button class="reject-btn">❌ Từ chối</button>
-                <% } else { %>
-                  <button class="view-btn">Xem chi tiết</button>
-                  <% if(r.TrangThai==='BiTuChoi' && r.GhiChu){ %>
-                    <button class="note-btn" title="<%= r.GhiChu %>">👁️ Lý do từ chối</button>
+      <table id="requests-table" class="grid">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Mã yêu cầu</th>
+            <th>Mã học sinh</th>
+            <th>Tên học sinh</th>
+            <th>Môn học</th>
+            <th>Loại điểm</th>
+            <th>Điểm cũ</th>
+            <th>Điểm mới</th>
+            <th>Lý do</th>
+            <th>Giáo viên gửi</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if(requests.length){ %>
+            <% requests.forEach((r,i)=>{ %>
+              <tr data-id="<%= r.MaYeuCau %>" data-trangthai="<%= r.TrangThai %>">
+                <td><%= i+1 %></td>
+                <td><%= r.MaYeuCau %></td>
+                <td><%= r.MaHocSinh %></td>
+                <td><%= r.TenHocSinh %></td>
+                <td><%= r.TenMonHoc %></td>
+                <td><%= r.LoaiDiem %></td>
+                <td class="text-red"><%= r.DiemCu %></td>
+                <td class="text-green"><%= r.DiemMoi %></td>
+                <td><%= r.LyDo %></td>
+                <td><%= r.TenGiaoVien %></td>
+                <td data-status="<%= r.TrangThai %>" data-status-display="<%= r.TrangThai === 'DangXuLy' ? 'Đang xử lý' : (r.TrangThai === 'DaDuyet' ? 'Đã duyệt' : (r.TrangThai === 'BiTuChoi' ? 'Bị từ chối' : r.TrangThai)) %>">
+                  <% if (r.TrangThai === 'DangXuLy') { %>Đang xử lý<% } %>
+                  <% if (r.TrangThai === 'DaDuyet') { %>Đã duyệt<% } %>
+                  <% if (r.TrangThai === 'BiTuChoi') { %>Bị từ chối<% } %>
+                </td>
+                <td>
+                  <% if(r.TrangThai==='DangXuLy'){ %>
+                    <button class="view-btn btn">Xem chi tiết</button>
+                    <button class="approve-btn btn">✅ Duyệt</button>
+                    <button class="reject-btn btn">❌ Từ chối</button>
+                  <% } else { %>
+                    <button class="view-btn btn">Xem chi tiết</button>
+                    <% if(r.TrangThai==='BiTuChoi' && r.GhiChu){ %>
+                      <button class="note-btn btn" title="<%= r.GhiChu %>">👁️ Lý do từ chối</button>
+                    <% } %>
+                    <% if(r.TrangThai==='DaDuyet'){ %>
+                      <em class="status-done">✔️ Đã duyệt</em>
+                    <% } %>
                   <% } %>
-                  <% if(r.TrangThai==='DaDuyet'){ %>
-                    <em class="status-done">✔️ Đã duyệt</em>
-                  <% } %>
-                <% } %>
-              </td>
-            </tr>
-          <% }) %>
-        <% } else { %>
-          <tr><td colspan="12" class="text-center">Không có yêu cầu</td></tr>
-        <% } %>
-      </tbody>
-    </table>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr><td colspan="12" style="padding:40px; font-style:italic; color:#666;">Không có yêu cầu</td></tr>
+          <% } %>
+        </tbody>
+      </table>
 
-    <!-- Modal chi tiết -->
-    <div id="detail-modal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h3>Chi tiết yêu cầu</h3>
-        <div id="detail-content"></div>
+      <!-- Modal chi tiết -->
+      <div id="detail-modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h3>Chi tiết yêu cầu</h3>
+          <div id="detail-content"></div>
+        </div>
       </div>
-    </div>
-  </section>
-</main>
 
-<script src="/js/DuyetYeuCauSuaDiem.js"></script>
+      <!-- Toast message -->
+      <div id="toast-message"></div>
+    </section>
+  </main_1>
+
+  <script src="/js/DuyetYeuCauSuaDiem.js"></script>
+</body>
+</html>
