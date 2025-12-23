@@ -20,7 +20,7 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <form id="thongkeForm" action="/api/xemthongkeketqua/render" method="POST">
+            <form id="thongkeForm">
                 <% if (user.role === 'Hiệu trưởng') { %>
                     <div class="form-group mb-3">
                         <label for="maLop" class="form-label">Lớp (tùy chọn):</label>
@@ -56,8 +56,8 @@
         <p class="mt-2">Đang tải dữ liệu...</p>
     </div>
 
-    <% if (stats && stats.length > 0) { %>
-        <div class="mt-5">
+    <div id="stats-container">
+        <% if (stats && stats.length > 0) { %>
             <h2 class="text-center mb-4">Thống kê điểm các môn học</h2>
             
             <div class="table-responsive">
@@ -144,12 +144,67 @@
                     }
                 });
             </script>
-        </div>
-    <% } else if (stats !== undefined) { %>
-        <div class="text-center mt-5">
-            <p class="text-danger fs-4">Không có dữ liệu thống kê phù hợp với điều kiện đã chọn.</p>
-        </div>
-    <% } %>
+        <% } else if (stats !== undefined) { %>
+            <div class="text-center mt-5">
+                <p class="text-danger fs-4">Không có dữ liệu thống kê phù hợp với điều kiện đã chọn.</p>
+            </div>
+        <% } %>
+    </div>
 </div>
 
 <link rel="stylesheet" href="/css/xemthongkeketqua.css">
+
+<script>
+document.getElementById('thongkeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = {};
+    for (let [key, value] of formData) {
+        data[key] = value;
+    }
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('stats-container').innerHTML = '';
+    try {
+        const response = await fetch('/api/xemthongkeketqua/render', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(data)
+        });
+        if (response.ok) {
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newStatsContainer = doc.getElementById('stats-container');
+            if (newStatsContainer) {
+                document.getElementById('stats-container').innerHTML = newStatsContainer.innerHTML;
+                // Execute scripts in the inserted HTML
+                const scripts = newStatsContainer.querySelectorAll('script');
+                scripts.forEach(script => {
+                    if (script.src) {
+                        const newScript = document.createElement('script');
+                        newScript.src = script.src;
+                        document.head.appendChild(newScript);
+                    } else {
+                        eval(script.textContent);
+                    }
+                });
+            } else {
+                document.getElementById('stats-container').innerHTML = html;
+            }
+        } else {
+            document.getElementById('stats-container').innerHTML = '<p class="text-danger">Lỗi tải dữ liệu.</p>';
+        }
+    } catch (error) {
+        document.getElementById('stats-container').innerHTML = '<p class="text-danger">Lỗi kết nối.</p>';
+    } finally {
+        document.getElementById('loader').style.display = 'none';
+    }
+});
+
+document.getElementById('cancelBtn').addEventListener('click', function() {
+    document.getElementById('stats-container').innerHTML = '';
+});
+</script>
