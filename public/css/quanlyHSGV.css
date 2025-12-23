@@ -659,3 +659,64 @@ h2 {
   text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
   margin-bottom: 25px;
 }
+#modal-hs .modal-content {
+  max-height: 90vh;          /* không vượt quá màn hình */
+  overflow: hidden;          /* chặn tràn tổng */
+  display: flex;
+  flex-direction: column;
+}
+/* =================== FIX MODAL KHÔNG TRÀN MÀN HÌNH =================== */
+.modal {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal content chung */
+.modal-content {
+  max-height: 90vh;          /* KHÔNG VƯỢT MÀN */
+  overflow: hidden;          /* chặn tràn */
+  display: flex;
+  flex-direction: column;
+}
+/* =================== FIX MODAL HỌC SINH =================== */
+#modal-hs .modal-content {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Cho form cuộn */
+#modal-hs form {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 6px;
+}
+
+/* Nút lưu luôn thấy */
+#modal-hs button {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+}
+/* =================== FIX MODAL GIÁO VIÊN =================== */
+#modal .modal-content {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Cho form cuộn */
+#modal form {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 8px;
+}
+
+/* Nút lưu luôn thấy */
+#modal button {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+}
