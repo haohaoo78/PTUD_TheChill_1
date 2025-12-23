@@ -2,7 +2,7 @@
 (function () {
   // Ngăn chạy nhiều lần khi inject lại
   if (window.PhanLopInitialized) return;
-  window.PhanLopInitialized = true;
+  window.PhanLopInitialized = false;
 
   console.log('PhanLop.js initialized');
 

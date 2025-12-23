@@ -11,19 +11,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const page = link.dataset.page;
       if (!page || !main) return;
 
-      // Nếu đã cache trang => dùng lại
-      if (cache[page]) {
-        main.innerHTML = cache[page];
-        return;
-      }
-
       try {
-        const res = await fetch(`/api/${page}/render`);
-        const html = await res.text();
-        main.innerHTML = html;
-        cache[page] = html;
+        let html;
+        if (cache[page]) {
+          html = cache[page];
+        } else {
+          const res = await fetch(`/api/${page}/render`);
+          html = await res.text();
+          cache[page] = html;
+        }
 
-        // Kích hoạt script trong nội dung (nếu có)
+        main.innerHTML = html;
+
+        // Luôn kích hoạt script trong HTML (cả khi dùng cache)
         main.querySelectorAll('script').forEach(s => {
           const n = document.createElement('script');
           if (s.src) n.src = s.src;
@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.body.appendChild(n);
           s.remove();
         });
+
       } catch (err) {
         main.innerHTML = `<p style="color:red;">Không tải được ${page}</p>`;
         console.error(err);
@@ -46,8 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target && e.target.id === "btn-dangky") {
       e.preventDefault();
       try {
-        const res = await fetch("/api/dangky/render");
-        const html = await res.text();
+        let html;
+        if (cache['dangky']) {
+          html = cache['dangky'];
+        } else {
+          const res = await fetch("/api/dangky/render");
+          html = await res.text();
+          cache['dangky'] = html;
+        }
         main.innerHTML = html;
 
         // Nạp lại script trang đăng ký
@@ -63,8 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target && e.target.id === "btn-dangnhap") {
       e.preventDefault();
       try {
-        const res = await fetch("/api/dangnhap/render");
-        const html = await res.text();
+        let html;
+        if (cache['dangnhap']) {
+          html = cache['dangnhap'];
+        } else {
+          const res = await fetch("/api/dangnhap/render");
+          html = await res.text();
+          cache['dangnhap'] = html;
+        }
         main.innerHTML = html;
 
         // Nạp lại script trang đăng nhập
@@ -76,4 +89,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // ==========================
+  // 🟤 XỬ LÝ ĐĂNG XUẤT
+  // ==========================
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      // Chỉ cần redirect về route logout trên server
+      window.location.href = '/logout';
+    });
+  }
 });

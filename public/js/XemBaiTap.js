@@ -1,7 +1,7 @@
 // public/js/xembaitap.js
 (function () {
   if (window.xemBaiTapInitialized) return;
-  window.xemBaiTapInitialized = true;
+  window.xemBaiTapInitialized = false;
 
   console.log('xembaitap.js loaded');
 
