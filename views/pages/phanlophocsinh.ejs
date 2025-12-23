@@ -17,6 +17,7 @@
     <div class="controls">
       <div class="control-group">
         <label for="khoi-select">Khối:</label>
+        
         <select id="khoi-select" class="form-select">
           <% khoiList.forEach(k => { %>
             <option value="<%= k.MaKhoi %>" <%= (k.MaKhoi === selectedKhoi) ? 'selected' : '' %>>
@@ -24,6 +25,7 @@
             </option>
           <% }) %>
         </select>
+        <small class="help-text">Chọn khối để phân lớp</small>
       </div>
       <div class="control-group">
         <label for="max-size">Sĩ số tối đa:</label>
