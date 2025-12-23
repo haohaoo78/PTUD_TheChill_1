@@ -274,6 +274,14 @@
 
   window.closeModal = (id) => document.getElementById(id)?.classList.remove('show');
 
+  // Add click outside to close modal
+  document.getElementById('class-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'class-modal') closeModal('class-modal');
+  });
+  document.getElementById('edit-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'edit-modal') closeModal('edit-modal');
+  });
+
   // ======================
   // Utility
   // ======================
