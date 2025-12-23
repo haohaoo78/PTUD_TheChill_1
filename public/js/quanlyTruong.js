@@ -1,6 +1,6 @@
 (function () {
   if (window.quanLyTruongInitialized) return;
-  window.quanLyTruongInitialized = true;
+  window.quanLyTruongInitialized = false;
 
   console.log('quanlytruong.js initialized');
 

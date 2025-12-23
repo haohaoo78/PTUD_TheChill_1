@@ -70,11 +70,14 @@ class PhanCongModel {
     return rows[0] || null;
   }
 
+  // LOẠI BỎ GV ẢO KHI LẤY DANH SÁCH GIÁO VIÊN CÓ THỂ PHÂN CÔNG CHỦ NHIỆM
   static async getAvailableTeachersForChunhiem(namHoc, maLop, maTruong) {
     let sql = `
       SELECT gv.MaGiaoVien, gv.TenGiaoVien
       FROM GiaoVien gv
-      WHERE gv.TrangThai = 'Đang công tác' AND gv.MaTruong = ?
+      WHERE gv.TrangThai = 'Đang công tác' 
+        AND gv.MaTruong = ?
+        AND gv.TenGiaoVien != 'GV Ảo'
     `;
     const params = [maTruong];
 
@@ -136,11 +139,14 @@ class PhanCongModel {
   // 3. PHÂN CÔNG BỘ MÔN
   // =======================
 
+  // LOẠI BỎ "EMPTY_WEEK" VÀ MÔN TRỐNG KHI LẤY DANH SÁCH MÔN HỌC THEO KHỐI
   static async getSubjectsByKhoi(maKhoi) {
     const [rows] = await db.execute(`
       SELECT DISTINCT TenMonHoc
       FROM MonHoc
       WHERE Khoi = ?
+        AND COALESCE(TRIM(TenMonHoc), '') != ''
+        AND TenMonHoc != 'EMPTY_WEEK'
       ORDER BY TenMonHoc
     `, [maKhoi]);
     return rows.map(r => r.TenMonHoc);
@@ -156,6 +162,7 @@ class PhanCongModel {
     return rows;
   }
 
+  // LOẠI BỎ GV ẢO + MÔN TRỐNG KHI LẤY DANH SÁCH GIÁO VIÊN THEO MÔN
   static async getTeachersBySubject(tenMonHoc, namHoc = null, kyHoc = null, maTruong) {
     const nH = namHoc || '2025-2026';
     const kH = kyHoc || '1';
@@ -166,6 +173,8 @@ class PhanCongModel {
       WHERE (TRIM(gv.TenMonHoc) = TRIM(?) OR gv.TenMonHoc LIKE CONCAT('%', ?, '%'))
         AND gv.TrangThai = 'Đang công tác'
         AND gv.MaTruong = ?
+        AND gv.TenGiaoVien != 'GV Ảo'
+        AND COALESCE(TRIM(gv.TenMonHoc), '') != ''
       ORDER BY gv.TenGiaoVien
     `, [tenMonHoc, tenMonHoc, maTruong]);
 
@@ -190,7 +199,6 @@ class PhanCongModel {
       WHERE gvbm.MaGVBM = ? AND gvbm.NamHoc = ? AND gvbm.HocKy = ?
     `, [maGiaoVien, nH, kH]);
 
-    // Ép về số nguyên để tránh lỗi chuỗi
     return parseInt(rows[0]?.TongTiet || 0, 10);
   }
 
@@ -203,11 +211,10 @@ class PhanCongModel {
       LIMIT 1
     `, [tenMonHoc, maLop]);
 
-    // Ép về số nguyên để tránh lỗi chuỗi
     return parseInt(rows[0]?.SoTiet || 0, 10);
   }
 
-  // ==================== HÀM CHÍNH ĐÃ FIX TRIỆT ĐỂ ====================
+  // Hàm phân công bộ môn (giữ nguyên logic kiểm tra định mức)
   static async assignBoMonForTeacher(maGiaoVien, classList, namHoc, kyHoc, tenMonHoc) {
     const conn = await db.getConnection();
 
@@ -224,7 +231,6 @@ class PhanCongModel {
         return { success: false, message: 'Thiếu thông tin phân công.' };
       }
 
-      // Lấy định mức hiện tại - đã ép số ở hàm getTeacherWeeklyLoad
       const currentLoad = await this.getTeacherWeeklyLoad(maGiaoVien, namHoc, kyHoc);
       console.log(`→ Định mức hiện tại: ${currentLoad} tiết`);
 
@@ -305,6 +311,7 @@ class PhanCongModel {
     }
   }
 
+  // LOẠI BỎ EMPTY_WEEK VÀ GV ẢO TRONG BẢNG HIỂN THỊ PHÂN CÔNG
   static async listAssignments(namHoc, kyHoc, maTruong) {
     const [rows] = await db.execute(`
       SELECT 
@@ -319,7 +326,12 @@ class PhanCongModel {
       JOIN Lop l ON gv.MaLop = l.MaLop
       JOIN GiaoVien g ON gv.MaGVBM = g.MaGiaoVien
       JOIN Khoi k ON l.Khoi = k.MaKhoi
-      WHERE gv.NamHoc = ? AND gv.HocKy = ? AND l.MaTruong = ?
+      WHERE gv.NamHoc = ? 
+        AND gv.HocKy = ? 
+        AND l.MaTruong = ?
+        AND COALESCE(TRIM(gv.BoMon), '') != ''
+        AND gv.BoMon != 'EMPTY_WEEK'
+        AND g.TenGiaoVien != 'GV Ảo'
       ORDER BY k.TenKhoi, gv.BoMon, g.TenGiaoVien, l.TenLop
     `, [namHoc, kyHoc, maTruong]);
     return rows;

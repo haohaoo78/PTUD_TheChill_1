@@ -91,30 +91,30 @@ app.use('/api/xemthongkeketqua', XemThongKeKetQuaRoutes);
 
 
 
-// === ROUTE CHO URL TRỰC TIẾP (PHẢI ĐẶT TRƯỚC TRANG CHỦ) ===
-app.get('/:page', (req, res) => {
-  const user = req.session.user;
-  if (!user) {
-    return res.redirect('/');
-  }
+// // === ROUTE CHO URL TRỰC TIẾP (PHẢI ĐẶT TRƯỚC TRANG CHỦ) ===
+// app.get('/:page', (req, res) => {
+//   const user = req.session.user;
+//   if (!user) {
+//     return res.redirect('/');
+//   }
 
-  const page = req.params.page;
+//   const page = req.params.page;
 
-  const validPages = [
-    'home', 'phancongchunhiembomon', 'duyetyeucausuadiem', 'xemthongkeketqua',
-    'quanlylop', 'quanlygiaovien_hocsinh', 'phanlophocsinh', 'thoikhoabieu',
-    'diemdanh', 'giaobaitap', 'quanlydiem', 'nhanxet', 'xetdiemrenluyen',
-    'xemdiem', 'xinphep', 'hocphi', 'thongtinhs', 'xembaitap', 'xemtkb',
-    'dangkytuyensinh', 'nhaphoc', 'taotk', 'quanlytruong', 'quanlymonhoc',
-    'nhapchitieutuyensinh', 'nhapdiemthituyensinh', 'phanbohocsinhvaotruong'
-  ];
+//   const validPages = [
+//     'home', 'phancongchunhiembomon', 'duyetyeucausuadiem', 'xemthongkeketqua',
+//     'quanlylop', 'quanlygiaovien_hocsinh', 'phanlophocsinh', 'thoikhoabieu',
+//     'diemdanh', 'giaobaitap', 'quanlydiem', 'nhanxet', 'xetdiemrenluyen',
+//     'xemdiem', 'xinphep', 'hocphi', 'thongtinhs', 'xembaitap', 'xemtkb',
+//     'dangkytuyensinh', 'nhaphoc', 'taotk', 'quanlytruong', 'quanlymonhoc',
+//     'nhapchitieutuyensinh', 'nhapdiemthituyensinh', 'phanbohocsinhvaotruong'
+//   ];
 
-  if (!validPages.includes(page)) {
-    return res.render('index', { page: 'home', user });
-  }
+//   if (!validPages.includes(page)) {
+//     return res.render('index', { page: 'home', user });
+//   }
 
-  res.render('index', { page, user });
-});
+//   res.render('index', { page, user });
+// });
 
 
 // === TRANG CHỦ ===

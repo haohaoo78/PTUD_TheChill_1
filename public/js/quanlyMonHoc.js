@@ -1,7 +1,7 @@
 // public/js/quanlyMonHoc.js
 (function () {
   if (window.quanLyMonHocInitialized) return;
-  window.quanLyMonHocInitialized = true;
+  window.quanLyMonHocInitialized = false;
 
   console.log('quanlyMonHoc.js initialized');
 
