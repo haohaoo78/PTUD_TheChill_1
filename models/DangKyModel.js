@@ -1,10 +1,7 @@
-// models/DangKyModel.js
 const db = require('../config/database');
-const bcrypt = require('bcrypt');
 
 const DangKyModel = {
-
-  // Kiểm tra số điện thoại đã đăng ký chưa (username = phone)
+  // 🔍 Kiểm tra tài khoản trùng (username = phone)
   findByUsername: async (phone) => {
     const [rows] = await db.execute(
       'SELECT * FROM TaiKhoan WHERE TenTaiKhoan = ?',
@@ -13,7 +10,7 @@ const DangKyModel = {
     return rows[0];
   },
 
-  // Kiểm tra mã học sinh tồn tại
+  // 🔍 Kiểm tra mã học sinh tồn tại
   findStudentById: async (studentId) => {
     const [rows] = await db.execute(
       'SELECT * FROM HocSinh WHERE MaHocSinh = ?',
@@ -22,53 +19,20 @@ const DangKyModel = {
     return rows[0];
   },
 
-  // LẤY DANH SÁCH TRƯỜNG
-  getSchools: async () => {
-    const [rows] = await db.execute(
-      `SELECT MaTruong, TenTruong 
-       FROM Truong 
-       WHERE TrangThai = 1 
-       ORDER BY TenTruong`
-    );
-    return rows;
-  },
-
-  // LẤY DANH SÁCH LỚP THEO TRƯỜNG (bảng đúng: Lop)
-  getClassesBySchool: async (schoolId) => {
-    const [rows] = await db.execute(
-      `SELECT MaLop, TenLop 
-       FROM Lop 
-       WHERE MaTruong = ? AND TrangThai = 'Đang học' 
-       ORDER BY TenLop`,
-      [schoolId]
-    );
-    return rows;
-  },
-
-  // LẤY DANH SÁCH HỌC SINH THEO LỚP (SỬA: HoTen → TenHocSinh)
-  getStudentsByClass: async (classId) => {
-    const [rows] = await db.execute(
-      `SELECT MaHocSinh, TenHocSinh AS HoTen 
-       FROM HocSinh 
-       WHERE MaLop = ? AND TrangThai = 'Đang học' 
-       ORDER BY TenHocSinh`,
-      [classId]
-    );
-    return rows;
-  },
-
-  // TẠO TÀI KHOẢN + PHỤ HUYNH
+  // 🧩 Tạo tài khoản và phụ huynh
   createUser: async (username, password, studentId, phone, fullName) => {
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
 
+      // Thêm vào bảng TaiKhoan (username = phone)
       await conn.execute(
         `INSERT INTO TaiKhoan (TenTaiKhoan, MatKhau, LoaiTaiKhoan)
          VALUES (?, ?, 'Phụ huynh')`,
         [username, password]
       );
 
+      // Thêm vào bảng PhuHuynh
       await conn.execute(
         `INSERT INTO PhuHuynh (HoTen, SDT, MaHocSinh)
          VALUES (?, ?, ?)`,
@@ -76,10 +40,10 @@ const DangKyModel = {
       );
 
       await conn.commit();
-      console.log('Tạo tài khoản phụ huynh thành công! Mã học sinh:', studentId);
+      console.log('✅ Tạo tài khoản và phụ huynh thành công!');
     } catch (err) {
       await conn.rollback();
-      console.error('Lỗi khi tạo tài khoản phụ huynh:', err);
+      console.error('❌ Lỗi khi tạo tài khoản:', err);
       throw err;
     } finally {
       conn.release();

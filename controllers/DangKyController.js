@@ -1,85 +1,49 @@
-// controllers/DangKyController.js
 const bcrypt = require('bcrypt');
 const DangKyModel = require('../models/DangKyModel');
 
 const DangKyController = {
-  // Trang đăng ký
-  getDangKy: async (req, res) => {
-    try {
-      const schools = await DangKyModel.getSchools();
-      res.render('index', {
-        page: 'dangky',
-        user: null,
-        schools
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).send('Lỗi tải trang');
-    }
+  getDangKy: (req, res) => {
+    res.render('index', { page: 'dangky', user: null });
   },
 
-  // API lấy lớp theo trường
-  getClasses: async (req, res) => {
-    try {
-      const { schoolId } = req.query;
-      if (!schoolId) return res.json([]);
-      const classes = await DangKyModel.getClassesBySchool(schoolId);
-      res.json(classes);
-    } catch (err) {
-      console.error(err);
-      res.json([]);
-    }
-  },
-
-  // API lấy học sinh theo lớp
-  getStudents: async (req, res) => {
-    try {
-      const { classId } = req.query;
-      if (!classId) return res.json([]);
-      const students = await DangKyModel.getStudentsByClass(classId);
-      res.json(students);
-    } catch (err) {
-      console.error(err);
-      res.json([]);
-    }
-  },
-
-  // Xử lý đăng ký (trả JSON cho AJAX)
   postDangKy: async (req, res) => {
     try {
-      const { fullName, phone, studentId, password, confirmPassword } = req.body;
+      const { password, confirmPassword, studentId, phone, fullName } = req.body;
 
-      if (!fullName || !phone || !studentId || !password || !confirmPassword) {
-        return res.json({ success: false, message: 'Vui lòng điền đầy đủ thông tin!' });
+      // Kiểm tra đầy đủ thông tin
+      if (!password || !confirmPassword || !studentId || !phone || !fullName) {
+        return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ thông tin!' });
       }
 
+      // Kiểm tra mật khẩu
       if (password !== confirmPassword) {
-        return res.json({ success: false, message: 'Mật khẩu xác nhận không khớp!' });
+        return res.status(400).json({ success: false, message: 'Mật khẩu xác nhận không khớp!' });
       }
 
-      if (!/^\d{10,11}$/.test(phone)) {
-        return res.json({ success: false, message: 'Số điện thoại không hợp lệ!' });
-      }
-
+      // Kiểm tra số điện thoại đã được đăng ký chưa
       const existingUser = await DangKyModel.findByUsername(phone);
       if (existingUser) {
-        return res.json({ success: false, message: 'Số điện thoại đã được đăng ký!' });
+        return res.status(400).json({ success: false, message: 'Số điện thoại đã được đăng ký!' });
       }
 
-      const student = await DangKyModel.findStudentById(studentId);
-      if (!student) {
-        return res.json({ success: false, message: 'Mã học sinh không tồn tại!' });
+      // Kiểm tra mã học sinh tồn tại
+      const studentExists = await DangKyModel.findStudentById(studentId);
+      if (!studentExists) {
+        return res.status(400).json({ success: false, message: 'Mã học sinh không tồn tại!' });
       }
 
+      // Hash mật khẩu
       const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Tạo tài khoản và thêm dữ liệu vào bảng PhuHuynh
       await DangKyModel.createUser(phone, hashedPassword, studentId, phone, fullName);
 
-      res.json({ success: true, message: 'Đăng ký thành công!' });
+      res.status(200).json({ success: true, message: 'Đăng ký thành công!' });
     } catch (err) {
-      console.error('Lỗi đăng ký:', err);
-      res.status(500).json({ success: false, message: 'Lỗi máy chủ, vui lòng thử lại!' });
+      console.error('❌ Lỗi đăng ký:', err);
+      res.status(500).json({ success: false, message: 'Lỗi máy chủ!' });
     }
-  }
+  },
 };
 
 module.exports = DangKyController;
