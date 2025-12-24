@@ -44,6 +44,42 @@ const DangKyController = {
       res.status(500).json({ success: false, message: 'Lỗi máy chủ!' });
     }
   },
+  // Trong DangKyController hoặc thêm vào routes
+getStudentInfo: async (req, res) => {
+  try {
+    const { studentId } = req.query;
+    if (!studentId) return res.status(400).json({ success: false, message: 'Vui lòng nhập mã học sinh' });
+
+    const trimmedId = studentId.trim().toUpperCase();
+
+    const student = await DangKyModel.findStudentInfoById(trimmedId);
+    if (!student) {
+      return res.json({ success: false, message: 'Mã học sinh không tồn tại!' });
+    }
+
+    // === KIỂM TRA PHỤ HUYNH ĐÃ TỒN TẠI CHƯA ===
+    const existingParent = await DangKyModel.checkParentExists(trimmedId);
+    if (existingParent) {
+      return res.json({
+        success: false,
+        message: `Mã học sinh này đã được phụ huynh "${existingParent.HoTen}" (SĐT: ${existingParent.SDT}) đăng ký rồi!`
+      });
+    }
+
+    // Chưa có → cho phép đăng ký
+    res.json({
+      success: true,
+      data: {
+        name: student.TenHocSinh,
+        class: student.TenLop
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Lỗi hệ thống' });
+  }
+}
 };
 
 module.exports = DangKyController;

@@ -35,6 +35,7 @@ const DiemDanhRoutes = require('./routes/DiemDanhRoutes');
 const NhanXetHocSinhRoutes = require('./routes/NhanXetHocSinhRoutes');
 const QuanLyDiemMonHocRoutes = require('./routes/QuanLyDiemMonHocRoutes');
 const XemThongKeKetQuaRoutes = require('./routes/XemThongKeKetQuaRoutes');
+const XemThoiKhoaBieuRoutes = require('./routes/XemThoiKhoaBieuRoutes');
 
 const app = express();
 
@@ -88,6 +89,7 @@ app.use('/api/diemdanh', DiemDanhRoutes);
 app.use('/api/nhanxet', NhanXetHocSinhRoutes);
 app.use('/api/quanlydiem', QuanLyDiemMonHocRoutes);
 app.use('/api/xemthongkeketqua', XemThongKeKetQuaRoutes);
+app.use('/api/xemthoikhoabieu', XemThoiKhoaBieuRoutes);
 
 
 

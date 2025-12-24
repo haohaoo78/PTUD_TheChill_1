@@ -1,0 +1,41 @@
+<link rel="stylesheet" href="/css/XemThoiKhoaBieu.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="tkb-container">
+    <div class="tkb-header">
+        <h2>Thời Khóa Biểu Cá Nhân</h2>
+        <p id="student-info">Đang tải thông tin...</p>
+
+        <div class="week-navigation">
+            <button id="btn-prev" class="nav-btn"><i class="fa-solid fa-chevron-left"></i> Tuần trước</button>
+            
+            <div class="current-week-display">
+                <span id="week-display-text">Đang tải...</span>
+                <button id="btn-today" class="today-btn">Về tuần hiện tại</button>
+            </div>
+
+            <button id="btn-next" class="nav-btn">Tuần sau <i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+    <table class="tkb-table">
+        <thead>
+            <tr>
+                <th style="width: 80px;">Tiết / Thứ</th>
+                <th>Thứ 2<br><span class="header-date" id="th-date-2"></span></th>
+                <th>Thứ 3<br><span class="header-date" id="th-date-3"></span></th>
+                <th>Thứ 4<br><span class="header-date" id="th-date-4"></span></th>
+                <th>Thứ 5<br><span class="header-date" id="th-date-5"></span></th>
+                <th>Thứ 6<br><span class="header-date" id="th-date-6"></span></th>
+                <th>Thứ 7<br><span class="header-date" id="th-date-7"></span></th>
+                <th>Chủ Nhật<br><span class="header-date" id="th-date-8"></span></th>
+            </tr>
+        </thead>
+        <tbody id="tkb-body">
+            </tbody>
+    </table>
+</div>
+</div>
+
+<script src="/js/XemThoiKhoaBieu.js"></script>

@@ -18,7 +18,7 @@
         <div class="error"><%= error %></div>
       <% } %>
 
-      <form id="register-form" action="/DangKy" method="POST">
+      <form id="register-form" action="/DangKy" method="POST" novalidate>
         <label for="fullName">Họ và tên</label>
         <input type="text" id="fullName" name="fullName" placeholder="Nhập họ và tên" required>
 
@@ -28,8 +28,39 @@
         <label for="confirmPassword">Xác nhận mật khẩu</label>   
         <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
 
-        <label for="studentId">Mã học sinh</label>
-        <input type="text" id="studentId" name="studentId" placeholder="Nhập mã học sinh" required>
+        <label for="studentId">Mã học sinh của con <span style="color:red;">*</span></label>
+<input type="text" 
+       id="studentId" 
+       name="studentId" 
+       placeholder="Nhập mã học sinh (ví dụ: HS001)" 
+       required 
+       autocomplete="off"
+       style="text-transform: uppercase; font-weight: bold;">
+
+      <!-- Hộp hiển thị thông tin con khi verify thành công -->
+      <div id="child-info-box" 
+        style="display: none; 
+                background: #f8fff8; 
+                border: 2px solid #5739eb; 
+                border-radius: 12px; 
+                padding: 20px; 
+                margin: 20px 0; 
+                text-align: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);"> 
+        <div style="font-size: 1.2em; line-height: 1.8;">
+          <strong style="color: #000">Họ và tên:</strong> 
+          <span id="child-name" style="color: #3052b0; font-weight: bold;"></span><br>
+          
+          <strong style="color: #000">Lớp học:</strong> 
+          <span id="child-class" style="color: #3052b0; font-weight: bold;"></span><br>
+          
+          <strong style="color: #000">Mã học sinh:</strong> 
+          <span id="child-id" style="color: #3052b0; font-weight: bold;"></span>
+        </div>
+  
+        </div>
+        <!-- Thông báo lỗi -->
+        <div id="student-error" style="color: #d32f2f; font-weight: 500; margin: 12px 0 20px; display: none;"></div>
 
         <label for="phone">Số điện thoại</label>
         <input type="tel" id="phone" name="phone" placeholder="Nhập số điện thoại" required pattern="[0-9]{10,11}" title="Số điện thoại chỉ được chứa số (10–11 ký tự)">

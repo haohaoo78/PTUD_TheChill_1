@@ -1,4 +1,3 @@
-// models/PhanCongChuNhiemBoMonModel.js
 const db = require('../config/database');
 
 class PhanCongModel {
@@ -70,14 +69,11 @@ class PhanCongModel {
     return rows[0] || null;
   }
 
-  // LOẠI BỎ GV ẢO KHI LẤY DANH SÁCH GIÁO VIÊN CÓ THỂ PHÂN CÔNG CHỦ NHIỆM
   static async getAvailableTeachersForChunhiem(namHoc, maLop, maTruong) {
     let sql = `
       SELECT gv.MaGiaoVien, gv.TenGiaoVien
       FROM GiaoVien gv
-      WHERE gv.TrangThai = 'Đang công tác' 
-        AND gv.MaTruong = ?
-        AND gv.TenGiaoVien != 'GV Ảo'
+      WHERE gv.TrangThai = 'Đang công tác' AND gv.MaTruong = ?
     `;
     const params = [maTruong];
 
@@ -139,14 +135,11 @@ class PhanCongModel {
   // 3. PHÂN CÔNG BỘ MÔN
   // =======================
 
-  // LOẠI BỎ "EMPTY_WEEK" VÀ MÔN TRỐNG KHI LẤY DANH SÁCH MÔN HỌC THEO KHỐI
   static async getSubjectsByKhoi(maKhoi) {
     const [rows] = await db.execute(`
       SELECT DISTINCT TenMonHoc
       FROM MonHoc
       WHERE Khoi = ?
-        AND COALESCE(TRIM(TenMonHoc), '') != ''
-        AND TenMonHoc != 'EMPTY_WEEK'
       ORDER BY TenMonHoc
     `, [maKhoi]);
     return rows.map(r => r.TenMonHoc);
@@ -162,7 +155,6 @@ class PhanCongModel {
     return rows;
   }
 
-  // LOẠI BỎ GV ẢO + MÔN TRỐNG KHI LẤY DANH SÁCH GIÁO VIÊN THEO MÔN
   static async getTeachersBySubject(tenMonHoc, namHoc = null, kyHoc = null, maTruong) {
     const nH = namHoc || '2025-2026';
     const kH = kyHoc || '1';
@@ -173,8 +165,6 @@ class PhanCongModel {
       WHERE (TRIM(gv.TenMonHoc) = TRIM(?) OR gv.TenMonHoc LIKE CONCAT('%', ?, '%'))
         AND gv.TrangThai = 'Đang công tác'
         AND gv.MaTruong = ?
-        AND gv.TenGiaoVien != 'GV Ảo'
-        AND COALESCE(TRIM(gv.TenMonHoc), '') != ''
       ORDER BY gv.TenGiaoVien
     `, [tenMonHoc, tenMonHoc, maTruong]);
 
@@ -214,7 +204,6 @@ class PhanCongModel {
     return parseInt(rows[0]?.SoTiet || 0, 10);
   }
 
-  // Hàm phân công bộ môn (giữ nguyên logic kiểm tra định mức)
   static async assignBoMonForTeacher(maGiaoVien, classList, namHoc, kyHoc, tenMonHoc) {
     const conn = await db.getConnection();
 
@@ -311,31 +300,103 @@ class PhanCongModel {
     }
   }
 
-  // LOẠI BỎ EMPTY_WEEK VÀ GV ẢO TRONG BẢNG HIỂN THỊ PHÂN CÔNG
   static async listAssignments(namHoc, kyHoc, maTruong) {
-    const [rows] = await db.execute(`
-      SELECT 
-        k.TenKhoi AS Khoi,
-        gv.BoMon AS TenMonHoc,
-        g.TenGiaoVien,
-        gv.MaLop,
-        l.TenLop,
-        gv.NamHoc,
-        gv.HocKy
-      FROM GVBoMon gv
-      JOIN Lop l ON gv.MaLop = l.MaLop
-      JOIN GiaoVien g ON gv.MaGVBM = g.MaGiaoVien
-      JOIN Khoi k ON l.Khoi = k.MaKhoi
-      WHERE gv.NamHoc = ? 
-        AND gv.HocKy = ? 
-        AND l.MaTruong = ?
-        AND COALESCE(TRIM(gv.BoMon), '') != ''
-        AND gv.BoMon != 'EMPTY_WEEK'
-        AND g.TenGiaoVien != 'GV Ảo'
-      ORDER BY k.TenKhoi, gv.BoMon, g.TenGiaoVien, l.TenLop
-    `, [namHoc, kyHoc, maTruong]);
-    return rows;
+    try {
+      const [rows] = await db.execute(`
+        SELECT 
+          k.TenKhoi AS Khoi,
+          gv.BoMon AS TenMonHoc,
+          COALESCE(g.TenGiaoVien, 'GIÁO VIÊN KHÔNG TỒN TẠI') AS TenGiaoVien,
+          gv.MaGVBM,
+          gv.MaLop,
+          l.TenLop,
+          gv.NamHoc,
+          gv.HocKy
+        FROM GVBoMon gv
+        LEFT JOIN Lop l ON gv.MaLop = l.MaLop
+        LEFT JOIN GiaoVien g ON gv.MaGVBM = g.MaGiaoVien
+        LEFT JOIN Khoi k ON l.Khoi = k.MaKhoi
+        WHERE gv.NamHoc = ? 
+          AND gv.HocKy = ? 
+          AND (l.MaTruong = ? OR l.MaTruong IS NULL)
+        ORDER BY k.TenKhoi, gv.BoMon, g.TenGiaoVien, l.TenLop
+      `, [namHoc, kyHoc, maTruong]);
+
+      console.log(`[MODEL DEBUG] listAssignments - Năm: ${namHoc} | Kỳ: ${kyHoc} | Tổng: ${rows.length} dòng`);
+      return rows;
+    } catch (err) {
+      console.error('[MODEL ERROR] listAssignments:', err);
+      throw err;
+    }
   }
+
+static async checkTKBExists(maGVBM, maLop) {
+  const [rows] = await db.execute(`
+    SELECT COUNT(*) as count
+    FROM ThoiKhoaBieu
+    WHERE MaGiaoVien = ? 
+      AND MaLop = ?
+  `, [maGVBM, maLop]);
+  
+  const count = rows[0]?.count || 0;
+  console.log(`[CHECK TKB] GV ${maGVBM} - Lớp ${maLop}: ${count} tiết`);
+  return count > 0;
+}
+
+ // Hàm xóa phân công bộ môn - KHÔNG xóa TKB, chỉ xóa GVBoMon nếu không có ràng buộc
+static async deleteBoMonAssign(maGVBM, maLop, tenMonHoc, namHoc, kyHoc) {
+  const conn = await db.getConnection();
+  
+  try {
+    await conn.beginTransaction();
+    
+    console.log('=== KIỂM TRA & XÓA PHÂN CÔNG BỘ MÔN (THEO LỚP + GIÁO VIÊN + MÔN) ===');
+    console.log('Params:', { maGVBM, maLop, tenMonHoc, namHoc, kyHoc });
+
+    // Bước 1: Kiểm tra ràng buộc thời khóa biểu cho đúng lớp + môn + giáo viên
+    const hasTKB = await this.checkTKBExists(maGVBM, maLop, tenMonHoc, namHoc, kyHoc);
+    
+    if (hasTKB) {
+      await conn.rollback();
+      return { 
+        success: false, 
+        message: `Không thể xóa phân công! Giáo viên này đã có lịch dạy môn ${tenMonHoc} cho lớp ${maLop} trong thời khóa biểu.` 
+      };
+    }
+
+    console.log('→ Không tìm thấy lịch dạy nào → cho phép xóa phân công');
+
+    // Bước 2: Xóa dòng phân công trong GVBoMon
+    const [result] = await conn.execute(`
+      DELETE FROM GVBoMon 
+      WHERE MaGVBM = ? 
+        AND MaLop = ? 
+        AND BoMon = ? 
+        AND NamHoc = ? 
+        AND HocKy = ?
+    `, [maGVBM, maLop, tenMonHoc, namHoc, kyHoc]);
+
+    if (result.affectedRows === 0) {
+      await conn.rollback();
+      return { success: false, message: 'Không tìm thấy phân công để xóa (có thể đã bị xóa trước đó)' };
+    }
+
+    await conn.commit();
+    console.log(`=== XÓA THÀNH CÔNG ${result.affectedRows} dòng phân công ===`);
+    
+    return { 
+      success: true, 
+      message: 'Xóa phân công bộ môn thành công! (Không ảnh hưởng đến thời khóa biểu)' 
+    };
+
+  } catch (err) {
+    await conn.rollback();
+    console.error('Lỗi xóa phân công bộ môn:', err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
 }
 
 module.exports = PhanCongModel;

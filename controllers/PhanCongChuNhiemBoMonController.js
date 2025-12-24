@@ -1,4 +1,3 @@
-// controllers/PhanCongChuNhiemBoMonController.js
 const PhanCongModel = require('../models/PhanCongChuNhiemBoMonModel');
 
 class PhanCongController {
@@ -72,12 +71,10 @@ class PhanCongController {
       if (!MaLop || !NamHoc || !MaGVCN)
         return res.status(400).json({ success: false, message: "Thiếu dữ liệu" });
 
-      // Check học kỳ
       const status = await PhanCongModel.getHocKyStatus(NamHoc, KyHoc || '1');
       if (status === "Kết thúc")
         return res.status(400).json({ success: false, message: "Kỳ học đã kết thúc, không thể phân công" });
 
-      // Verify teacher and class exist with maTruong
       const [gvRows] = await global.db.execute('SELECT MaGiaoVien FROM GiaoVien WHERE MaGiaoVien = ? AND MaTruong = ?', [MaGVCN, maTruong]);
       if (!gvRows.length)
         return res.status(400).json({ success: false, message: "Giáo viên không tồn tại hoặc không thuộc trường" });
@@ -91,7 +88,7 @@ class PhanCongController {
 
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false, message: "Lỗi khi phân công: " + (err && err.message ? err.message : String(err)) });
+      res.status(500).json({ success: false, message: "Lỗi khi phân công: " + (err?.message || String(err)) });
     }
   }
 
@@ -234,9 +231,6 @@ class PhanCongController {
     }
   }
 
-  // controllers/PhanCongChuNhiemBoMonController.js
-// ... (giữ nguyên toàn bộ các hàm khác như bạn đã có)
-
   async assignBoMon(req, res) {
     try {
       const { MaGiaoVien, ClassList, NamHoc, KyHoc, TenMonHoc } = req.body;
@@ -254,22 +248,6 @@ class PhanCongController {
       if (status === "Kết thúc")
         return res.status(400).json({ success: false, message: "Kỳ học đã kết thúc, không thể phân công" });
 
-      // KIỂM TRA ĐỊNH MỨC DUY NHẤT TẠI ĐÂY
-      const checkRes = await fetch(`http://localhost:5000/api/phancongchunhiembomon/check-assign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ MaGiaoVien, ClassList, NamHoc, KyHoc, TenMonHoc })
-      });
-      const check = await checkRes.json();
-
-      if (!check.canAssign) {
-        return res.json({
-          success: false,
-          message: `Vượt định mức 30 tiết (hiện tại ${check.currentLoad} + thêm ${check.addedLoad})`
-        });
-      }
-
-      // Verify...
       const [gvRows] = await global.db.execute('SELECT MaGiaoVien FROM GiaoVien WHERE MaGiaoVien = ? AND MaTruong = ?', [MaGiaoVien, maTruong]);
       if (!gvRows.length)
         return res.status(400).json({ success: false, message: "Giáo viên không tồn tại hoặc không thuộc trường" });
@@ -297,8 +275,6 @@ class PhanCongController {
     }
   }
 
-// ... (giữ nguyên các hàm khác)
-
   async deleteChunhiem(req, res) {
     try {
       const { MaLop, NamHoc } = req.body;
@@ -306,7 +282,6 @@ class PhanCongController {
       if (!MaLop || !NamHoc)
         return res.status(400).json({ success: false, message: "Thiếu dữ liệu" });
 
-      // Verify class with maTruong
       const [lopRows] = await global.db.execute('SELECT MaLop FROM Lop WHERE MaLop = ? AND MaTruong = ?', [MaLop, maTruong]);
       if (!lopRows.length)
         return res.status(400).json({ success: false, message: "Lớp không tồn tại hoặc không thuộc trường" });
@@ -316,7 +291,7 @@ class PhanCongController {
 
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false, message: "Lỗi khi xóa: " + (err && err.message ? err.message : String(err)) });
+      res.status(500).json({ success: false, message: "Lỗi khi xóa: " + (err?.message || String(err)) });
     }
   }
 
@@ -332,52 +307,53 @@ class PhanCongController {
     }
   }
 
-  async deleteBoMonAssign(req, res) {
-    try {
-      const { MaLop, MaGiaoVien, TenMonHoc, NamHoc, KyHoc } = req.body;
-      const maTruong = req.session.user.maTruong;
+// ... (giữ nguyên tất cả hàm cũ)
 
-      if (!MaLop || !MaGiaoVien || !TenMonHoc || !NamHoc || !KyHoc) {
-        return res.status(400).json({ success: false, message: "Thiếu dữ liệu xóa" });
-      }
+async deleteBoMonAssign(req, res) {
+  try {
+    const { MaGVBM, MaLop, TenMonHoc, NamHoc, KyHoc } = req.body;
+    const maTruong = req.session.user.maTruong;
 
-      const [gvRows] = await global.db.execute(
-        `SELECT MaGiaoVien FROM GiaoVien WHERE TenGiaoVien = ? AND MaTruong = ?`, [MaGiaoVien, maTruong]
-      );
-      if (!gvRows.length) {
-        return res.status(400).json({ success: false, message: "Không tìm thấy giáo viên hoặc không thuộc trường" });
-      }
-      const MaGV = gvRows[0].MaGiaoVien;
+    console.log('=== YÊU CẦU XÓA PHÂN CÔNG BỘ MÔN (KIỂM TRA THEO LỚP) ===');
+    console.log('Params nhận được:', { MaGVBM, MaLop, TenMonHoc, NamHoc, KyHoc });
 
-      const [lopRows] = await global.db.execute(
-        `SELECT MaLop FROM Lop WHERE MaLop = ? AND MaTruong = ?`, [MaLop, maTruong]
-      );
-      if (!lopRows.length) {
-        return res.status(400).json({ success: false, message: "Không tìm thấy lớp hoặc không thuộc trường" });
-      }
-
-      // Xóa ThoiKhoaBieu trước để tránh foreign key constraint
-      await global.db.execute(`
-        DELETE FROM ThoiKhoaBieu
-        WHERE MaGiaoVien = ? AND MaLop = ? AND TenMonHoc = ? AND NamHoc = ? AND KyHoc = ?
-      `, [MaGV, MaLop, TenMonHoc, NamHoc, KyHoc]);
-
-      const [del] = await global.db.execute(`
-        DELETE FROM GVBoMon 
-        WHERE MaGVBM = ? AND MaLop = ? AND BoMon = ? AND NamHoc = ? AND HocKy = ?
-      `, [MaGV, MaLop, TenMonHoc, NamHoc, KyHoc]);
-
-      if (del.affectedRows === 0) {
-        return res.json({ success: false, message: "Không tìm thấy phân công để xóa" });
-      }
-
-      res.json({ success: true, message: "Xóa phân công thành công" });
-    } catch (err) {
-      console.error('deleteBoMonAssign error:', err);
-      res.status(500).json({ success: false, message: "Lỗi khi xóa: " + err.message });
+    if (!MaGVBM || !MaLop || !TenMonHoc || !NamHoc || !KyHoc) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Thiếu thông tin bắt buộc: Mã GV, Mã lớp, Môn, Năm học, Học kỳ" 
+      });
     }
-  }
 
+    // Kiểm tra quyền sở hữu
+    const [gvCheck] = await global.db.execute(
+      'SELECT 1 FROM GiaoVien WHERE MaGiaoVien = ? AND MaTruong = ?', 
+      [MaGVBM, maTruong]
+    );
+    if (!gvCheck.length) {
+      return res.status(403).json({ success: false, message: "Giáo viên không thuộc trường của bạn" });
+    }
+
+    const [lopCheck] = await global.db.execute(
+      'SELECT 1 FROM Lop WHERE MaLop = ? AND MaTruong = ?', 
+      [MaLop, maTruong]
+    );
+    if (!lopCheck.length) {
+      return res.status(403).json({ success: false, message: "Lớp không thuộc trường của bạn" });
+    }
+
+    // Gọi model để kiểm tra + xóa
+    const result = await PhanCongModel.deleteBoMonAssign(MaGVBM, MaLop, TenMonHoc, NamHoc, KyHoc);
+
+    res.json(result);
+
+  } catch (err) {
+    console.error('Lỗi controller deleteBoMonAssign:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: "Lỗi hệ thống khi xóa phân công: " + (err.message || 'Không xác định') 
+    });
+  }
+}
 }
 
 module.exports = new PhanCongController();
