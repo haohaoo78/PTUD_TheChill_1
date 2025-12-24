@@ -51,7 +51,6 @@ INSERT INTO Lop (MaLop, TenLop, MaToHop, TrangThai, Khoi, SiSo, MaTruong) VALUES
 ('L08','12A1','TH01','Đang học','K03',35,'T01'),
 ('L09','12B1','TH02','Đang học','K03',32,'T02');
 
-
 -- GiaoVien (đã chỉnh TrinhDoChuyenMon chi tiết hơn)
 INSERT INTO GiaoVien
 (MaGiaoVien, TenGiaoVien, GioiTinh, NgaySinh, Email, SDT, TrinhDoChuyenMon, DiaChi,
@@ -76,8 +75,6 @@ VALUES
 ('GV000','GV Ảo','Nam','2000-01-01','gv.ao@example.com','0000000000',
  'Cử nhân Sư phạm Tổng hợp – Dữ liệu hệ thống',
  'HCM','2025-09-01','Đang công tác','EMPTY_WEEK','Độc thân','Giáo viên','0 năm','T01');
-
-
 -- HieuTruong
 INSERT INTO HieuTruong (MaHieuTruong, TenHieuTruong, NgaySinh, GioiTinh, Email, SDT, NgayNhanChuc, DiaChi, GhiChu, ThoiGianCongTac, MaTruong)
 VALUES
@@ -381,31 +378,6 @@ INSERT IGNORE INTO KetQuaTuyenSinh (MaThiSinh, NguyenVongTrungTuyen, KhoaHoc, Ti
 ('TS029',NULL,'2025-2026','Chờ xét',38.81045625376829,NULL),
 ('TS030',NULL,'2025-2028','Chờ xét',39.285659462627336,NULL);
 
-INSERT IGNORE INTO ChiTieu (ChiTieu, NamThi, NgayLap, MaTruong, SoLuongCT, MaToHop) VALUES
-('CT001','2025','2025-09-01 10:00:00','T01',2,'TH01'),
-('CT002','2025','2025-09-01 10:00:00','T01',1,'TH02'),
-('CT003','2025','2025-09-02 10:00:00','T02',3,'TH01'),
-('CT004','2025','2025-09-02 10:00:00','T02',2,'TH02'),
-('CT005','2025','2025-09-02 10:00:00','T03',1,'TH01'),
-('CT006','2026','2025-09-02 10:00:00','T02',600,'TH02'),
-('CT007','2025','2025-09-03 10:00:00','T03',2,'TH02'),
-('CT008','2025','2027-09-01 10:00:00','T04',4,'TH01'),
-('CT009','2025','2027-09-01 10:00:00','T05',3,'TH02'),
-('CT010','2025','2025-09-03 10:00:00','T01',1,'TH03');
--- ChiTieu
-INSERT IGNORE INTO ChiTieu (ChiTieu, NamThi, NgayLap, MaTruong, SoLuongCT, MaToHop) VALUES
-('CT011','2025','2027-09-01 10:00:00','T03',3,'TH02'),
-('CT012','2025','2025-09-02 10:00:00','T04',2,'TH03'),
-('CT013','2025','2025-09-02 10:00:00','T04',4,'TH03'),
-('CT014','2025','2025-09-04 10:00:00','T04',2,'TH01'),
-('CT015','2025','2027-09-03 10:00:00','T05',4,'TH03'),
-('CT016','2026','2026-09-04 10:00:00','T04',4,'TH02'),
-('CT017','2026','2026-09-04 10:00:00','T05',1,'TH04'),
-('CT018','2026','2027-09-01 10:00:00','T02',4,'TH02'),
-('CT019','2026','2027-09-01 10:00:00','T03',1,'TH03'),
-('CT020','2025','2027-09-04 10:00:00','T02',4,'TH01');
-
-
 -- HocBa
 INSERT INTO HocBa (MaHocSinh, NamHoc, HocKy, HanhKiem, HocLuc, DiemTongKet, NhanXet, RenLuyen) VALUES
 ('HS001','2025-2026','1','Tốt','Giỏi',9.0,'Học sinh chăm ngoan, tích cực','Xuất sắc'),
@@ -434,6 +406,8 @@ VALUES
 ('GVU03','Le Van J','Nam','1990-01-15','gvu3@gmail.com','0912000003','789 Đường C, HCM','2017-07-10','Đang công tác','T01');
 
 update thoikhoabieu
-set Ngay = "2025-12-22"
+set Ngay = "2025-12-25"
 where MaLop = "L01";
+
+
 
