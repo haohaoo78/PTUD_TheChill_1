@@ -1,41 +1,113 @@
-<link rel="stylesheet" href="/css/XemThoiKhoaBieu.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="/css/ThoiKhoaBieu.css"> <!-- Reuse CSS từ lập TKB -->
+<section class="content">
+  <h2>Xem Thời Khóa Biểu</h2>
+  <div id="toast-message"></div> <!-- Toast giống lập TKB -->
 
-<div class="tkb-container">
-    <div class="tkb-header">
-        <h2>Thời Khóa Biểu Cá Nhân</h2>
-        <p id="student-info">Đang tải thông tin...</p>
+  <div class="controls">
+    <form id="filter-form">
+      <label>Năm học:
+        <select name="NamHoc" id="NamHoc">
+          <option value="">--Chọn năm học--</option>
+          <% namHocList.forEach(nh=>{ %>
+            <option value="<%= nh %>" <%= nh===selectedNamHoc?'selected':'' %>><%= nh %></option>
+          <% }) %>
+        </select>
+      </label>
 
-        <div class="week-navigation">
-            <button id="btn-prev" class="nav-btn"><i class="fa-solid fa-chevron-left"></i> Tuần trước</button>
-            
-            <div class="current-week-display">
-                <span id="week-display-text">Đang tải...</span>
-                <button id="btn-today" class="today-btn">Về tuần hiện tại</button>
-            </div>
+      <label>Học kỳ:
+        <select name="KyHoc" id="KyHoc">
+          <option value="">--Chọn học kỳ--</option>
+          <% kyHocList.forEach(ky => { %>
+            <option value="<%= ky %>" <%= ky===selectedKyHoc?'selected':'' %>><%= ky %></option>
+          <% }) %>
+        </select>
+      </label>
 
-            <button id="btn-next" class="nav-btn">Tuần sau <i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-    </div>
+      <label>Tuần:
+        <select name="LoaiTKB" id="LoaiTKB">
+          <% for(let w=1; w<=20; w++){ %>
+            <option value="Tuan<%= w %>" <%= selectedLoaiTKB==='Tuan'+w?'selected':'' %>>Tuần <%= w %></option>
+          <% } %>
+        </select>
+      </label>
 
-    <div class="table-responsive">
-    <table class="tkb-table">
-        <thead>
-            <tr>
-                <th style="width: 80px;">Tiết / Thứ</th>
-                <th>Thứ 2<br><span class="header-date" id="th-date-2"></span></th>
-                <th>Thứ 3<br><span class="header-date" id="th-date-3"></span></th>
-                <th>Thứ 4<br><span class="header-date" id="th-date-4"></span></th>
-                <th>Thứ 5<br><span class="header-date" id="th-date-5"></span></th>
-                <th>Thứ 6<br><span class="header-date" id="th-date-6"></span></th>
-                <th>Thứ 7<br><span class="header-date" id="th-date-7"></span></th>
-                <th>Chủ Nhật<br><span class="header-date" id="th-date-8"></span></th>
-            </tr>
-        </thead>
-        <tbody id="tkb-body">
-            </tbody>
-    </table>
-</div>
-</div>
+      <input type="hidden" id="NamHocStart" name="NamHocStart" value="<%= selectedNamHocStart %>">
+
+      <button class="btn show-btn" type="submit">Xem TKB</button>
+    </form>
+  </div>
+
+  <div class="note">
+    <strong>Lưu ý:</strong> 
+    <ul style="margin: 5px 0; padding-left: 20px;">
+      <li>Vui lòng chọn năm học, học kỳ và tuần để xem thời khóa biểu.</li>
+      <li>Nếu tuần chưa có dữ liệu riêng, hệ thống sẽ hiển thị TKB chuẩn.</li>
+    </ul>
+  </div>
+
+  <div id="timetable-container">
+    <table id="timetable-table"></table>
+  </div>
+</section>
+
+<style>
+  /* Reuse style từ lập TKB, bỏ phần warning/conflict */
+  .note {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 14px;
+  }
+  
+  .note strong {
+    color: #856404;
+  }
+  
+  .note ul {
+    color: #856404;
+  }
+  
+  #toast-message {
+    position: fixed;
+    top: 135px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    display: none;
+  }
+  
+  #toast-message.success {
+    background: #28a745;
+  }
+  
+  #toast-message.error {
+    background: #dc3545;
+  }
+  
+  #toast-message.warn {
+    background: #ff9800;
+  }
+  
+  #toast-message.info {
+    background: #17a2b8;
+  }
+  
+  /* Style cho cell text */
+  .subject {
+    font-weight: bold;
+  }
+  
+  .teacher {
+    font-size: 12px;
+    color: #666;
+  }
+</style>
 
 <script src="/js/XemThoiKhoaBieu.js"></script>
