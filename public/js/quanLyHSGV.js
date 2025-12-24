@@ -3,6 +3,43 @@
   if (window.quanLyHSGVInitialized) return;
   window.quanLyHSGVInitialized = false;
   console.log('quanLyHSGV.js loaded');
+
+  // ========================
+  // HÀM TOAST THÔNG BÁO ĐẸP
+  // ========================
+  function showToast(message, type = 'error') {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      padding: 14px 28px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      background: ${type === 'success' ? '#28a745' : '#dc3545'};
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      min-width: 300px;
+      max-width: 600px;
+      text-align: center;
+      animation: slideIn 0.4s ease;
+      transition: opacity 0.4s, transform 0.4s;
+      word-wrap: break-word;
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-20px)';
+      setTimeout(() => toast.remove(), 400);
+    }, 5000);
+  }
+
   // ======== CHUYỂN GIỮA HS / GV =========
   const hsSection = document.getElementById('hs-section');
   const gvSection = document.getElementById('gv-section');
@@ -20,30 +57,33 @@
     btnGV.classList.add('active');
     btnHS.classList.remove('active');
   });
+
   // ======== MODAL HS =========
   const modalHS = document.getElementById('modal-hs');
   const modalHSFields = document.getElementById('modal-hs-fields');
   const modalHSForm = document.getElementById('modal-hs-form');
   const modalHSClose = document.getElementById('modal-hs-close');
+
   async function openModalHS(data = null) {
     const isEdit = !!data;
     modalHS.style.display = 'flex';
     document.getElementById('modal-hs-title').innerText = isEdit ? 'Sửa Học sinh' : 'Thêm Học sinh';
     document.getElementById('modal-hs-id').value = data?.MaHocSinh || '';
     modalHSForm.dataset.isEdit = isEdit;
-    // Load namHoc for KhoaHoc
+
     const namHocRes = await fetch('/api/quanlygiaovien_hocsinh/namhoc');
     const namHocData = await namHocRes.json();
     const namHocOptions = namHocData.success ? namHocData.data.map(n => `<option value="${n.NamHoc}" ${data?.KhoaHoc === n.NamHoc ? 'selected' : ''}>${n.NamHoc}</option>`).join('') : '';
-    // Load khoi
+
     const khoiRes = await fetch('/api/quanlygiaovien_hocsinh/khoi');
     const khoiData = await khoiRes.json();
     const khoiOptions = khoiData.success ? khoiData.data.map(k => `<option value="${k.MaKhoi}" ${data?.MaKhoi === k.MaKhoi ? 'selected' : ''}>${k.TenKhoi}</option>`).join('') : '';
-    // Load lop based on maKhoi
+
     const maKhoi = data?.MaKhoi || '';
     const classRes = await fetch(`/api/quanlygiaovien_hocsinh/lop?makhoi=${maKhoi}`);
     const classData = await classRes.json();
     const classOptions = classData.success ? classData.data.map(l => `<option value="${l.MaLop}" ${data?.MaLop === l.MaLop ? 'selected' : ''}>${l.TenLop}</option>`).join('') : '';
+
     modalHSFields.innerHTML = `
       <label>Mã học sinh:</label>
       <input type="text" id="modal-hs-mahs" value="${data?.MaHocSinh || ''}" ${isEdit ? 'disabled' : ''}>
@@ -77,7 +117,7 @@
         <option ${data?.TrangThai === 'Nghỉ học' ? 'selected' : ''}>Nghỉ học</option>
       </select>
     `;
-    // Add listener for khoi change to load lop
+
     document.getElementById('modal-hs-khoi').addEventListener('change', async e => {
       const maKhoi = e.target.value;
       const res = await fetch(`/api/quanlygiaovien_hocsinh/lop?makhoi=${maKhoi}`);
@@ -85,29 +125,34 @@
       const options = data.success ? data.data.map(l => `<option value="${l.MaLop}">${l.TenLop}</option>`).join('') : '';
       document.getElementById('modal-hs-lop').innerHTML = '<option value="">-- Chọn lớp --</option>' + options;
     });
+
     if (isEdit) {
       document.getElementById('modal-hs-namhoc').value = data?.KhoaHoc || '';
       document.getElementById('modal-hs-khoi').value = data?.MaKhoi || '';
     }
   }
+
   modalHSClose?.addEventListener('click', () => (modalHS.style.display = 'none'));
+
   modalHSForm?.addEventListener('submit', async e => {
     e.preventDefault();
     const isEdit = modalHSForm.dataset.isEdit === 'true';
     const id = document.getElementById('modal-hs-id').value;
     const payload = {
-      MaHS: isEdit ? undefined : document.getElementById('modal-hs-mahs').value,
-      TenHocSinh: document.getElementById('modal-hs-ten').value || null,
-      Birthday: document.getElementById('modal-hs-ngaysinh').value || null,
-      GioiTinh: document.getElementById('modal-hs-gioitinh').value || null,
-      MaLop: document.getElementById('modal-hs-lop').value || null,
+      MaHS: isEdit ? undefined : document.getElementById('modal-hs-mahs').value?.trim(),
+      TenHocSinh: document.getElementById('modal-hs-ten').value?.trim(),
+      Birthday: document.getElementById('modal-hs-ngaysinh').value,
+      GioiTinh: document.getElementById('modal-hs-gioitinh').value,
+      MaLop: document.getElementById('modal-hs-lop').value,
       TrangThai: document.getElementById('modal-hs-trangthai').value || 'Đang học',
-      KhoaHoc: document.getElementById('modal-hs-namhoc').value || null
+      KhoaHoc: document.getElementById('modal-hs-namhoc').value
     };
+
     if (!payload.TenHocSinh || !payload.Birthday || !payload.GioiTinh || !payload.MaLop || !payload.KhoaHoc || (!isEdit && !payload.MaHS)) {
-      alert('Các trường bắt buộc không được để trống');
+      showToast('Các trường bắt buộc không được để trống');
       return;
     }
+
     try {
       const method = isEdit ? 'PUT' : 'POST';
       const url = isEdit ? `/api/quanlygiaovien_hocsinh/hocsinh/${id}` : `/api/quanlygiaovien_hocsinh/hocsinh`;
@@ -117,39 +162,62 @@
         body: JSON.stringify(payload)
       });
       const result = await res.json();
+
       if (result.success) {
         modalHS.style.display = 'none';
         loadHS();
-      } else alert(result.message || 'Thao tác thất bại');
+        showToast('Thao tác thành công', 'success');
+      } else {
+        let msg = result.message || 'Thao tác thất bại';
+
+        if (msg.includes('Duplicate entry')) {
+          const valueMatch = msg.match(/Duplicate entry '(.*?)'/);
+          const duplicateValue = valueMatch ? valueMatch[1] : 'giá trị';
+
+          if (msg.includes('MaHocSinh')) {
+            showToast(`Mã học sinh "${duplicateValue}" đã tồn tại`);
+          } else {
+            showToast(`Giá trị "${duplicateValue}" đã tồn tại`);
+          }
+        } else {
+          showToast(msg);
+        }
+      }
     } catch (err) {
       console.error(err);
-      alert('Lỗi server');
+      showToast('Lỗi kết nối server');
     }
   });
+
   // ======== MODAL GV =========
   const modalGV = document.getElementById('modal');
   const modalGVFields = document.getElementById('modal-fields');
   const modalGVForm = document.getElementById('modal-form');
   const modalGVClose = document.getElementById('modal-close');
+
   async function openModalGV(data = null) {
     modalGV.style.display = 'flex';
     const isEdit = !!data;
     document.getElementById('modal-title').innerText = isEdit ? 'Sửa Giáo viên' : 'Thêm Giáo viên';
     document.getElementById('modal-id').value = data?.MaGiaoVien || '';
     modalGVForm.dataset.isEdit = isEdit;
+
     const monHocRes = await fetch('/api/quanlygiaovien_hocsinh/monhoc');
     const monHocData = await monHocRes.json();
     const monHocOptions = monHocData.success
       ? monHocData.data.map(m => `<option value="${m}" ${data?.TenMonHoc === m ? 'selected' : ''}>${m}</option>`).join('')
       : '';
+
     const truongRes = await fetch('/api/quanlygiaovien_hocsinh/truong');
     const truongData = await truongRes.json();
     const truongOptions = truongData.success
       ? truongData.data.map(t => `<option value="${t.MaTruong}" ${data?.MaTruong === t.MaTruong ? 'selected' : ''}>${t.TenTruong}</option>`).join('')
       : '';
+
     const truongField = isEdit
       ? `<div><label>Trường:</label><select id="modal-matruong"><option value="">-- Chọn trường --</option>${truongOptions}</select></div>`
       : `<div><label>Trường:</label><input type="text" value="${window.currentMaTruong || 'Không xác định'}" disabled></div>`;
+
     modalGVFields.innerHTML = `
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div><label>Mã giáo viên:</label><input type="text" id="modal-magv" value="${data?.MaGiaoVien || ''}" ${isEdit ? 'disabled' : ''}></div>
@@ -170,52 +238,112 @@
       </div>
     `;
   }
+
   modalGVClose?.addEventListener('click', () => (modalGV.style.display = 'none'));
+
+  // ======== SUBMIT GIÁO VIÊN - THỐNG NHẤT THÔNG BÁO CHO CẢ THÊM VÀ SỬA ========
   modalGVForm?.addEventListener('submit', async e => {
     e.preventDefault();
-    const isEdit = modalGVForm.dataset.isEdit === 'true';
-    const MaGiaoVien = document.getElementById('modal-id').value || null;
+
     const payload = {
-      MaGiaoVien: isEdit ? undefined : document.getElementById('modal-magv').value,
-      TenGiaoVien: document.getElementById('modal-ten').value.trim(),
-      NgaySinh: document.getElementById('modal-ngaysinh').value.trim(),
+      MaGiaoVien: modalGVForm.dataset.isEdit === 'true' ? undefined : document.getElementById('modal-magv').value?.trim(),
+      TenGiaoVien: document.getElementById('modal-ten').value?.trim(),
+      NgaySinh: document.getElementById('modal-ngaysinh').value?.trim(),
       GioiTinh: document.getElementById('modal-gioitinh').value,
-      Email: document.getElementById('modal-email').value.trim(),
-      SDT: document.getElementById('modal-sdt').value.trim(),
-      DiaChi: document.getElementById('modal-diachi').value.trim(),
-      NgayVaoTruong: document.getElementById('modal-ngayvaotruong').value.trim(),
+      Email: document.getElementById('modal-email').value?.trim(),
+      SDT: document.getElementById('modal-sdt').value?.trim(),
+      DiaChi: document.getElementById('modal-diachi').value?.trim(),
+      NgayVaoTruong: document.getElementById('modal-ngayvaotruong').value?.trim(),
       TenMonHoc: document.getElementById('modal-bomon').value,
       TrangThai: document.getElementById('modal-trangthai').value,
       TinhTrangHonNhan: document.getElementById('modal-honnhan').value,
-      ChucVu: document.getElementById('modal-chucvu').value.trim(),
-      TrinhDoChuyenMon: document.getElementById('modal-trinhdochuyenmon').value.trim(),
-      ThamNien: document.getElementById('modal-thamnien').value.trim(),
+      ChucVu: document.getElementById('modal-chucvu').value?.trim(),
+      TrinhDoChuyenMon: document.getElementById('modal-trinhdochuyenmon').value?.trim(),
+      ThamNien: document.getElementById('modal-thamnien').value?.trim(),
     };
-    if (isEdit) payload.MaTruong = document.getElementById('modal-matruong').value;
-    for (const key in payload) {
-      if (!payload[key] && key !== 'MaGiaoVien') { alert(`Trường ${key} không được để trống`); return; }
+
+    if (modalGVForm.dataset.isEdit === 'true') {
+      payload.MaTruong = document.getElementById('modal-matruong')?.value;
     }
-    if (!isEdit && !payload.MaGiaoVien) { alert('Mã giáo viên không được để trống'); return; }
+
+    // Kiểm tra bắt buộc
+    const fieldDisplayNames = {
+      TenGiaoVien: 'Họ tên',
+      NgaySinh: 'Ngày sinh',
+      GioiTinh: 'Giới tính',
+      Email: 'Email',
+      SDT: 'SĐT',
+      TrinhDoChuyenMon: 'Trình độ chuyên môn',
+      DiaChi: 'Địa chỉ',
+      NgayVaoTruong: 'Ngày vào trường',
+      TrangThai: 'Trạng thái',
+      TenMonHoc: 'Bộ môn',
+      TinhTrangHonNhan: 'Tình trạng hôn nhân',
+      ChucVu: 'Chức vụ',
+      ThamNien: 'Thâm niên',
+      MaTruong: 'Trường'
+    };
+
+    for (const key in payload) {
+      if (key === 'MaGiaoVien') continue;
+      if (!payload[key]) {
+        const displayName = fieldDisplayNames[key] || key;
+        showToast(`Trường ${displayName} không được để trống`);
+        return;
+      }
+    }
+
+    if (modalGVForm.dataset.isEdit !== 'true' && !payload.MaGiaoVien) {
+      showToast('Trường Mã giáo viên không được để trống');
+      return;
+    }
+
     try {
-      const method = isEdit ? 'PUT' : 'POST';
-      const url = isEdit
-        ? `/api/quanlygiaovien_hocsinh/giaovien/${MaGiaoVien}`
+      const method = modalGVForm.dataset.isEdit === 'true' ? 'PUT' : 'POST';
+      const id = document.getElementById('modal-id').value;
+      const url = modalGVForm.dataset.isEdit === 'true'
+        ? `/api/quanlygiaovien_hocsinh/giaovien/${id}`
         : `/api/quanlygiaovien_hocsinh/giaovien`;
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const result = await res.json();
+
       if (result.success) {
         modalGV.style.display = 'none';
         loadGV();
-      } else alert(result.message || 'Thao tác thất bại');
+        showToast('Thao tác thành công', 'success');
+      } else {
+        let msg = result.message || 'Thao tác thất bại';
+
+        if (msg.includes('Duplicate entry')) {
+          const valueMatch = msg.match(/Duplicate entry '(.*?)'/);
+          const duplicateValue = valueMatch ? valueMatch[1] : 'giá trị';
+          const keyMatch = msg.match(/for key '.*?(\w+)'$/);
+          const fieldKey = keyMatch ? keyMatch[1] : '';
+
+          if (fieldKey === 'SDT') {
+            showToast(`Số điện thoại "${duplicateValue}" đã tồn tại`);
+          } else if (fieldKey === 'Email') {
+            showToast(`Email "${duplicateValue}" đã tồn tại`);
+          } else if (fieldKey === 'MaGiaoVien') {
+            showToast(`Mã giáo viên "${duplicateValue}" đã tồn tại`);
+          } else {
+            showToast(`Giá trị "${duplicateValue}" đã tồn tại`);
+          }
+        } else {
+          showToast(msg);
+        }
+      }
     } catch (err) {
       console.error(err);
-      alert('Lỗi server');
+      showToast('Lỗi kết nối server');
     }
   });
+
   // ======== LOAD HS / GV =========
   async function loadHS(filters = {}) {
     const query = new URLSearchParams(filters).toString();
@@ -237,6 +365,7 @@
         </td>
       </tr>`).join('');
   }
+
   async function loadGV(filters = {}) {
     const query = new URLSearchParams({ ...filters, trangThai: 'Đang công tác' }).toString();
     const res = await fetch(`/api/quanlygiaovien_hocsinh/giaovien?${query}`);
@@ -258,9 +387,21 @@
         </td>
       </tr>`).join('');
   }
+
   // ======== XÓA =========
-  window.deleteHS = async id => { if (confirm('Xóa học sinh này?')) { await fetch(`/api/quanlygiaovien_hocsinh/hocsinh/${id}`, { method:'DELETE' }); loadHS(); } };
-  window.deleteGV = async id => { if (confirm('Xóa giáo viên này?')) { await fetch(`/api/quanlygiaovien_hocsinh/giaovien/${id}`, { method:'DELETE' }); loadGV(); } };
+  window.deleteHS = async id => { 
+    if (confirm('Xóa học sinh này?')) { 
+      await fetch(`/api/quanlygiaovien_hocsinh/hocsinh/${id}`, { method:'DELETE' }); 
+      loadHS(); 
+    } 
+  };
+  window.deleteGV = async id => { 
+    if (confirm('Xóa giáo viên này?')) { 
+      await fetch(`/api/quanlygiaovien_hocsinh/giaovien/${id}`, { method:'DELETE' }); 
+      loadGV(); 
+    } 
+  };
+
   // ======== FILTER =========
   async function loadNamHoc() {
     const res = await fetch('/api/quanlygiaovien_hocsinh/namhoc');
@@ -270,6 +411,7 @@
       '<option value="">-- Chọn năm học --</option>' +
       data.data.map(n => `<option value="${n.NamHoc}">${n.NamHoc}</option>`).join('');
   }
+
   async function loadKhoi() {
     const res = await fetch('/api/quanlygiaovien_hocsinh/khoi');
     const data = await res.json();
@@ -278,6 +420,7 @@
       '<option value="">-- Chọn khối --</option>' +
       data.data.map(k => `<option value="${k.MaKhoi}">${k.TenKhoi}</option>`).join('');
   }
+
   async function loadLop(maKhoi = '') {
     const res = await fetch(`/api/quanlygiaovien_hocsinh/lop?makhoi=${maKhoi}`);
     const data = await res.json();
@@ -286,11 +429,13 @@
       '<option value="">-- Chọn lớp --</option>' +
       data.data.map(l => `<option value="${l.MaLop}">${l.TenLop}</option>`).join('');
   }
+
   document.getElementById('filter-khoi-hs')?.addEventListener('change', e => loadLop(e.target.value));
   document.getElementById('btn-xem-hs')?.addEventListener('click', () => {
     const lop = document.getElementById('filter-lop-hs').value;
     loadHS({ lop });
   });
+
   async function loadMonHoc() {
     const res = await fetch('/api/quanlygiaovien_hocsinh/monhoc');
     const data = await res.json();
@@ -299,15 +444,18 @@
       '<option value="">-- Tất cả --</option>' +
       data.data.map(m => `<option value="${m}">${m}</option>`).join('');
   }
+
   document.getElementById('btn-xem-gv')?.addEventListener('click', () => {
     const monHoc = document.getElementById('filter-monhoc-gv').value;
     loadGV({ monHoc });
   });
+
   document.getElementById('btn-them-gv')?.addEventListener('click', () => openModalGV());
+
   // ======== KHỞI TẠO =========
   loadKhoi();
   loadLop();
-  loadHS(); // Chỉ load khi chọn lớp
+  loadHS();
   loadMonHoc();
   loadGV();
 
