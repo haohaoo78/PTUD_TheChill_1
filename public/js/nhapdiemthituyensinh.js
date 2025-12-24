@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
           sum += parseFloat(val) || 0;
         });
 
-        row.querySelector('.tong-diem').textContent = (sum / 4).toFixed(2);
+        row.querySelector('.tong-diem').textContent = (sum).toFixed(2);
         row.querySelector('.save-btn').disabled = !valid;
       });
     });

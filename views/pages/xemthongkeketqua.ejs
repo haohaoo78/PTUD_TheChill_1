@@ -198,7 +198,7 @@ document.getElementById('thongkeForm').addEventListener('submit', async function
             document.getElementById('stats-container').innerHTML = '<p class="text-danger">Lỗi tải dữ liệu.</p>';
         }
     } catch (error) {
-        document.getElementById('stats-container').innerHTML = '<p class="text-danger">Lỗi kết nối.</p>';
+        document.getElementById('stats-container').innerHTML = '<p class="text-danger">Đang tải</p>';
     } finally {
         document.getElementById('loader').style.display = 'none';
     }

@@ -93,9 +93,8 @@
       saveBar.classList.remove('d-none');
       countCandidates.textContent = candidates.length;
 
-    } catch (err) {
-      alert('Lỗi kết nối!');
-    } finally {
+    } 
+    finally {
       loadBtn.disabled = false;
       loadBtn.innerHTML = 'Tải Danh Sách Thí Sinh';
     }
@@ -123,7 +122,7 @@
             <tbody>`;
 
     candidates.forEach(c => {
-      const tong = ((parseFloat(c.Toan||0) + parseFloat(c.Van||0) + parseFloat(c.Anh||0) + parseFloat(c.TuChon||0)) / 4).toFixed(2);
+      const tong = ((parseFloat(c.Toan||0) + parseFloat(c.Van||0) + parseFloat(c.Anh||0) + parseFloat(c.TuChon||0)) ).toFixed(2);
       html += `
         <tr data-id="${c.MaThiSinh}">
           <td class="fw-bold text-primary">${c.MaThiSinh}</td>
@@ -145,7 +144,7 @@
         const row = input.closest('tr');
         let sum = 0;
         row.querySelectorAll('.score').forEach(i => sum += parseFloat(i.value) || 0);
-        row.querySelector('.tong').textContent = (sum / 4).toFixed(2);
+        row.querySelector('.tong').textContent = (sum ).toFixed(2);
       });
     });
   };
