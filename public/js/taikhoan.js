@@ -21,8 +21,10 @@
     document.body.appendChild(toast);
     void toast.offsetWidth;
     toast.classList.add('show');
-    toast.classList.remove('show');
-    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 400);
+    }, 3000);
   }
 
   // =========================
@@ -74,14 +76,12 @@
       LOAI_LIST = [];
     }
 
-    // Fill select filter
     const filterEl = document.getElementById('filter-loai');
     if (filterEl) {
       filterEl.innerHTML = `<option value="">-- Tất cả --</option>` +
         LOAI_LIST.map(l => `<option value="${l}">${roleName(l)}</option>`).join('');
     }
 
-    // Fill modal select
     if (loaiTKInput) {
       loaiTKInput.innerHTML = `<option value="">-- Chọn loại --</option>` +
         LOAI_LIST.map(l => `<option value="${l}">${roleName(l)}</option>`).join('');
@@ -170,7 +170,6 @@
         </tr>
       `).join('');
 
-      // attach events
       tbody.querySelectorAll('.btn-edit').forEach(btn => {
         btn.onclick = () => {
           const id = btn.dataset.id;
@@ -206,7 +205,7 @@
   }
 
   // =========================
-  // 🟤 SUBMIT
+  // 🟤 SUBMIT – ĐÃ CHỈNH SỬA THÔNG BÁO THEO TEST CASE
   // =========================
   modalForm.onsubmit = async (e) => {
     e.preventDefault();
@@ -216,8 +215,9 @@
       password: passwordInput.value
     };
 
+    // Kiểm tra thiếu thông tin bắt buộc → đúng thông báo test case
     if (!payload.ma || !payload.loaiTK || (!editId && !payload.password)) {
-      return showToast('Vui lòng nhập đầy đủ thông tin', 'error');
+      return showToast('Vui lòng điền vào trường này', 'error');
     }
 
     const isEdit = !!editId;
@@ -232,7 +232,14 @@
         body: JSON.stringify(payload)
       });
       const json = await res.json();
-      showToast(json.message || (json.success ? (isEdit ? 'Cập nhật thành công' : 'Tạo thành công') : 'Lỗi'), json.success ? 'success' : 'error');
+
+      // Ưu tiên message từ server, nếu không có thì dùng mặc định
+      const msg = json.message || (json.success 
+        ? (isEdit ? 'Cập nhật thành công' : 'Tạo tài khoản thành công') 
+        : 'Lỗi');
+      
+      showToast(msg, json.success ? 'success' : 'error');
+
       if (json.success) {
         closeModal();
         loadAccounts();
