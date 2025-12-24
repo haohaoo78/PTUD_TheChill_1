@@ -69,11 +69,17 @@ class PhanCongModel {
     return rows[0] || null;
   }
 
+  // SỬA: Load giáo viên chủ nhiệm khả dụng, loại bỏ GV ảo
   static async getAvailableTeachersForChunhiem(namHoc, maLop, maTruong) {
     let sql = `
       SELECT gv.MaGiaoVien, gv.TenGiaoVien
       FROM GiaoVien gv
-      WHERE gv.TrangThai = 'Đang công tác' AND gv.MaTruong = ?
+      WHERE gv.TrangThai = 'Đang công tác' 
+        AND gv.MaTruong = ?
+        AND gv.TenGiaoVien IS NOT NULL
+        AND TRIM(gv.TenGiaoVien) != ''
+        AND gv.TenGiaoVien NOT LIKE '%Ảo%'
+        AND gv.TenGiaoVien NOT LIKE '%GIÁO VIÊN KHÔNG TỒN TẠI%'
     `;
     const params = [maTruong];
 
@@ -135,11 +141,15 @@ class PhanCongModel {
   // 3. PHÂN CÔNG BỘ MÔN
   // =======================
 
+  // Load danh sách môn, loại bỏ môn EMPTY_WEEK và môn rỗng
   static async getSubjectsByKhoi(maKhoi) {
     const [rows] = await db.execute(`
       SELECT DISTINCT TenMonHoc
       FROM MonHoc
       WHERE Khoi = ?
+        AND TenMonHoc IS NOT NULL
+        AND TRIM(TenMonHoc) != ''
+        AND TenMonHoc != 'EMPTY_WEEK'
       ORDER BY TenMonHoc
     `, [maKhoi]);
     return rows.map(r => r.TenMonHoc);
@@ -300,6 +310,7 @@ class PhanCongModel {
     }
   }
 
+  // SỬA: Loại bỏ môn EMPTY_WEEK, GV ảo trong danh sách phân công
   static async listAssignments(namHoc, kyHoc, maTruong) {
     try {
       const [rows] = await db.execute(`
@@ -319,10 +330,17 @@ class PhanCongModel {
         WHERE gv.NamHoc = ? 
           AND gv.HocKy = ? 
           AND (l.MaTruong = ? OR l.MaTruong IS NULL)
+          AND gv.BoMon IS NOT NULL 
+          AND TRIM(gv.BoMon) != ''
+          AND gv.BoMon != 'EMPTY_WEEK'
+          AND g.TenGiaoVien IS NOT NULL 
+          AND TRIM(g.TenGiaoVien) != ''
+          AND g.TenGiaoVien NOT LIKE '%Ảo%' 
+          AND g.TenGiaoVien NOT LIKE '%GIÁO VIÊN KHÔNG TỒN TẠI%'
         ORDER BY k.TenKhoi, gv.BoMon, g.TenGiaoVien, l.TenLop
       `, [namHoc, kyHoc, maTruong]);
 
-      console.log(`[MODEL DEBUG] listAssignments - Năm: ${namHoc} | Kỳ: ${kyHoc} | Tổng: ${rows.length} dòng`);
+      console.log(`[MODEL DEBUG] listAssignments - Năm: ${namHoc} | Kỳ: ${kyHoc} | Tổng: ${rows.length} dòng (đã lọc GV ảo & môn EMPTY_WEEK)`);
       return rows;
     } catch (err) {
       console.error('[MODEL ERROR] listAssignments:', err);
@@ -330,73 +348,72 @@ class PhanCongModel {
     }
   }
 
-static async checkTKBExists(maGVBM, maLop) {
-  const [rows] = await db.execute(`
-    SELECT COUNT(*) as count
-    FROM ThoiKhoaBieu
-    WHERE MaGiaoVien = ? 
-      AND MaLop = ?
-  `, [maGVBM, maLop]);
-  
-  const count = rows[0]?.count || 0;
-  console.log(`[CHECK TKB] GV ${maGVBM} - Lớp ${maLop}: ${count} tiết`);
-  return count > 0;
-}
-
- // Hàm xóa phân công bộ môn - KHÔNG xóa TKB, chỉ xóa GVBoMon nếu không có ràng buộc
-static async deleteBoMonAssign(maGVBM, maLop, tenMonHoc, namHoc, kyHoc) {
-  const conn = await db.getConnection();
-  
-  try {
-    await conn.beginTransaction();
+  // Hàm kiểm tra TKB chỉ theo GV + Lớp
+  static async checkTKBExists(maGVBM, maLop) {
+    const [rows] = await db.execute(`
+      SELECT COUNT(*) as count
+      FROM ThoiKhoaBieu
+      WHERE MaGiaoVien = ? 
+        AND MaLop = ?
+    `, [maGVBM, maLop]);
     
-    console.log('=== KIỂM TRA & XÓA PHÂN CÔNG BỘ MÔN (THEO LỚP + GIÁO VIÊN + MÔN) ===');
-    console.log('Params:', { maGVBM, maLop, tenMonHoc, namHoc, kyHoc });
-
-    // Bước 1: Kiểm tra ràng buộc thời khóa biểu cho đúng lớp + môn + giáo viên
-    const hasTKB = await this.checkTKBExists(maGVBM, maLop, tenMonHoc, namHoc, kyHoc);
-    
-    if (hasTKB) {
-      await conn.rollback();
-      return { 
-        success: false, 
-        message: `Không thể xóa phân công! Giáo viên này đã có lịch dạy môn ${tenMonHoc} cho lớp ${maLop} trong thời khóa biểu.` 
-      };
-    }
-
-    console.log('→ Không tìm thấy lịch dạy nào → cho phép xóa phân công');
-
-    // Bước 2: Xóa dòng phân công trong GVBoMon
-    const [result] = await conn.execute(`
-      DELETE FROM GVBoMon 
-      WHERE MaGVBM = ? 
-        AND MaLop = ? 
-        AND BoMon = ? 
-        AND NamHoc = ? 
-        AND HocKy = ?
-    `, [maGVBM, maLop, tenMonHoc, namHoc, kyHoc]);
-
-    if (result.affectedRows === 0) {
-      await conn.rollback();
-      return { success: false, message: 'Không tìm thấy phân công để xóa (có thể đã bị xóa trước đó)' };
-    }
-
-    await conn.commit();
-    console.log(`=== XÓA THÀNH CÔNG ${result.affectedRows} dòng phân công ===`);
-    
-    return { 
-      success: true, 
-      message: 'Xóa phân công bộ môn thành công! (Không ảnh hưởng đến thời khóa biểu)' 
-    };
-
-  } catch (err) {
-    await conn.rollback();
-    console.error('Lỗi xóa phân công bộ môn:', err);
-    throw err;
-  } finally {
-    conn.release();
+    const count = rows[0]?.count || 0;
+    console.log(`[CHECK TKB] GV ${maGVBM} - Lớp ${maLop}: ${count} tiết`);
+    return count > 0;
   }
-}
+
+  // Hàm xóa phân công bộ môn - KHÔNG xóa TKB
+  static async deleteBoMonAssign(maGVBM, maLop, tenMonHoc, namHoc, kyHoc) {
+    const conn = await db.getConnection();
+    
+    try {
+      await conn.beginTransaction();
+      
+      console.log('=== KIỂM TRA & XÓA PHÂN CÔNG BỘ MÔN (CHỈ THEO GV + LỚP) ===');
+      console.log('Params:', { maGVBM, maLop, tenMonHoc, namHoc, kyHoc });
+
+      const hasTKB = await this.checkTKBExists(maGVBM, maLop);
+      
+      if (hasTKB) {
+        await conn.rollback();
+        return { 
+          success: false, 
+          message: `Không thể xóa phân công! Giáo viên này vẫn còn lịch dạy ở lớp ${maLop}. Vui lòng xóa hết lịch dạy của giáo viên ở lớp này trước.` 
+        };
+      }
+
+      console.log('→ Không có lịch dạy nào ở lớp này → cho phép xóa phân công');
+
+      const [result] = await conn.execute(`
+        DELETE FROM GVBoMon 
+        WHERE MaGVBM = ? 
+          AND MaLop = ? 
+          AND BoMon = ? 
+          AND NamHoc = ? 
+          AND HocKy = ?
+      `, [maGVBM, maLop, tenMonHoc, namHoc, kyHoc]);
+
+      if (result.affectedRows === 0) {
+        await conn.rollback();
+        return { success: false, message: 'Không tìm thấy phân công để xóa' };
+      }
+
+      await conn.commit();
+      console.log(`=== XÓA THÀNH CÔNG ${result.affectedRows} dòng phân công ===`);
+      
+      return { 
+        success: true, 
+        message: 'Xóa phân công bộ môn thành công! (Không ảnh hưởng đến thời khóa biểu)' 
+      };
+
+    } catch (err) {
+      await conn.rollback();
+      console.error('Lỗi xóa phân công bộ môn:', err);
+      throw err;
+    } finally {
+      conn.release();
+    }
+  }
 }
 
 module.exports = PhanCongModel;
