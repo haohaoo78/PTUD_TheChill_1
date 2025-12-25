@@ -436,3 +436,6 @@ where MaLop = "L01";
 
 
 
+-- 1. Xóa khóa ngoại cũ (nếu có)
+ALTER TABLE ThoiKhoaBieu 
+DROP FOREIGN KEY FK_TKB_GVBM;
